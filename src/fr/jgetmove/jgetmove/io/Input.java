@@ -11,7 +11,7 @@ public class Input {
 
 	BufferedReader reader;
 
-	Input(String filePath){
+	public Input(String filePath){
 		
 		this.filePath = filePath;
 		
