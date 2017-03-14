@@ -10,5 +10,7 @@ public class Main {
         Input inputTime = new Input("assets/testtimeindex.dat");
 
         Database database = new Database(inputObj, inputTime);
+
+        System.out.println(database);
     }
 }

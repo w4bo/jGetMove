@@ -5,7 +5,7 @@ import java.util.HashMap;
 /**
  * Object contenant l'ensemble des clusters dans lequel il est présent.
  */
-public class Transaction {
+class Transaction {
 
     /**
      * id de la transaction
@@ -22,6 +22,7 @@ public class Transaction {
      */
     Transaction(int id) {
         this.id = id;
+        this.clusters = new HashMap<>();
     }
 
     /**
@@ -48,21 +49,26 @@ public class Transaction {
     /**
      * @param cluster ajoute le cluster à la transaction
      */
-    public void add(Cluster cluster) {
+    void add(Cluster cluster) {
         clusters.put(cluster.getId(), cluster);
-    }
-
-    /**
-     * @return l'ensemble des clusters de la transaction
-     */
-    public HashMap<Integer, Cluster> getClusters() {
-        return clusters;
     }
 
     /**
      * @return id de la transaction
      */
-    public int getId() {
+    int getId() {
         return id;
+    }
+
+    /**
+     * @return l'ensemble des clusters de la transaction
+     */
+    HashMap<Integer, Cluster> getClusters() {
+        return clusters;
+    }
+
+    @Override
+    public String toString() {
+        return String.valueOf(clusters.keySet());
     }
 }

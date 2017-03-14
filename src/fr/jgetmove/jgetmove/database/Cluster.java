@@ -5,7 +5,7 @@ import java.util.HashMap;
 /**
  * Regroupement de transactions à un temps donné
  */
-public class Cluster {
+class Cluster {
 
     private int id;
     /**
@@ -16,8 +16,9 @@ public class Cluster {
     /**
      * @param id identifiant du cluster
      */
-    public Cluster(int id) {
+    Cluster(int id) {
         this.id = id;
+        transactions = new HashMap<>();
     }
 
     /**
@@ -25,14 +26,14 @@ public class Cluster {
      *
      * @param transaction la transaction à ajouter
      */
-    public void add(Transaction transaction) {
+    void add(Transaction transaction) {
         transactions.put(transaction.getId(), transaction);
     }
 
     /**
      * @return id du cluster courant
      */
-    public int getId() {
+    int getId() {
         return id;
     }
 
@@ -41,16 +42,12 @@ public class Cluster {
      *
      * @return transaction Ensemble des transactions (HashMap [idTransaction => Transaction])
      */
-    public HashMap<Integer, Transaction> getTransactions() {
+    HashMap<Integer, Transaction> getTransactions() {
         return transactions;
     }
 
-    /**
-     * @param transactions set le transactionset du cluster
-     */
-    public void setTransactions(HashMap<Integer, Transaction> transactions) {
-        this.transactions = transactions;
+    @Override
+    public String toString() {
+        return String.valueOf(transactions.keySet());
     }
-
-
 }
