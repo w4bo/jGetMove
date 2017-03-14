@@ -11,6 +11,5 @@ public class Main{
 
 		Database database = new Database(inputObj,inputTime);
 		System.out.println("Helloktamer");
-
-	}
+    }
 }

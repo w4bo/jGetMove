@@ -6,27 +6,26 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class Input {
-	
-	String filePath;
 
-	BufferedReader reader;
+    private String filePath;
 
-	public Input(String filePath){
-		
-		this.filePath = filePath;
-		
-		try {
-			reader = new BufferedReader(new FileReader(filePath));
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+    private BufferedReader reader;
 
-	public String read() throws IOException{
-		if (reader != null){
-			return reader.readLine();
-		}
-		else return null;
-	}
+    public Input(String filePath) {
+
+        this.filePath = filePath;
+
+        try {
+            reader = new BufferedReader(new FileReader(filePath));
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    public String read() throws IOException {
+        if (reader != null) {
+            return reader.readLine();
+        } else return null;
+    }
 }
