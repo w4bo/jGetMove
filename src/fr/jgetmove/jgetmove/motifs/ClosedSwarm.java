@@ -1,5 +1,5 @@
 package fr.jgetmove.jgetmove.motifs;
 
-public class ClosedSwarm extends Swarm{
+public class ClosedSwarm extends Swarm {
 
 }

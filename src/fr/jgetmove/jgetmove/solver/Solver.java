@@ -1,6 +1,6 @@
 package fr.jgetmove.jgetmove.solver;
 
 
-public class Solver implements ISolver{
+public class Solver implements ISolver {
 
 }

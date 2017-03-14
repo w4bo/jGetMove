@@ -1,6 +1,6 @@
 package fr.jgetmove.jgetmove.strategy;
 
 
-public class Closed extends Strategy{
+public class Closed extends Strategy {
 
 }

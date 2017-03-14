@@ -1,10 +1,15 @@
-class Main(){
-	public static void main(String []args){
+package fr.jgetmove.jgetmove;
 
-		Input inputObj = new Input("");
-		Input inputTime = new Input("");
+import fr.jgetmove.jgetmove.database.Database;
+import fr.jgetmove.jgetmove.io.Input;
 
-		Database database = new Database(inputObj,inputTime);
+class Main {
+    public static void main(String[] args) {
 
-	}
+        Input inputObj = new Input("");
+        Input inputTime = new Input("");
+
+        Database database = new Database(inputObj, inputTime);
+
+    }
 }

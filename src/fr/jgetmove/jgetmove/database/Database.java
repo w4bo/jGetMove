@@ -1,12 +1,14 @@
 package fr.jgetmove.jgetmove.database;
 
 
-public class Database {
-	Input input_obj , input_time;
+import fr.jgetmove.jgetmove.io.Input;
 
-	Database(Input input_obj , Input input_time){
-		
-		
-	}
+public class Database {
+    Input input_obj, input_time;
+
+    public Database(Input input_obj, Input input_time) {
+
+
+    }
 
 }
