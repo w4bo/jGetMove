@@ -1,69 +1,56 @@
 package fr.jgetmove.jgetmove.database;
 
 import java.util.HashMap;
-import java.util.Set;
 
 /**
- * Regroupement de transactions à un temps donné
- *
+ * Regroupement de transactions Ã  un temps donnÃ©
  */
 public class Cluster {
-	
-	private int id;
-	/**
-	 * HashMap contenant idTransaction -> Transaction
-	 */
-	private HashMap <Integer , Transaction> transactions;
-	
+
+    private int id;
     /**
-     * Initialise un nouveau cluster à partir d'un id
-     * @param id 
+     * HashMap contenant idTransaction => Transaction
+     */
+    private HashMap<Integer, Transaction> transactions;
+
+    /**
+     * @param id identifiant du cluster
      */
     public Cluster(int id) {
-    	this.id = id;
+        this.id = id;
     }
-    
+
     /**
      * Ajoute la transaction au HashMap des transactions en fonction de son id
-     * @param Transaction
+     *
+     * @param transaction la transaction Ã  ajouter
      */
-    private void add(Transaction transaction){
-    	transactions.put(transaction.getId(), transaction);
+    public void add(Transaction transaction) {
+        transactions.put(transaction.getId(), transaction);
     }
-   
+
     /**
-     * Retourne l'id du cluster courant
-     * @return id
+     * @return id du cluster courant
      */
-    public int getIdCluster() {
-		return id;
-	}
+    public int getId() {
+        return id;
+    }
 
-	/**
-	 * Set l'idCluster courant à idCluster
-	 * @param id
-	 */
-	public void setIdCluster(int idCluster) {
-		this.id= idCluster;
-	}
-	
-	/**
-	 * Retourne le HashMap des transactions
-	 * @return transaction Ensemble des transactions (HashMap <idTransaction , Transaction>)
-	 */
-	public HashMap<Integer, Transaction> getTransactions() {
-		return transactions;
-	}
+    /**
+     * Retourne le HashMap des transactions
+     *
+     * @return transaction Ensemble des transactions (HashMap [idTransaction => Transaction])
+     */
+    public HashMap<Integer, Transaction> getTransactions() {
+        return transactions;
+    }
 
-	/**
-	 * Set le transactionSet courant
-	 * @param transactions
-	 */
-	public void setTransactions(HashMap<Integer, Transaction> transactions) {
-		this.transactions = transactions;
-	}
+    /**
+     * @param transactions set le transactionset du cluster
+     */
+    public void setTransactions(HashMap<Integer, Transaction> transactions) {
+        this.transactions = transactions;
+    }
 
-    
-   
-    
+
 }

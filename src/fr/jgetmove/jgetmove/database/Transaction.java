@@ -1,40 +1,68 @@
 package fr.jgetmove.jgetmove.database;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 
+/**
+ * Object contenant l'ensemble des clusters dans lequel il est présent.
+ */
 public class Transaction {
 
+    /**
+     * id de la transaction
+     */
     private int id;
-    private ArrayList<Cluster> clusters;
 
+    /**
+     * hashmap contenant (idCluster => Cluster)
+     */
+    private HashMap<Integer, Cluster> clusters;
+
+    /**
+     * @param id identifiant de la transaction
+     */
     Transaction(int id) {
         this.id = id;
     }
 
+    /**
+     * @param id       identifiant de la transaction
+     * @param clusters ensemble des clusters de la transaction
+     */
     Transaction(int id, Cluster[] clusters) {
         this.id = id;
-        for (int i = 0; i < clusters.length; i++) {
-            this.clusters.add(clusters[i]);
+
+        for (Cluster cluster : clusters) {
+            this.clusters.put(cluster.getId(), cluster);
         }
     }
 
-    Transaction(int id, int[] clustersId) {
-        this.id = id;
-        for (int i = 0; i < clustersId.length; i++) {
-            clusters.add(new Cluster(clustersId[i]));
-        }
-    }
-
-    Transaction(int id, ArrayList<Cluster> clusters) {
+    /**
+     * @param id       identifiant de la transaction
+     * @param clusters ensemble des clusters de la transaction
+     */
+    Transaction(int id, HashMap<Integer, Cluster> clusters) {
         this.id = id;
         this.clusters = clusters;
     }
 
-    public void addCluster(Cluster cluster) {
-        clusters.add(cluster);
+    /**
+     * @param cluster ajoute le cluster à la transaction
+     */
+    public void add(Cluster cluster) {
+        clusters.put(cluster.getId(), cluster);
     }
 
-    public void addCluster(int clusterId) {
-        clusters.add(new Cluster(clusterId));
+    /**
+     * @return l'ensemble des clusters de la transaction
+     */
+    public HashMap<Integer, Cluster> getClusters() {
+        return clusters;
+    }
+
+    /**
+     * @return id de la transaction
+     */
+    public int getId() {
+        return id;
     }
 }

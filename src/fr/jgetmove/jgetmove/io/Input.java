@@ -7,13 +7,14 @@ import java.io.IOException;
 
 public class Input {
 
-    private String filePath;
-
     private BufferedReader reader;
 
+    /**
+     * @param filePath
+     */
     public Input(String filePath) {
 
-        this.filePath = filePath;
+        String filePath1 = filePath;
 
         try {
             reader = new BufferedReader(new FileReader(filePath));
@@ -23,9 +24,11 @@ public class Input {
         }
     }
 
-    public String read() throws IOException {
-        if (reader != null) {
-            return reader.readLine();
-        } else return null;
+    /**
+     * @return
+     * @throws IOException
+     */
+    public String readLine() throws IOException {
+        return reader.readLine();
     }
 }
