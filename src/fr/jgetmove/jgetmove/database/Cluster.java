@@ -12,7 +12,11 @@ class Cluster {
      * HashMap contenant idTransaction => Transaction
      */
     private HashMap<Integer, Transaction> transactions;
-
+    /**
+     * Temps associé à un cluster
+     */
+    private Time time;
+    
     /**
      * @param id identifiant du cluster
      */
@@ -33,8 +37,16 @@ class Cluster {
     /**
      * @return id du cluster courant
      */
-    int getId() {
+    public int getId() {
         return id;
+    }
+    
+    /**
+     * Set le temps courant à la valeur time
+     * @param time
+     */
+    public void setTime(Time time){
+    	this.time = time;
     }
 
     /**

@@ -1,5 +1,6 @@
 package fr.jgetmove.jgetmove.database;
 
+import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
 
 import java.io.IOException;
@@ -16,50 +17,98 @@ public class Database {
 
     private HashMap<Integer, Cluster> clusters;
     private HashMap<Integer, Transaction> transactions;
+    private HashMap<Integer , Time> times;
 
     /**
      * @param inputObj  fichier (transactionId [clusterId ...])
      * @param inputTime fichier (timeId clusterId)
+     * @throws IOException 
+     * @throws ClusterNotExistException 
      */
-    public Database(Input inputObj, Input inputTime) {
+    public Database(Input inputObj, Input inputTime) throws IOException, ClusterNotExistException {
         this.inputObj = inputObj;
         this.inputTime = inputTime;
 
         clusters = new HashMap<>();
         transactions = new HashMap<>();
+        times = new HashMap<>();
+        //Initialisation des clusters et transactions
+        initClusterAndTransaction();
+        //Initialisation des temps
+        initTimeAndCluster();
+        
+        
+    }
+    
+    /**
+     * Initialise les HashMap de clusters et transactions 
+     * @throws IOException
+     */
+    private void initClusterAndTransaction() throws IOException{
+    	String line;
+        int transactionId = 0;
+        while ((line = inputObj.readLine()) != null) {
+        	String[] splitLine = line.split("( |\\t)+");
+            Transaction transaction = new Transaction(transactionId);
 
-        try {
-            String line;
-            int transactionId = 0;
-            while ((line = inputObj.readLine()) != null) {
-                String[] splitLine = line.split("( |\\t)+");
+            for (String strClusterId : splitLine) {
+            	int clusterId = Integer.parseInt(strClusterId);
 
-                Transaction transaction = new Transaction(transactionId);
+                Cluster cluster;
 
-                for (String strClusterId : splitLine) {
-                    int clusterId = Integer.parseInt(strClusterId);
-
-                    Cluster cluster;
-
-                    if (clusters.get(clusterId) == null) {
-                        cluster = new Cluster(clusterId);
-                        this.add(cluster);
-
-                    } else {
-                        cluster = clusters.get(clusterId);
-                    }
-
-                    cluster.add(transaction);
-                    transaction.add(cluster);
+                if (clusters.get(clusterId) == null) {
+                	cluster = new Cluster(clusterId);
+                    this.add(cluster);
+                } else {
+                	cluster = clusters.get(clusterId);
                 }
-
-                this.add(transaction);
-
-                transactionId++;
+                cluster.add(transaction);
+                transaction.add(cluster);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+            this.add(transaction);
+
+            transactionId++;
+         }
+      }
+    
+    /**
+     * Initialise la liste des temps ainsi que les clusters associés
+     * @throws IOException
+     * @throws ClusterNotExistException
+     */
+    private void initTimeAndCluster() throws IOException, ClusterNotExistException{
+    	String line;
+    	int timeId;
+    	int clusterId;
+    	
+    	while ((line = inputTime.readLine()) != null){
+    		String[] splitLine = line.split(" ");
+    		if(splitLine.length == 2){ //Check si non malformé
+    			
+    			timeId = Integer.parseInt(splitLine[0]);
+    			clusterId = Integer.parseInt(splitLine[1]);
+    			Time time;
+    			Cluster cluster;
+    			 
+    			//Check si le temps existe
+    			if(times.get(timeId) == null){
+    				time = new Time(timeId);
+    				this.add(time);
+    			}
+    			else time = times.get(timeId);
+    			 
+    			//Check si le cluster existe	 
+    			if(clusters.get(clusterId) == null){
+    				throw new ClusterNotExistException();
+    			}
+    			else {
+    				cluster = clusters.get(clusterId);
+    				cluster.setTime(time);
+    				time.add(cluster);
+    			}
+    		}
+    	}
     }
 
     /**
@@ -74,6 +123,13 @@ public class Database {
      */
     private void add(Transaction transaction) {
         this.transactions.put(transaction.getId(), transaction);
+    }
+    
+    /**
+     * @param time le temps à ajouter à la base
+     */
+    private void add(Time time){
+    	this.times.put(time.getId(), time);
     }
 
     /**
@@ -95,6 +151,7 @@ public class Database {
         String str = "Fichiers :" + inputObj + "; " + inputTime + "\n";
         str += "Clusters :" + clusters + "\n";
         str += "Transactions :" + transactions + "\n";
+        str += "Temps :" + times + "\n";
         return str;
     }
 }
