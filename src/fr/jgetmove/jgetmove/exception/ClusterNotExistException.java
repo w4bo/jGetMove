@@ -1,5 +1,8 @@
 package fr.jgetmove.jgetmove.exception;
 
-public class ClusterNotExistException extends Exception{
+/**
+ * Exception utilisée si le cluster n'existe pas
+ */
+public class ClusterNotExistException extends Exception {
 
 }

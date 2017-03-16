@@ -17,15 +17,10 @@ public class Input {
     /**
      * @param filePath le chemin vers le fichier à lire
      */
-    public Input(String filePath) {
+    public Input(String filePath) throws FileNotFoundException {
         this.filePath = filePath;
+        reader = new BufferedReader(new FileReader(filePath));
 
-        try {
-            reader = new BufferedReader(new FileReader(filePath));
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
     }
 
     /**
