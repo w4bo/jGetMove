@@ -12,7 +12,7 @@ public class Solver implements ISolver {
 	
 	/**
 	 * @param minSupport support minimal
-	 * @param maxPattern nombre maximal de pattern a trouvé
+	 * @param maxPattern nombre maximal de pattern a trouvï¿½
 	 * @param minTime temps minimal
 	 */
 	public Solver(int minSupport, int maxPattern,  int minTime ){
@@ -22,8 +22,8 @@ public class Solver implements ISolver {
 	}
 	
 	/**
-	 * Initialise le solver à partir d'une base de données
-	 * @param database la base de données à analyser
+	 * Initialise le solver ï¿½ partir d'une base de donnï¿½es
+	 * @param database la base de donnï¿½es ï¿½ analyser
 	 */
 	public void initLcm(Database database){
 		
@@ -37,7 +37,7 @@ public class Solver implements ISolver {
 	}
 	
 	/**
-	 * @param database La database à analyser
+	 * @param database La database ï¿½ analyser
 	 * @param itemsets une liste representant les id/itemsets
 	 * @param freqList une liste reprensentant less clusters frequents
 	 */
@@ -54,12 +54,12 @@ public class Solver implements ISolver {
 	}
 
 	/**
-	 * @param database la database à analyser
+	 * @param database la database ï¿½ analyser
 	 * @param itemsets une liste representant les id/itemsets
 	 * @param generatedItemsets une liste reprensentant les itemsetsGenerees
 	 * @param generatedTimeId une liste reprensentant les tempsGenerees
 	 * @param generatedItemId une liste reprensentant les itemGenerees
-	 * @param sizeGenerated la taille des itemsets generées
+	 * @param sizeGenerated la taille des itemsets generï¿½es
 	 */
 	private void GenerateItemset(Database database, Vector<Integer> itemsets,
 			Vector<Vector<Integer>> generatedItemsets, Vector<Vector<Integer>> generatedTimeId,
@@ -108,6 +108,73 @@ public class Solver implements ISolver {
 			for(int i=0; i<posDates.size();i++){
 				sizeGenerated *= posDates.get(i).size();
 			}
+			
+			//initialise the set of generated itemsets
+			for (int itemsetIndex = 0; itemsetIndex < posDates.size(); ++itemsetIndex)
+			{
+				Vector<Integer> itemset = posDates.get(itemsetIndex);
+				Vector<Integer> singleton = new Vector<Integer>();
+				
+				if(itemsetIndex == 0){
+					for(Integer iterator : itemset){
+						singleton.add(iterator);
+						generatedItemsets.add(singleton);
+						singleton.clear(); //OLOL #Yolo		
+					}
+				} else {
+					//OUI
+					Vector<Vector<Integer> > new_results = new Vector<Vector<Integer> >();
+					Vector<Integer> new_result = new Vector<Integer>();
+					for(Vector<Integer> iterator : generatedItemsets){
+						Vector<Integer> result = iterator;
+						for(Integer itItem : itemset){
+							new_result = result;
+							new_result.add(itItem);
+							new_results.add(new_result);
+						}	
+					}
+					generatedItemsets = new_results;
+				}
+			}
+			// Remove the itemsets already existing in the set of transactions
+			int nb = database.getNumberOfTransaction();
+			Vector<Integer> tempo;
+			Vector<Vector<Integer> > CheckedItemsets = new Vector<Vector<Integer> >();
+			Vector<Integer> currentItemsets = new Vector<Integer>();
+			int nbitemsets = 0;
+			boolean insertok;
+			for (int u = 0; u < generatedItemsets.size(); u++){
+				insertok = true;
+				currentItemsets.clear();
+				currentItemsets = generatedItemsets.get(u);
+				for (int i = 0; i < nb ; i++){
+					/*tempo = database.getTransaction(i).itemsets;
+					if(tempo==generatedItemsets.get(u)) {
+						insertok = false; 
+						break;
+					}*/
+					//Probleme avec la ligne 151
+				}
+				if(insertok) {
+					CheckedItemsets.add(currentItemsets);
+					nbitemsets++;
+				}
+			}
+			sizeGenerated=nbitemsets;
+			generatedItemsets.clear();
+		    generatedItemsets=CheckedItemsets;
+		    listOfDates.clear();
+		    for (int l=0;l< sizeGenerated;l++){
+		    	for(int u=0; u<generatedItemsets.get(l).size(); u++){
+		    		for(int i=0; i<itemsets.size();i++){
+		    			if(generatedItemsets.get(l).get(u) == itemsets.get(i)){
+		    				listOfDates.add(times[itemsets.get(i)]);
+		    			}
+		    		}
+		    	}
+		    }
+		    generatedTimeId.add(listOfDates);
+		    generatedItemId.add(clusterId);
 		}	
 	}
 }

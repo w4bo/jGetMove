@@ -161,6 +161,20 @@ public class Database {
     public HashMap<Integer, Transaction> getTransactions() {
         return transactions;
     }
+    
+    /**
+     * @return La transaction de la base à l'index en paramètre
+     */
+    public Transaction getTransaction(int i) {
+        return transactions.get(i);
+    }
+    
+    /**
+     * @return le nombre de Transaction de la base
+     */
+    public int getNumberOfTransaction() {
+    	return transactions.size();
+    }
 
     /**
      * @return l'ensemble des Times de la base
