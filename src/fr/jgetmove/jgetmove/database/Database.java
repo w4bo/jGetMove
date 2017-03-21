@@ -5,6 +5,9 @@ import fr.jgetmove.jgetmove.io.Input;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Contient toutes les structures de données
@@ -110,6 +113,18 @@ public class Database {
                 }
             }
         }
+    }
+    public Set<Integer> getItemset(){
+    	
+    	Set<Integer> itemsets = new TreeSet<Integer>();
+    	
+    	for(Entry<Integer, Transaction> entry : transactions.entrySet()) {
+    		
+    	    itemsets.addAll(entry.getValue().getClusters().keySet());
+      
+    	}
+    	
+    	return itemsets;
     }
 
     /**

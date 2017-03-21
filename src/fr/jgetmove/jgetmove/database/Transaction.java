@@ -5,7 +5,7 @@ import java.util.HashMap;
 /**
  * Object contenant l'ensemble des clusters dans lequel il est présent.
  */
-class Transaction {
+public class Transaction {
 
     /**
      * id de la transaction

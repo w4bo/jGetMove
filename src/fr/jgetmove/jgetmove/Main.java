@@ -3,6 +3,7 @@ package fr.jgetmove.jgetmove;
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
+import fr.jgetmove.jgetmove.solver.Solver;
 
 import java.io.IOException;
 
@@ -15,6 +16,9 @@ public class Main {
 
             Database database = new Database(inputObj, inputTime);
             System.out.println(database);
+            
+            Solver solver = new Solver(0 , 0 , 0);
+            solver.initLcm(database);
 
         } catch (IOException | ClusterNotExistException e) {
             // TODO Auto-generated catch block
