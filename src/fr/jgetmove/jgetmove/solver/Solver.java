@@ -2,8 +2,6 @@ package fr.jgetmove.jgetmove.solver;
 
 import java.util.Set;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
-
 import java.util.ArrayList;
 
 import fr.jgetmove.jgetmove.database.Database;
@@ -62,10 +60,14 @@ public class Solver implements ISolver {
 		System.out.println("SizeGenerated : " + sizeGenerated);
 		
 		for(int nbItemSets=0 ; nbItemSets < generatedItemsets.size() ; nbItemSets++){
+			System.out.println("Test");
 			int core_i = CalcurateCoreI(database, generatedItemsets.get(nbItemSets),freqList);
 			System.out.println("Core_i : " + core_i);
 			
-			lower_bound(new ArrayList<Integer>(totalItem), 0 , totalItem.size() ,core_i);
+			int index = lower_bound(new ArrayList<Integer>(totalItem), 0 , totalItem.size() ,core_i);
+			
+			ArrayList<Integer> freq_i = new ArrayList<Integer>();
+			
 			
 		}
 		
@@ -74,7 +76,7 @@ public class Solver implements ISolver {
 	private int lower_bound(ArrayList<Integer> list, int begin , int end , int bound){
 		
 		int index = begin;
-		while(index < end && list.get(index) <= bound){
+		while(index < end && list.get(index) < bound){
 			index++;
 		}
 		return index;
@@ -116,6 +118,7 @@ public class Solver implements ISolver {
 		
 		if(itemsets.size() == 0){
 			sizeGenerated = 0;
+			generatedItemsets.add(itemsets);
 			return;
 		}
 		else {
