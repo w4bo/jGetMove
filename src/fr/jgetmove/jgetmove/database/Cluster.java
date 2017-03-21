@@ -5,7 +5,7 @@ import java.util.HashMap;
 /**
  * Regroupement de transactions à un temps donné
  */
-class Cluster {
+public class Cluster {
 
     private int id;
     /**
@@ -60,7 +60,7 @@ class Cluster {
      *
      * @return transaction Ensemble des transactions (HashMap [idTransaction => Transaction])
      */
-    HashMap<Integer, Transaction> getTransactions() {
+    public HashMap<Integer, Transaction> getTransactions() {
         return transactions;
     }
 

@@ -3,6 +3,7 @@ package fr.jgetmove.jgetmove.solver;
 import java.util.Set;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import fr.jgetmove.jgetmove.database.Database;
 
@@ -64,23 +65,55 @@ public class Solver implements ISolver {
 			int core_i = CalcurateCoreI(database, generatedItemsets.get(nbItemSets),freqList);
 			System.out.println("Core_i : " + core_i);
 			
-			int index = lower_bound(new ArrayList<Integer>(totalItem), 0 , totalItem.size() ,core_i);
+			int index = lower_bound(new ArrayList<Integer>(totalItem) , core_i);
 			
 			ArrayList<Integer> freq_i = new ArrayList<Integer>();
 			
-			
+			for(int i=index;i<totalItem.size();i++){
+				System.out.println("Total Item : " + totalItem);
+				System.out.println("Index : " + i);
+				System.out.println("Transaction : " + database.getTransactions());
+				if( !((database.getClusters().get(i).getTransactions().size()) >= minSupport) &&
+						Collections.binarySearch(generatedItemsets.get(nbItemSets), i) == 0 ){
+					freq_i.add(i);
+				}
+				
+				ArrayList<Integer> newTransactionList = new ArrayList<Integer>();
+				ArrayList<Integer> q_sets = new ArrayList<Integer>();
+				ArrayList<Integer> newFreqList = new ArrayList<Integer>();
+				
+				for(int j=0; j<freq_i.size();j++){
+					newTransactionList.clear();
+					
+					//if (PPCTest)
+					
+					q_sets.clear();
+					
+					MakeClosure(database,newTransactionList,q_sets,generatedItemsets.get(nbItemSets) , j);
+				}	
+			}
 		}
-		
 	}
 	
-	private int lower_bound(ArrayList<Integer> list, int begin , int end , int bound){
-		
-		int index = begin;
-		while(index < end && list.get(index) < bound){
-			index++;
-		}
-		return index;
-	}
+	 public static int lower_bound(ArrayList<Integer> arr, int key) {
+	        int len = arr.size();
+	        int lo = 0;
+	        int hi = len-1;
+	        int mid = (lo + hi)/2;
+	        while (true) {
+	            boolean cmp = arr.get(mid)<= key;
+	            if (!cmp) {
+	                hi = mid-1;
+	                if (hi < lo)
+	                    return mid;
+	            } else {
+	                lo = mid+1;
+	                if (hi < lo)
+	                    return mid<len-1?mid+1:-1;
+	            }
+	            mid = (lo + hi)/2;
+	        }
+	    }
 
 	private int CalcurateCoreI(Database database, ArrayList<Integer> itemsets, ArrayList<Integer> freqList) {
 		// TODO Auto-generated method stub
@@ -102,6 +135,41 @@ public class Solver implements ISolver {
 			return itemsets.get(0);
 		}
 		return 0;
+	}
+	
+	private void MakeClosure(Database database, ArrayList<Integer> transactionList , ArrayList<Integer> q_sets, ArrayList<Integer> itemSet , int freq){
+		
+		for(int i=0 ; i<itemSet.size();i++){
+			q_sets.add(itemSet.get(i));
+		}
+		q_sets.add(freq);
+		
+		int index = lower_bound(new ArrayList<Integer>(totalItem), freq + 1);
+		
+		for(int i=index ; i<totalItem.size();i++){
+			if(CheckItemInclusion(database, transactionList,i) == true){
+				q_sets.add(i);
+			}
+		}
+	}
+	
+	
+
+	/**
+	 * CheckItemInclusion
+  	 * Check whether item is included in the transactions pointed to transactionList
+	 * @param database la base de données 
+	 * @param transactionList la liste des transactions
+	 * @param item item to find
+	 * @return 
+	 */
+	private boolean CheckItemInclusion(Database database, ArrayList<Integer> transactionList, int item) {
+		// TODO Auto-generated method stub
+		
+		for(int i=0;i<transactionList.size();i++){
+			if(Collections.binarySearch(database.getTransaction(i).getItemsets(), item) == 0) return false;
+		}
+		return true;
 	}
 
 	/**

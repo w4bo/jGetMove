@@ -4,6 +4,7 @@ import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -19,6 +20,7 @@ public class Database {
     private HashMap<Integer, Cluster> clusters;
     private HashMap<Integer, Transaction> transactions;
     private HashMap<Integer, Time> times;
+    private ArrayList<Integer> itemsets;
 
     /**
      * @param inputObj  fichier (transactionId [clusterId ...])
@@ -33,6 +35,7 @@ public class Database {
         clusters = new HashMap<>();
         transactions = new HashMap<>();
         times = new HashMap<>();
+        itemsets = new ArrayList<Integer>();
         //Initialisation des clusters et transactions
         initClusterAndTransaction();
         //Initialisation des temps
@@ -61,6 +64,7 @@ public class Database {
                 if (clusters.get(clusterId) == null) {
                     cluster = new Cluster(clusterId);
                     this.add(cluster);
+                    itemsets.add(clusterId);
                 } else {
                     cluster = clusters.get(clusterId);
                 }
@@ -126,6 +130,14 @@ public class Database {
     	
     	return itemsets;
     }
+    
+    /**
+     * @return l'ensemble des itemsets dans une arrayList
+     */
+    public ArrayList<Integer> getItemsets(){
+		return itemsets;
+    	
+    }
 
     /**
      * @param cluster le cluster à ajouter à la base
@@ -153,6 +165,14 @@ public class Database {
      */
     public HashMap<Integer, Cluster> getClusters() {
         return clusters;
+    }
+    
+    /**
+     * @param i l'index du cluster
+     * @return le cluster poss�dant l'identifiant i
+     */
+    public Cluster getClusters(int i) {
+        return clusters.get(i);
     }
 
     /**
