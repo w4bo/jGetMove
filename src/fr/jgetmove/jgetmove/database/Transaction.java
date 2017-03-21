@@ -1,11 +1,14 @@
 package fr.jgetmove.jgetmove.database;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
  * Object contenant l'ensemble des clusters dans lequel il est présent.
  */
 public class Transaction {
+	
+	private ArrayList<Integer> itemSets;
 
     /**
      * id de la transaction
@@ -23,6 +26,7 @@ public class Transaction {
     Transaction(int id) {
         this.id = id;
         this.clusters = new HashMap<>();
+        itemSets = new ArrayList<Integer>();
     }
 
     /**
@@ -31,9 +35,13 @@ public class Transaction {
      */
     Transaction(int id, Cluster[] clusters) {
         this.id = id;
+        itemSets = new ArrayList<Integer>();
 
         for (Cluster cluster : clusters) {
             this.clusters.put(cluster.getId(), cluster);
+            if(!itemSets.contains(cluster.getId())){
+            	itemSets.add(cluster.getId());
+            }
         }
     }
 
@@ -51,6 +59,9 @@ public class Transaction {
      */
     void add(Cluster cluster) {
         clusters.put(cluster.getId(), cluster);
+        if(!itemSets.contains(cluster.getId())){
+        	itemSets.add(cluster.getId());
+        }
     }
 
     /**
@@ -65,6 +76,10 @@ public class Transaction {
      */
     HashMap<Integer, Cluster> getClusters() {
         return clusters;
+    }
+    
+    public ArrayList<Integer> getItemsets(){
+    	return itemSets;
     }
 
     @Override
