@@ -16,12 +16,11 @@ public class Main {
 
             Database database = new Database(inputObj, inputTime);
             System.out.println(database);
-            
-            Solver solver = new Solver(0 , 0 , 0);
+
+            Solver solver = new Solver(0, 0, 0);
             solver.initLcm(database);
 
         } catch (IOException | ClusterNotExistException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
