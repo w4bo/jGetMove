@@ -4,9 +4,7 @@ import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.TreeSet;
 
 /**
@@ -19,7 +17,10 @@ public class Database {
     private HashMap<Integer, Cluster> clusters;
     private HashMap<Integer, Transaction> transactions;
     private HashMap<Integer, Time> times;
-    private ArrayList<Integer> itemsets;
+
+    private TreeSet<Integer> clusterIdsTree;
+    private TreeSet<Integer> transactionIdsTree;
+    private TreeSet<Integer> timeIdsTree;
 
     /**
      * Initialise Database en fonction des fichiers de données
@@ -36,13 +37,15 @@ public class Database {
         clusters = new HashMap<>();
         transactions = new HashMap<>();
         times = new HashMap<>();
-        itemsets = new ArrayList<>();
+
+        clusterIdsTree = new TreeSet<>();
+        transactionIdsTree = new TreeSet<>();
+        timeIdsTree = new TreeSet<>();
+
         //Initialisation des clusters et transactions
         initClusterAndTransaction();
         //Initialisation des temps
         initTimeAndCluster();
-
-
     }
 
     /**
@@ -65,7 +68,6 @@ public class Database {
                 if (clusters.get(clusterId) == null) {
                     cluster = new Cluster(clusterId);
                     this.add(cluster);
-                    itemsets.add(clusterId);
                 } else {
                     cluster = clusters.get(clusterId);
                 }
@@ -122,45 +124,28 @@ public class Database {
         }
     }
 
-    public Set<Integer> getItemset() {
-        /// nonesense ?
-        Set<Integer> itemsets = new TreeSet<>();
-
-        for (Transaction transaction : transactions.values()) {
-            itemsets.addAll(transaction.getClusterIds());
-
-        }
-
-        return itemsets;
-    }
-
-    /**
-     * @return l'ensemble des itemsets dans une arrayList
-     */
-    public ArrayList<Integer> getItemsets() {
-        return itemsets;
-
-    }
-
     /**
      * @param cluster le cluster à ajouter à la base
      */
     private void add(Cluster cluster) {
-        this.clusters.put(cluster.getId(), cluster);
+        clusters.put(cluster.getId(), cluster);
+        clusterIdsTree.add(cluster.getId());
     }
 
     /**
      * @param transaction la transaction à ajouter à la base
      */
     private void add(Transaction transaction) {
-        this.transactions.put(transaction.getId(), transaction);
+        transactions.put(transaction.getId(), transaction);
+        clusterIdsTree.add(transaction.getId());
     }
 
     /**
      * @param time le temps � ajouter � la base
      */
     private void add(Time time) {
-        this.times.put(time.getId(), time);
+        times.put(time.getId(), time);
+        timeIdsTree.add(time.getId());
     }
 
     /**
@@ -173,15 +158,11 @@ public class Database {
     /**
      * @return l'ensemble des ClustersIds de la base
      */
-    public Set<Integer> getClusterIds() {
-        return clusters.keySet();
+    public TreeSet<Integer> getClusterIds() {
+        return clusterIdsTree;
     }
 
-    /**
-     * @param clusterId l'index du cluster
-     * @return le cluster possèdant l'identifiant clusterId
-     */
-    public Cluster getClusters(int clusterId) {
+    public Cluster getCluster(int clusterId) {
         return clusters.get(clusterId);
     }
 
@@ -192,18 +173,15 @@ public class Database {
         return transactions;
     }
 
+    public TreeSet<Integer> getTransactionIds() {
+        return transactionIdsTree;
+    }
+
     /**
      * @return La transaction de la base à l'index en paramètre
      */
     public Transaction getTransaction(int transactionId) {
         return transactions.get(transactionId);
-    }
-
-    /**
-     * @return le nombre de Transaction de la base
-     */
-    public int getNumberOfTransaction() {
-        return transactions.size();
     }
 
     /**
@@ -213,8 +191,12 @@ public class Database {
         return times;
     }
 
-    public Set<Integer> getTimeIds() {
-        return times.keySet();
+    public TreeSet<Integer> getTimeIds() {
+        return timeIdsTree;
+    }
+
+    public Time getTime(int timeId) {
+        return times.get(timeId);
     }
 
     @Override

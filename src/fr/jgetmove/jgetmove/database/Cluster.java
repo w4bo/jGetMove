@@ -44,7 +44,7 @@ public class Cluster {
     /**
      * @return le Time associé au cluster
      */
-    Time getTime() {
+    public Time getTime() {
         return time;
     }
 
@@ -53,6 +53,10 @@ public class Cluster {
      */
     void setTime(Time time) {
         this.time = time;
+    }
+
+    public int getTimeId() {
+        return time.getId();
     }
 
     /**

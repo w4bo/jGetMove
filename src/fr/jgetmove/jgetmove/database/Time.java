@@ -30,14 +30,14 @@ public class Time {
     /**
      * @return id du temps
      */
-    int getId() {
+    public int getId() {
         return id;
     }
 
     /**
      * @return ensemble des cluster
      */
-    HashMap<Integer, Cluster> getClusters() {
+    public HashMap<Integer, Cluster> getClusters() {
         return clusters;
     }
 
