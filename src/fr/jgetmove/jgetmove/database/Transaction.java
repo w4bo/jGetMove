@@ -1,6 +1,5 @@
 package fr.jgetmove.jgetmove.database;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -66,6 +65,10 @@ public class Transaction {
      */
     public HashMap<Integer, Cluster> getClusters() {
         return clusters;
+    }
+
+    public Cluster getCluster(int clusterId) {
+        return clusters.get(clusterId);
     }
 
     public Set<Integer> getClusterIds() {
