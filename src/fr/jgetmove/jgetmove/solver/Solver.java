@@ -22,8 +22,8 @@ public class Solver implements ISolver {
         this.minTime = minTime;
     }
 
-    private static NavigableSet<Integer> lower_bound(TreeSet<Integer> array, int key) {
-        return array.tailSet(key, false);
+    private static SortedSet<Integer> lower_bound(TreeSet<Integer> array, int key) {
+        return array.tailSet(key);
     }
 
     /**
@@ -68,7 +68,7 @@ public class Solver implements ISolver {
             int calcurateCoreI = CalcurateCoreI(generatedItemset, freqItemset);
             System.out.println("Core_i : " + calcurateCoreI);
 
-            NavigableSet<Integer> lowerBoundSet = lower_bound(database.getClusterIds(), calcurateCoreI);
+            SortedSet<Integer> lowerBoundSet = lower_bound(database.getClusterIds(), calcurateCoreI);
             ArrayList<Integer> freqClusterIds = new ArrayList<>();
 
             for (int clusterId : lowerBoundSet) {
@@ -88,7 +88,7 @@ public class Solver implements ISolver {
                 for (int freqClusterId : freqClusterIds) {
                     newTransactionIds.clear();
 
-                    if (PPCTest(database, generatedItemset, newTransactionIds, freqClusterId, newTransactionIds)) {
+                    if (PPCTest(database, generatedItemset, transactionIds, freqClusterId, newTransactionIds)) {
 
                         qSets.clear();
 
@@ -122,20 +122,44 @@ public class Solver implements ISolver {
     }
 
     private void updateTransactions(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets, int freqClusterId, Set<Integer> newTransactionIds) {
-        // TODO Auto-generated method stub
 
+        for (int transactionId : transactionIds) {
+            Transaction transaction = database.getTransaction(transactionId);
+            boolean canAdd = true;
+            for (int qSetItem : qSets) {
+                if (qSetItem >= freqClusterId && !transaction.getClusterIds().contains(qSetItem)) {
+                    canAdd = false;
+                }
+            }
+
+            if (canAdd) {
+                newTransactionIds.add(transactionId);
+            }
+        }
 
     }
 
-    private boolean PPCTest(Database database, ArrayList<Integer> generatedItemset, Set<Integer> newTransactionIds, int freqClusterId, Set<Integer> newTransactionIds1) {
-        // TODO Auto-generated method stub
+    private boolean PPCTest(Database database, ArrayList<Integer> generatedItemset, Set<Integer> transactionIds, int freqClusterId, Set<Integer> newTransactionIds) {
 
-        return false;
+        // CalcTransactionList
+        for (int transactionId : transactionIds) {
+            Transaction transaction = database.getTransaction(transactionId);
+            if (transaction.getClusterIds().contains(freqClusterId)) {
+                newTransactionIds.add(transactionId);
+            }
+        }
+
+        for (int transactionId : database.getTransactionIds()) {
+            // contains est plus rapide que binary_search
+            if (!generatedItemset.contains(transactionId) &&
+                    CheckItemInclusion(database, newTransactionIds, transactionId)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private int CalcurateCoreI(ArrayList<Integer> itemset, ArrayList<Integer> freqItemset) {
-        // TODO Auto-generated method stub
-
         if (itemset.size() > 0) {
             if (freqItemset.size() > 1) {
                 return freqItemset.get(freqItemset.size() - 2);
@@ -154,7 +178,7 @@ public class Solver implements ISolver {
 
         qSets.add(freq);
 
-        NavigableSet<Integer> lowerBoundSet = lower_bound(database.getClusterIds(), freq + 1);
+        SortedSet<Integer> lowerBoundSet = lower_bound(database.getClusterIds(), freq + 1);
 
         for (int clusterId : lowerBoundSet) {
             if (CheckItemInclusion(database, transactionIds, clusterId)) {
@@ -166,18 +190,16 @@ public class Solver implements ISolver {
 
     /**
      * CheckItemInclusion
-     * Check whether item is included in the transactions pointed to transactions
+     * Check whether clusterId is included in the transactions pointed to transactions
      *
      * @param database       la base de données
      * @param transactionIds la liste des transactions
-     * @param item           item to find
+     * @param clusterId      clusterId to find
      * @return
      */
-    private boolean CheckItemInclusion(Database database, Set<Integer> transactionIds, int item) {
-        // TODO Auto-generated method stub
-
+    private boolean CheckItemInclusion(Database database, Set<Integer> transactionIds, int clusterId) {
         for (int transactionId : transactionIds) {
-            if (database.getTransaction(transactionId).getCluster(item) == null) {
+            if (database.getTransaction(transactionId).getClusterIds().contains(clusterId)) {
                 return false;
             }
         }
