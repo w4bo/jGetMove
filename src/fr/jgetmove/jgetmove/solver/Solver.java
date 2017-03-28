@@ -58,11 +58,14 @@ public class Solver implements ISolver {
         sizeGenerated = 1;
 
         generateItemset(database, itemset, generatedItemsets, generatedTimeIds, generatedClusterIds);
-
+        
+        System.out.println("");
+        System.out.println("LCM Iter New");
         System.out.println("GeneratedItemsets : " + generatedItemsets);
         System.out.println("GeneratedItemId : " + generatedClusterIds);
         System.out.println("GeneratedTimeId : " + generatedTimeIds);
         System.out.println("SizeGenerated : " + sizeGenerated);
+        System.out.println("");
 
         for (ArrayList<Integer> generatedItemset : generatedItemsets) {
             int calcurateCoreI = CalcurateCoreI(generatedItemset, freqItemset);
@@ -76,12 +79,12 @@ public class Solver implements ISolver {
                 System.out.println("Index : " + clusterId);
                 System.out.println("Transaction : " + database.getTransactions());*/
 
-                if (!(((database.getCluster(clusterId).getTransactions().size()) >= minSupport) &&
-                        generatedItemset.contains(clusterId))) {
+                if ((database.getCluster(clusterId).getTransactions().size()) >= minSupport &&
+                        !generatedItemset.contains(clusterId)) {
                     freqClusterIds.add(clusterId);
                 }
 
-                ArrayList<Integer> qSets = new ArrayList<>();
+                ArrayList<Integer> qSets = new ArrayList<Integer>();
 
                 for (int freqClusterId : freqClusterIds) {
                     Set<Integer> newTransactionIds = new HashSet<>();
@@ -97,7 +100,7 @@ public class Solver implements ISolver {
                             Set<Integer> iterTransactionIds = updateTransactions(database, transactionIds, qSets, freqClusterId);
                             newFreqList = updateFreqList(database, transactionIds, qSets, freqItemset, freqClusterId);
 
-                            updateOccurenceDeriver(database, iterTransactionIds);
+                            //updateOccurenceDeriver(database, iterTransactionIds);
                             // itemset -> qSets
                             // transactionIds -> newTransactionIds
                             // freqList -> newFreqlist
@@ -192,7 +195,7 @@ public class Solver implements ISolver {
                 newTransactionIds.add(transactionId);
             }
         }
-
+        System.out.println("newTransactionIds " + newTransactionIds);
         return newTransactionIds;
 
     }
@@ -229,7 +232,15 @@ public class Solver implements ISolver {
     }
 
     private void MakeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets, ArrayList<Integer> itemset, int freq) {
-        qSets.addAll(itemset);
+        System.out.println("");
+        System.out.println("Make Closure");
+    	System.out.println("transactionIds : " + transactionIds);
+    	System.out.println("qSets : " + qSets);
+    	System.out.println("itemset : " + itemset);
+    	System.out.println("freq : " + freq);
+    	System.out.println("");
+    	
+    	qSets.addAll(itemset);
 
         qSets.add(freq);
 
@@ -301,8 +312,8 @@ public class Solver implements ISolver {
             }
         }
 
-
         if (monoCluster) {
+        	generatedItemsets.add(itemset);
             generatedTimeIds.add(listOfTimes);
             generatedClusterIds.add(database.getClusterIds());
             return;
