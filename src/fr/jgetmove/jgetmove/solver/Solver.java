@@ -36,18 +36,18 @@ public class Solver implements ISolver {
         System.out.println("totalItem : " + database.getClusterIds());
 
         ArrayList<Integer> itemsets = new ArrayList<>();
-        ArrayList<Integer> freqList = new ArrayList<>();
+        ArrayList<Integer> freqItemset = new ArrayList<>();
 
         Set<Integer> transactionIds = database.getTransactionIds();
 
-        LcmIterNew(database, itemsets, transactionIds, freqList);
+        LcmIterNew(database, itemsets, transactionIds, freqItemset);
     }
 
     /**
      * @param database       La database à analyser
      * @param itemset        une liste representant les id/itemsets
      * @param transactionIds
-     * @param freqItemset    une liste reprensentant less clusters frequents
+     * @param freqItemset    une liste reprensentant les clusters frequents
      */
     private void LcmIterNew(Database database, ArrayList<Integer> itemset, Set<Integer> transactionIds, ArrayList<Integer> freqItemset) {
 
@@ -81,12 +81,10 @@ public class Solver implements ISolver {
                     freqClusterIds.add(clusterId);
                 }
 
-                Set<Integer> newTransactionIds = new HashSet<>();
                 ArrayList<Integer> qSets = new ArrayList<>();
-                ArrayList<Integer> newFreqList = new ArrayList<>();
 
                 for (int freqClusterId : freqClusterIds) {
-                    newTransactionIds.clear();
+                    Set<Integer> newTransactionIds = new HashSet<>();
 
                     if (PPCTest(database, generatedItemset, transactionIds, freqClusterId, newTransactionIds)) {
                         qSets.clear();
@@ -94,15 +92,16 @@ public class Solver implements ISolver {
                         MakeClosure(database, newTransactionIds, qSets, generatedItemset, freqClusterId);
 
                         if (maxPattern == 0 || qSets.size() <= maxPattern) {
-                            newTransactionIds.clear();
-                            updateTransactions(database, transactionIds, qSets, freqClusterId, newTransactionIds);
-                            updateOccurenceDeriver(database, newTransactionIds);
-                            newFreqList.clear();
-                            updateFreqList(database, transactionIds, qSets, freqItemset, freqClusterId, newFreqList);
+                            ArrayList<Integer> newFreqList;
+
+                            Set<Integer> iterTransactionIds = updateTransactions(database, transactionIds, qSets, freqClusterId);
+                            newFreqList = updateFreqList(database, transactionIds, qSets, freqItemset, freqClusterId);
+
+                            updateOccurenceDeriver(database, iterTransactionIds);
                             // itemset -> qSets
                             // transactionIds -> newTransactionIds
                             // freqList -> newFreqlist
-                            LcmIterNew(database, qSets, newTransactionIds, newFreqList);
+                            LcmIterNew(database, qSets, iterTransactionIds, newFreqList);
 
                         }
                     }
@@ -111,31 +110,59 @@ public class Solver implements ISolver {
         }
     }
 
-    private void updateFreqList(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets, ArrayList<Integer> freqItemset, int freqClusterId, ArrayList<Integer> newFreqList) {
+    /**
+     * @param database
+     * @param transactionIds
+     * @param qSets
+     * @param frequentClusters
+     * @param freqClusterId
+     * @return
+     */
+    private ArrayList<Integer> updateFreqList(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets,
+                                              ArrayList<Integer> frequentClusters, int freqClusterId) {
         //On ajoute les frequences des itemsets de qSets
-        int iter = 0;
-        if (transactionIds.size() > 0) {
-            for (; iter < qSets.size(); iter++) {
-                if (qSets.get(iter) > freqClusterId) break;
-                newFreqList.add(freqItemset.get(iter));
+        ArrayList<Integer> newFrequentClusters = new ArrayList<>();
+
+        int clusterId = 0;
+        if (frequentClusters.size() > 0) {
+            for (; clusterId < qSets.size(); clusterId++) {
+                if (qSets.get(clusterId) >= freqClusterId) break;
+                newFrequentClusters.add(frequentClusters.get(clusterId));
             }
         }
-        //Pour chaque transaction on regarde si l'itemset est present, si il est present freqCount++. Puis on met a jour la liste des frequences
-        for (int qSet : qSets) {
+        // newList = database.getTransactionsId()
+        // pour chaque item de Qset
+        //      pour chaque transaction de newList
+        //          si la transaction contient item
+        //              increment compteur
+        //              ajouter transaction dans newnewList
+        //      ajouter compteur a newFreqlist
+        //      newlist = newnewlist
+        ArrayList<Integer> previousList = new ArrayList<Integer>(transactionIds);
+
+
+        for (; clusterId < qSets.size(); clusterId++) {
+            ArrayList<Integer> lastList = new ArrayList<Integer>();
+
             int freqCount = 0;
 
-            for (int transactionId : transactionIds) {
+            for (int transactionId : previousList) {
                 Transaction transaction = database.getTransaction(transactionId);
 
-                if (transaction.getClusterIds().contains(qSet)) {
+                if (transaction.getClusterIds().contains(qSets.get(clusterId))) {
                     freqCount++;
+                    lastList.add(previousList.get(previousList.get(transactionId)));
                 }
             }
-            newFreqList.add(freqCount);
+            newFrequentClusters.add(freqCount);
+            previousList = lastList;
         }
+
+        return newFrequentClusters;
     }
 
     private void updateOccurenceDeriver(Database database, Set<Integer> newTransactionIds) {
+        //TODO
         for (int transactionId : newTransactionIds) {
             Transaction transaction = database.getTransaction(transactionId);
 
@@ -148,13 +175,15 @@ public class Solver implements ISolver {
 
     }
 
-    private void updateTransactions(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets, int freqClusterId, Set<Integer> newTransactionIds) {
+    private Set<Integer> updateTransactions(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets, int freqClusterId) {
+        Set<Integer> newTransactionIds = new HashSet<>();
+
         for (int transactionId : transactionIds) {
             Transaction transaction = database.getTransaction(transactionId);
             boolean canAdd = true;
 
-            for (int qSetItem : qSets) {
-                if (qSetItem >= freqClusterId && !transaction.getClusterIds().contains(qSetItem)) {
+            for (int qSetClusterId : qSets) {
+                if (qSetClusterId >= freqClusterId && !transaction.getClusterIds().contains(qSetClusterId)) {
                     canAdd = false;
                 }
             }
@@ -163,6 +192,8 @@ public class Solver implements ISolver {
                 newTransactionIds.add(transactionId);
             }
         }
+
+        return newTransactionIds;
 
     }
 
@@ -198,9 +229,7 @@ public class Solver implements ISolver {
     }
 
     private void MakeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets, ArrayList<Integer> itemset, int freq) {
-        for (Integer item : itemset) {
-            qSets.add(item);
-        }
+        qSets.addAll(itemset);
 
         qSets.add(freq);
 

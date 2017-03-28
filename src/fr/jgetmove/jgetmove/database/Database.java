@@ -137,7 +137,7 @@ public class Database {
      */
     private void add(Transaction transaction) {
         transactions.put(transaction.getId(), transaction);
-        clusterIdsTree.add(transaction.getId());
+        transactionIdsTree.add(transaction.getId());
     }
 
     /**
