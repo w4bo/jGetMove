@@ -162,6 +162,20 @@ public class Database {
         return clusterIdsTree;
     }
 
+    /**
+     * Renvoie le Time du cluster
+     *
+     * @param clusterId l'identifiant du cluster
+     * @return
+     */
+    public Time getClusterTime(int clusterId) {
+        return clusters.get(clusterId).getTime();
+    }
+
+    public int getClusterTimeId(int clusterId) {
+        return clusters.get(clusterId).getTimeId();
+    }
+
     public Cluster getCluster(int clusterId) {
         return clusters.get(clusterId);
     }
