@@ -9,9 +9,6 @@ import java.util.*;
 public class Solver implements ISolver {
 
     private int minSupport, maxPattern, minTime;
-
-    private int sizeGenerated;
-
     /**
      * @param minSupport support minimal
      * @param maxPattern nombre maximal de pattern a trouv�
@@ -63,16 +60,16 @@ public class Solver implements ISolver {
         ArrayList<Set<Integer>> generatedTimeIds = new ArrayList<>();
         ArrayList<TreeSet<Integer>> generatedClusterIds = new ArrayList<>();
 
-        sizeGenerated = 1;
+        int [] sizeGenerated = {1};
 
-        generateItemset(database, itemset, generatedClusterArrays, generatedTimeIds, generatedClusterIds);
+        generateItemset(database, itemset, generatedClusterArrays, generatedTimeIds, generatedClusterIds , sizeGenerated);
 
         System.out.println("");
         System.out.println("LCM Iter New");
         System.out.println("GeneratedItemsets : " + generatedClusterArrays);
         System.out.println("GeneratedItemId : " + generatedClusterIds);
         System.out.println("GeneratedTimeId : " + generatedTimeIds);
-        System.out.println("SizeGenerated : " + sizeGenerated);
+        System.out.println("SizeGenerated : " + sizeGenerated[0]);
         System.out.println("");
 
         for (ArrayList<Integer> generatedClusters : generatedClusterArrays) {
@@ -83,25 +80,22 @@ public class Solver implements ISolver {
             ArrayList<Integer> freqClusterIds = new ArrayList<>();
 
             for (int clusterId : lowerBounds) {
-                /*System.out.println("Total Item : " + database.getClusters());
-                System.out.println("Index : " + clusterId);
-                System.out.println("Transaction : " + database.getTransactions());*/
 
                 if ((database.getCluster(clusterId).getTransactions().size()) >= minSupport &&
                         !generatedClusters.contains(clusterId)) {
                     freqClusterIds.add(clusterId);
                 }
-
+              
                 ArrayList<Integer> qSets = new ArrayList<>();
 
                 for (int freqClusterId : freqClusterIds) {
+                	System.out.println("freqClusterId : " + freqClusterIds );
                     Set<Integer> newTransactionIds = new HashSet<>();
 
                     if (PPCTest(database, generatedClusters, transactionIds, freqClusterId, newTransactionIds)) {
                         qSets.clear();
-
+     
                         MakeClosure(database, newTransactionIds, qSets, generatedClusters, freqClusterId);
-
                         if (maxPattern == 0 || qSets.size() <= maxPattern) {
                             ArrayList<Integer> newFreqList;
 
@@ -203,7 +197,6 @@ public class Solver implements ISolver {
                 newTransactionIds.add(transactionId);
             }
         }
-        System.out.println("newTransactionIds " + newTransactionIds);
         return newTransactionIds;
 
     }
@@ -212,19 +205,21 @@ public class Solver implements ISolver {
         // CalcTransactionList
         for (int transactionId : transactionIds) {
             Transaction transaction = database.getTransaction(transactionId);
-
             if (transaction.getClusterIds().contains(freqClusterId)) {
                 newTransactionIds.add(transactionId);
             }
         }
-
-        for (int transactionId : database.getTransactionIds()) {
-            // contains est plus rapide que binary_search
-            if (!generatedItemset.contains(transactionId) &&
-                    CheckItemInclusion(database, newTransactionIds, transactionId)) {
+        
+        for(int clusterId = 0 ; clusterId < freqClusterId; clusterId++){
+        	if (!(generatedItemset.contains(clusterId)) &&
+                    CheckItemInclusion(database, newTransactionIds, clusterId)) {
                 return false;
             }
         }
+        /*for (int transactionId : database.getTransactionIds()) {
+            // contains est plus rapide que binary_search
+            
+        }*/
         return true;
     }
 
@@ -247,13 +242,17 @@ public class Solver implements ISolver {
         System.out.println("itemset : " + itemset);
         System.out.println("freq : " + freq);
         System.out.println("");
+        
+        for(int clusterId=0 ; clusterId < itemset.size() && itemset.get(clusterId) < freq ; clusterId++){
+        	qSets.add(itemset.get(clusterId));
+        }
 
-        qSets.addAll(itemset);
+        //qSets.addAll(itemset);
 
         qSets.add(freq);
 
         SortedSet<Integer> lowerBoundSet = lower_bound(database.getClusterIds(), freq + 1);
-
+        
         for (int clusterId : lowerBoundSet) {
             if (CheckItemInclusion(database, transactionIds, clusterId)) {
                 qSets.add(clusterId);
@@ -313,9 +312,10 @@ public class Solver implements ISolver {
     private void generateItemset(Database database, ArrayList<Integer> itemset,
                                  ArrayList<ArrayList<Integer>> generatedClusterArrays,
                                  ArrayList<Set<Integer>> generatedTimeIds,
-                                 ArrayList<TreeSet<Integer>> generatedClusterIds) {
+                                 ArrayList<TreeSet<Integer>> generatedClusterIds,
+                                 int [] sizeGenerated) {
         if (itemset.size() == 0) {
-            sizeGenerated = 0;
+            sizeGenerated[0] = 0;
             generatedClusterArrays.add(itemset);
             return;
         }
@@ -325,17 +325,20 @@ public class Solver implements ISolver {
 
         Set<Integer> times = new HashSet<>();
         boolean monoCluster = true;
+        
+        HashMap<Integer,Integer> timeSameTime = new HashMap<>();
 
         // liste des temps qui n'ont qu'un seul cluster
         for (int itemIndex = 0; itemIndex < itemset.size(); ++itemIndex) {
-            int item = itemset.get(itemIndex);
-
+        	int item = itemset.get(itemIndex);
+        	Cluster current = database.getCluster(item);
             times.add(database.getCluster(item).getTimeId());
 
             if (itemIndex != itemset.size() - 1) {
                 int nextItem = itemset.get(itemIndex + 1);
+                Cluster next = database.getCluster(nextItem);
 
-                if (database.getCluster(item).getTimeId() == database.getCluster(nextItem).getTimeId()) {
+                if (current.getTimeId() == next.getTimeId()) {
                     monoCluster = false;
                 }
             }
@@ -365,10 +368,10 @@ public class Solver implements ISolver {
 
         //sizeGenerated stands for the number of potential itemsets to generate
         System.out.println("sizeGenerated stands for the number of potential itemsets to generate");
-        sizeGenerated = 1;
+        sizeGenerated[0] = 1;
 
         for (ArrayList<Integer> clusterIds : timesClusterIds) {
-            sizeGenerated *= clusterIds.size();
+            sizeGenerated[0] *= clusterIds.size();
         }
 
         //initialise the set of generated itemsets
@@ -393,8 +396,6 @@ public class Solver implements ISolver {
                     results.add(result);
                 }
             }
-
-            System.out.println("Test : " + results);
             generatedClusterArrays = results;
         }
 
@@ -403,6 +404,7 @@ public class Solver implements ISolver {
         ArrayList<ArrayList<Integer>> checkedItemsets = new ArrayList<>();
 
         boolean insertok;
+        int nbItemsets = 0;
 
         for (ArrayList<Integer> generatedItemset : generatedClusterArrays) {
             insertok = true;
@@ -417,10 +419,11 @@ public class Solver implements ISolver {
 
             if (insertok) {
                 checkedItemsets.add(generatedItemset);
+                nbItemsets++;
             }
         }
-
-        System.out.println("GeneratedItemsets : " + checkedItemsets);
+        
+        sizeGenerated[0]=nbItemsets;
 
         // updating list of dates
         System.out.println("updating list of dates");
@@ -438,5 +441,6 @@ public class Solver implements ISolver {
         generatedClusterArrays = checkedItemsets;
         generatedTimeIds.add(times);
         generatedClusterIds.add(database.getClusterIds());
+        
     }
 }
