@@ -49,14 +49,14 @@ public class Transaction {
     /**
      * @param cluster ajoute le cluster à la transaction
      */
-    void add(Cluster cluster) {
+    public void add(Cluster cluster) {
         clusters.put(cluster.getId(), cluster);
     }
 
     /**
      * @return id de la transaction
      */
-    int getId() {
+    public int getId() {
         return id;
     }
 

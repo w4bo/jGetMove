@@ -19,7 +19,7 @@ public class Main {
             Database database = new Database(inputObj, inputTime);
             Debug.println(database);
 
-            Solver solver = new Solver(1, 1, 0);
+            Solver solver = new Solver(1, 0, 0);
             solver.init(database);
 
         } catch (IOException | ClusterNotExistException e) {

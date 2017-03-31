@@ -30,14 +30,14 @@ public class Cluster {
      *
      * @param transaction la transaction à ajouter
      */
-    void add(Transaction transaction) {
+    public void add(Transaction transaction) {
         transactions.put(transaction.getId(), transaction);
     }
 
     /**
      * @return id du cluster courant
      */
-    int getId() {
+    public int getId() {
         return id;
     }
 
@@ -51,7 +51,7 @@ public class Cluster {
     /**
      * @param time le temps à associer au cluster
      */
-    void setTime(Time time) {
+    public void setTime(Time time) {
         this.time = time;
     }
 
