@@ -53,7 +53,7 @@ public class Solver implements ISolver {
         ArrayList<Integer> itemsets = new ArrayList<>();
         ArrayList<Integer> freqItemset = new ArrayList<>();
 
-        run(database, itemsets, database.getTransactionIds(), freqItemset,0);
+        run(database, itemsets, database.getTransactionIds(), freqItemset, 0);
     }
 
     /**
@@ -68,46 +68,49 @@ public class Solver implements ISolver {
      * @param database           (database, transactionsets, itemID, timeID) La database à analyser
      * @param clusterIds         (itemsets) une liste representant les id
      * @param transactionIds     (transactionList)
-     * @param frequentClusterIds (transactionsets) une liste reprensentant les clusterIds frequents
+     * @param frequentClusterIds (freqList) une liste reprensentant les clusterIds frequents
+     * @param numItems           (numItems)
      */
-    private void run(Database database, ArrayList<Integer> clusterIds, Set<Integer> transactionIds, ArrayList<Integer> frequentClusterIds , int numItems) {
-
-        ArrayList<ArrayList<Integer>> generatedClusterArrays = new ArrayList<>();
-        ArrayList<Set<Integer>> generatedTimeIds = new ArrayList<>();
-        ArrayList<TreeSet<Integer>> generatedClusterIds = new ArrayList<>();
+    private void run(Database database, ArrayList<Integer> clusterIds, Set<Integer> transactionIds, ArrayList<Integer> frequentClusterIds, int numItems) {
+        // TODO numItems est passé en paramètres :)
+        ArrayList<ArrayList<Integer>> generatedArrayOfClusters = new ArrayList<>();
+        ArrayList<Set<Integer>> generatedArrayOfTimeIds = new ArrayList<>();
+        ArrayList<TreeSet<Integer>> generatedArrayOfClusterIds = new ArrayList<>();
 
         int[] sizeGenerated = {1};
 
-        generateClusters(database, clusterIds, generatedClusterArrays, generatedTimeIds, generatedClusterIds, sizeGenerated);
+        generateClusters(database, clusterIds, generatedArrayOfClusters, generatedArrayOfTimeIds, generatedArrayOfClusterIds, sizeGenerated);
 
         Debug.println("");
         Debug.println("----------------LCM Iter New----------------");
-        Debug.println("GeneratedItemsets : " + generatedClusterArrays);
-        Debug.println("GeneratedItemId : " + generatedClusterIds);
-        Debug.println("GeneratedTimeId : " + generatedTimeIds);
+        Debug.println("GeneratedItemsets : " + generatedArrayOfClusters);
+        Debug.println("GeneratedItemId : " + generatedArrayOfClusterIds);
+        Debug.println("GeneratedTimeId : " + generatedArrayOfTimeIds);
         Debug.println("SizeGenerated : " + sizeGenerated[0]);
         Debug.println("");
 
-        for (ArrayList<Integer> generatedClusters : generatedClusterArrays) {
-            // TODO : PrintItemsetsNew on l'a oubli�
-        	PrintItemsetsNew(database,generatedClusters,transactionIds,numItems);
-        	
-            int calcurateCoreI = CalcurateCoreI(generatedClusters, frequentClusterIds);
+        for (ArrayList<Integer> generatedClusters : generatedArrayOfClusters) {
+            // TODO : PrintItemsetsNew on l'a oublié
+            PrintItemsetsNew(database, generatedClusters, database.getTransactionIds(), numItems);
+
+            int calcurateCoreI = calcurateCoreI(generatedClusters, frequentClusterIds);
+
             Debug.println("Core_i : " + calcurateCoreI);
-            
+
             SortedSet<Integer> lowerBounds = database.getClusterIds().tailSet(calcurateCoreI);
             ArrayList<Integer> freqClusterIds = new ArrayList<>();
-          	Debug.println("lower bounds" + lowerBounds);
+            Debug.println("lower bounds" + lowerBounds);
 
             for (int clusterId : lowerBounds) {
-            	System.out.println("GeneratedClusters : " + generatedClusters + "Cluster : " + database.getCluster(clusterId) + "Min Support : " + minSupport);
+                Debug.println("GeneratedClusters : " + generatedClusters + "Cluster : " + database.getCluster(clusterId) + "Min Support : " + minSupport);
+
                 if (database.getCluster(clusterId).getTransactions().size() >= minSupport &&
                         !generatedClusters.contains(clusterId)) {
                     freqClusterIds.add(clusterId);
                 }
 
                 ArrayList<Integer> qSets = new ArrayList<>();
-                
+
                 Debug.println("Frequent : " + freqClusterIds);
 
                 for (int freqClusterId : freqClusterIds) {
@@ -127,7 +130,7 @@ public class Solver implements ISolver {
                             // clusterIds -> qSets
                             // transactionIds -> newTransactionIds
                             // freqList -> newFreqlist
-                            run(database, qSets, iterTransactionIds, newFreqList,numItems);
+                            run(database, qSets, iterTransactionIds, newFreqList, numItems);
 
                         }
                     }
@@ -135,19 +138,31 @@ public class Solver implements ISolver {
             }
         }
     }
-    
-    private void PrintItemsetsNew(Database database , ArrayList<Integer> itemset, Set<Integer> transactionIds , int numItems){
-    	//TODO
-    	System.out.println("ItemsetSize : " + itemset.size());
-    	System.out.println("MinTime : " + minTime);
-        if(itemset.size() > minTime){
-        	Set <Integer> transactionOfLast = database.getCluster(itemset.get(itemset.size() - 1)).getTransactions().keySet();
-       		//Pour chaque transaction, on ajoute le cluster qui a l'id numItem
-       		for(Integer transactionId : transactionOfLast){
-       			database.getTransaction(transactionId).add(database.getCluster(numItems));
-       			numItems++;
-       		}
-       	}
+
+    /**
+     * <pre>
+     * Lcm::PrintItemsetsNew([]itemsets, occ, [Transaction]transactionsets,
+     * numItems, []timeID,[][]level2ItemID,
+     * [][]level2TimeID)
+     * </pre>
+     *
+     * @param database       (occ)
+     * @param clusterIds     (itemsets)
+     * @param transactionIds (transactionsets)
+     * @param numClusters    (numItems)
+     */
+    private void PrintItemsetsNew(Database database, ArrayList<Integer> clusterIds, Set<Integer> transactionIds, int numClusters) {
+        //TODO
+        Debug.println("ItemsetSize : " + clusterIds.size());
+        Debug.println("MinTime : " + minTime);
+        if (clusterIds.size() > minTime) {
+            Set<Integer> transactionOfLast = database.getCluster(clusterIds.get(clusterIds.size() - 1)).getTransactions().keySet();
+            //Pour chaque transaction, on ajoute le cluster qui a l'id numItem
+            for (Integer transactionId : transactionOfLast) {
+                database.getTransaction(transactionId).add(database.getCluster(numClusters));
+                numClusters++;
+            }
+        }
     }
 
     /**
@@ -260,14 +275,14 @@ public class Solver implements ISolver {
      *
      * @param clusterIds         (itemsets)
      * @param frequentClusterIds (freqList)
-     * @return l'avant dernier �lement du frequentClusterIds, si frequentClusterIds est trop petit, renvoie le premier element de clusterIds, renvoi 0 si clusterIds est vide;
+     * @return l'avant dernier élement du frequentClusterIds, si frequentClusterIds est trop petit, renvoie le premier element de clusterIds, renvoi 0 si clusterIds est vide;
      */
-    private int CalcurateCoreI(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
+    private int calcurateCoreI(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
         if (clusterIds.size() > 0) {
-        	int current = frequentClusterIds.get(frequentClusterIds.size() - 1);
-        	for(int i= frequentClusterIds.size() -1 ; i>=0 ; i--){
-        		if(current != frequentClusterIds.get(i)) return frequentClusterIds.get(i);
-        	}
+            int current = frequentClusterIds.get(frequentClusterIds.size() - 1);
+            for (int i = frequentClusterIds.size() - 1; i >= 0; i--) {
+                if (current != frequentClusterIds.get(i)) return frequentClusterIds.get(i);
+            }
             /*if (frequentClusterIds.size() > 1) {
                 return frequentClusterIds.get(frequentClusterIds.size() - 2);
             }*/
@@ -395,7 +410,7 @@ public class Solver implements ISolver {
         //Manage MultiClustering
 
         ArrayList<ArrayList<Integer>> timesClusterIds = new ArrayList<>(); // PosDates
-        
+
         for (int timeId : times) {
             ArrayList<Integer> tempClusterIds = new ArrayList<>();
 
