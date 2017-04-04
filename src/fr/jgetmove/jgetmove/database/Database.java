@@ -163,6 +163,22 @@ public class Database {
     }
 
     /**
+     * @param clusterId identifiant du cluster
+     * @return le cluster ayant le clusterId
+     */
+    public Cluster getCluster(int clusterId) {
+        return clusters.get(clusterId);
+    }
+
+    /**
+     * @param clusterId identifiant du cluster
+     * @return l'ensemble des transactions du cluster
+     */
+    public HashMap<Integer, Transaction> getClusterTransactions(int clusterId) {
+        return getCluster(clusterId).getTransactions();
+    }
+
+    /**
      * Renvoie le Time du cluster
      *
      * @param clusterId l'identifiant du cluster
@@ -174,10 +190,6 @@ public class Database {
 
     public int getClusterTimeId(int clusterId) {
         return clusters.get(clusterId).getTimeId();
-    }
-
-    public Cluster getCluster(int clusterId) {
-        return clusters.get(clusterId);
     }
 
     /**

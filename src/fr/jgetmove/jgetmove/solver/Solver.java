@@ -1,6 +1,5 @@
 package fr.jgetmove.jgetmove.solver;
 
-import fr.jgetmove.jgetmove.database.Cluster;
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
@@ -72,7 +71,9 @@ public class Solver implements ISolver {
      * @param numItems           (numItems)
      */
     private void run(Database database, ArrayList<Integer> clusterIds, Set<Integer> transactionIds, ArrayList<Integer> frequentClusterIds, int numItems) {
+        Debug.stack('R');
         // TODO numItems est passé en paramètres :)
+
         ArrayList<ArrayList<Integer>> generatedArrayOfClusters = new ArrayList<>();
         ArrayList<Set<Integer>> generatedArrayOfTimeIds = new ArrayList<>();
         ArrayList<TreeSet<Integer>> generatedArrayOfClusterIds = new ArrayList<>();
@@ -80,9 +81,6 @@ public class Solver implements ISolver {
         int[] sizeGenerated = {1};
 
         generateClusters(database, clusterIds, generatedArrayOfClusters, generatedArrayOfTimeIds, generatedArrayOfClusterIds, sizeGenerated);
-
-        Debug.println("");
-        Debug.println("----------------LCM Iter New----------------");
         Debug.println("GeneratedItemsets : " + generatedArrayOfClusters);
         Debug.println("GeneratedItemId : " + generatedArrayOfClusterIds);
         Debug.println("GeneratedTimeId : " + generatedArrayOfTimeIds);
@@ -97,46 +95,49 @@ public class Solver implements ISolver {
 
             Debug.println("Core_i : " + calcurateCoreI);
 
-            SortedSet<Integer> lowerBounds = database.getClusterIds().tailSet(calcurateCoreI);
+            SortedSet<Integer> lowerBounds = lower_bound(database.getClusterIds(), calcurateCoreI);
+
+            // freq_i
             ArrayList<Integer> freqClusterIds = new ArrayList<>();
-            Debug.println("lower bounds" + lowerBounds);
+            Debug.println("lower bounds : " + lowerBounds.size());
 
             for (int clusterId : lowerBounds) {
-                Debug.println("GeneratedClusters : " + generatedClusters + "Cluster : " + database.getCluster(clusterId) + "Min Support : " + minSupport);
+                Debug.println("GeneratedClusters : " + generatedClusters + " Cluster : " + database.getCluster(clusterId) + " Min Support : " + minSupport);
 
-                if (database.getCluster(clusterId).getTransactions().size() >= minSupport &&
+                if (database.getClusterTransactions(clusterId).size() >= minSupport &&
                         !generatedClusters.contains(clusterId)) {
                     freqClusterIds.add(clusterId);
                 }
+            }
 
-                ArrayList<Integer> qSets = new ArrayList<>();
+            ArrayList<Integer> qSets = new ArrayList<>();
 
-                Debug.println("Frequent : " + freqClusterIds);
+            Debug.println("Frequent : " + freqClusterIds);
 
-                for (int freqClusterId : freqClusterIds) {
-                    Set<Integer> newTransactionIds = new HashSet<>();
+            for (int freqClusterId : freqClusterIds) {
+                Set<Integer> newTransactionIds = new HashSet<>(); // newTransactionList
 
-                    if (PPCTest(database, generatedClusters, transactionIds, freqClusterId, newTransactionIds)) {
-                        qSets.clear();
+                if (PPCTest(database, generatedClusters, transactionIds, freqClusterId, newTransactionIds)) {
+                    qSets.clear();
 
-                        MakeClosure(database, newTransactionIds, qSets, generatedClusters, freqClusterId);
-                        if (maxPattern == 0 || qSets.size() <= maxPattern) {
-                            ArrayList<Integer> newFreqList;
+                    MakeClosure(database, newTransactionIds, qSets, generatedClusters, freqClusterId);
+                    if (maxPattern == 0 || qSets.size() <= maxPattern) {
+                        ArrayList<Integer> newFreqList;
 
-                            Set<Integer> iterTransactionIds = updateTransactions(database, transactionIds, qSets, freqClusterId);
-                            newFreqList = updateFreqList(database, transactionIds, qSets, frequentClusterIds, freqClusterId);
+                        Set<Integer> iterTransactionIds = updateTransactions(database, transactionIds, qSets, freqClusterId);
+                        newFreqList = updateFreqList(database, transactionIds, qSets, frequentClusterIds, freqClusterId);
 
-                            //updateOccurenceDeriver(database, iterTransactionIds);
-                            // clusterIds -> qSets
-                            // transactionIds -> newTransactionIds
-                            // freqList -> newFreqlist
-                            run(database, qSets, iterTransactionIds, newFreqList, numItems);
+                        //updateOccurenceDeriver(database, iterTransactionIds);
+                        // clusterIds -> qSets
+                        // transactionIds -> newTransactionIds
+                        // freqList -> newFreqlist
+                        run(database, qSets, iterTransactionIds, newFreqList, numItems);
 
-                        }
                     }
                 }
             }
         }
+        Debug.unstack();
     }
 
     /**
@@ -156,7 +157,7 @@ public class Solver implements ISolver {
         Debug.println("ItemsetSize : " + clusterIds.size());
         Debug.println("MinTime : " + minTime);
         if (clusterIds.size() > minTime) {
-            Set<Integer> transactionOfLast = database.getCluster(clusterIds.get(clusterIds.size() - 1)).getTransactions().keySet();
+            Set<Integer> transactionOfLast = database.getClusterTransactions(clusterIds.get(clusterIds.size() - 1)).keySet();
             //Pour chaque transaction, on ajoute le cluster qui a l'id numItem
             for (Integer transactionId : transactionOfLast) {
                 database.getTransaction(transactionId).add(database.getCluster(numClusters));
@@ -221,9 +222,10 @@ public class Solver implements ISolver {
             Transaction transaction = database.getTransaction(transactionId);
 
             for (int clusterId : transaction.getClusterIds()) {
-                transaction.getClusters().put(clusterId, database.getCluster(clusterId));
-                Cluster cluster = database.getCluster(clusterId);
-                cluster.getTransactions().put(transactionId, transaction);
+                transaction.getClusters()
+                        .put(clusterId, database.getCluster(clusterId));
+                database.getClusterTransactions(clusterId)
+                        .put(transactionId, transaction);
             }
         }
 
@@ -250,7 +252,22 @@ public class Solver implements ISolver {
 
     }
 
-    private boolean PPCTest(Database database, ArrayList<Integer> generatedItemset, Set<Integer> transactionIds, int freqClusterId, Set<Integer> newTransactionIds) {
+    /**
+     * Teste si p(i-1) == q(i-1)
+     * <p>
+     * <pre>
+     * Lcm::PpcTest(database, []itemsets, []transactionList, item, []newTransactionList)
+     * </pre>
+     *
+     * @param database          (database)
+     * @param clusters          (itemsets)
+     * @param transactionIds    (transactionList)
+     * @param freqClusterId     (item)
+     * @param newTransactionIds (newTransactionList)
+     * @return
+     */
+    private boolean PPCTest(Database database, ArrayList<Integer> clusters, Set<Integer> transactionIds, int freqClusterId, Set<Integer> newTransactionIds) {
+        Debug.stack('P');
         // CalcTransactionList
         for (int transactionId : transactionIds) {
             Transaction transaction = database.getTransaction(transactionId);
@@ -260,11 +277,12 @@ public class Solver implements ISolver {
         }
 
         for (int clusterId = 0; clusterId < freqClusterId; clusterId++) {
-            if (!(generatedItemset.contains(clusterId)) &&
-                    CheckItemInclusion(database, newTransactionIds, clusterId)) {
+            if (!clusters.contains(clusterId) && CheckItemInclusion(database, newTransactionIds, clusterId)) {
+                Debug.unstack();
                 return false;
             }
         }
+        Debug.unstack();
         return true;
     }
 
@@ -277,7 +295,7 @@ public class Solver implements ISolver {
      * @param frequentClusterIds (freqList)
      * @return l'avant dernier élement du frequentClusterIds, si frequentClusterIds est trop petit, renvoie le premier element de clusterIds, renvoi 0 si clusterIds est vide;
      */
-    private int calcurateCoreI(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
+    private int getDifferentFromLastCluster(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
         if (clusterIds.size() > 0) {
             int current = frequentClusterIds.get(frequentClusterIds.size() - 1);
             for (int i = frequentClusterIds.size() - 1; i >= 0; i--) {
@@ -292,14 +310,26 @@ public class Solver implements ISolver {
         return 0;
     }
 
+    /**
+     * <pre>
+     * Lcm::CalcurateCoreI(database, itemsets, freqList)
+     * </pre>
+     *
+     * @param clusterIds         (itemsets)
+     * @param frequentClusterIds (freqList)
+     * @return l'avant dernier élement du frequentClusterIds, si frequentClusterIds est trop petit, renvoie le premier element de clusterIds, renvoi 0 si clusterIds est vide;
+     * @deprecated use {@link #getDifferentFromLastCluster(ArrayList, ArrayList)}
+     */
+    private int calcurateCoreI(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
+        return getDifferentFromLastCluster(clusterIds, frequentClusterIds);
+    }
+
     private void MakeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets, ArrayList<Integer> itemset, int freq) {
-        Debug.println("");
-        Debug.println("----------------Make Closure----------------");
+        Debug.stack('M');
         Debug.println("transactionIds : " + transactionIds);
         Debug.println("qSets : " + qSets);
         Debug.println("itemset : " + itemset);
         Debug.println("freq : " + freq);
-        Debug.println("----------------End Make Closure----------------");
         Debug.println("");
 
         for (int clusterId = 0; clusterId < itemset.size() && itemset.get(clusterId) < freq; clusterId++) {
@@ -318,6 +348,7 @@ public class Solver implements ISolver {
             }
         }
         Debug.println("qSets : " + qSets);
+        Debug.unstack();
     }
 
 
@@ -435,7 +466,7 @@ public class Solver implements ISolver {
         Debug.println("initialise the set of generated itemsets");
 
         /*
-         * For each clusterId in timeClusterIds[0], push itemset of size 1 
+         * For each clusterId in timeClusterIds[0], push itemset of size 1
          */
         for (Integer clusterId : timesClusterIds.get(0)) {
             ArrayList<Integer> singleton = new ArrayList<>(1);
@@ -444,7 +475,7 @@ public class Solver implements ISolver {
             Debug.println("Add Singleton : " + singleton);
         }
         /*
-         * For each time [1+], get the clusters associated 
+         * For each time [1+], get the clusters associated
          */
         for (int clusterIdsIndex = 1, size = timesClusterIds.size(); clusterIdsIndex < size; ++clusterIdsIndex) {
             ArrayList<Integer> tempClusterIds = timesClusterIds.get(clusterIdsIndex);
