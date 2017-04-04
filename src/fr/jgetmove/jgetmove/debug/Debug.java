@@ -7,6 +7,7 @@ import java.util.Objects;
  */
 public class Debug {
     private static boolean debug = false;
+    private static String stack = "";
 
     /**
      * Affiche l'objet, alias de
@@ -18,7 +19,7 @@ public class Debug {
      */
     public static void print(Object o) {
         if (debug)
-            System.out.print(o);
+            System.out.print(stack.concat(o.toString()));
     }
 
     /**
@@ -31,7 +32,7 @@ public class Debug {
      */
     public static void println(Object o) {
         if (debug)
-            System.out.println(o);
+            System.out.println(stack.concat(o.toString()));
     }
 
     /**
@@ -44,7 +45,7 @@ public class Debug {
      */
     public static void err(Object o) {
         if (debug)
-            System.err.print(o);
+            System.err.print(stack.concat(o.toString()));
     }
 
     /**
@@ -57,7 +58,7 @@ public class Debug {
      */
     public static void errln(Object o) {
         if (debug)
-            System.err.println(o);
+            System.err.println(stack.concat(o.toString()));
 
     }
 
@@ -68,7 +69,8 @@ public class Debug {
      * @param opt l'option choisie (ln, err, errln)
      * @see #print(Object)
      * @see #println(Object)
-     * @see #printErr(Object)
+     * @see #err(Object)
+     * @see #errln(Object)
      */
     public static void print(Object o, String opt) {
         if (Objects.equals(opt, "ln")) {
@@ -84,5 +86,15 @@ public class Debug {
 
     public static void enable() {
         debug = true;
+    }
+
+    public static void stack(char letter) {
+        stack += letter;
+    }
+
+    public static void unstack() {
+        if (stack.length() > 0) {
+            stack = stack.substring(0, stack.length() - 1);
+        }
     }
 }
