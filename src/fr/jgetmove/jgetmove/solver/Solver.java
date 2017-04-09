@@ -71,7 +71,6 @@ public class Solver implements ISolver {
      * @param numItems           (numItems)
      */
     private void run(Database database, ArrayList<Integer> clusterIds, Set<Integer> transactionIds, ArrayList<Integer> frequentClusterIds, int numItems) {
-        Debug.stack('R');
         // TODO numItems est passé en paramètres :)
 
         ArrayList<ArrayList<Integer>> generatedArrayOfClusters = new ArrayList<>();
@@ -91,7 +90,7 @@ public class Solver implements ISolver {
             // TODO : PrintItemsetsNew on l'a oublié
             PrintItemsetsNew(database, generatedClusters, database.getTransactionIds(), numItems);
 
-            int calcurateCoreI = calcurateCoreI(generatedClusters, frequentClusterIds);
+            int calcurateCoreI = CalcurateCoreI(generatedClusters, frequentClusterIds);
 
             Debug.println("Core_i : " + calcurateCoreI);
 
@@ -137,7 +136,23 @@ public class Solver implements ISolver {
                 }
             }
         }
-        Debug.unstack();
+    }
+
+    /**
+     * <pre>
+     * Lcm::PrintItemsetsNew([]itemsets, occ, [Transaction]transactionsets,
+     * numItems, []timeID,[][]level2ItemID,
+     * [][]level2TimeID)
+     * </pre>
+     *
+     * @param database       (occ)
+     * @param clusterIds     (itemsets)
+     * @param transactionIds (transactionsets)
+     * @param numClusters    (numItems)
+     * @deprecated use {@link #printClustersNew(Database, ArrayList, Set, int)}
+     */
+    private void PrintItemsetsNew(Database database, ArrayList<Integer> clusterIds, Set<Integer> transactionIds, int numClusters) {
+        printClustersNew(database, clusterIds, transactionIds, numClusters);
     }
 
     /**
@@ -152,7 +167,7 @@ public class Solver implements ISolver {
      * @param transactionIds (transactionsets)
      * @param numClusters    (numItems)
      */
-    private void PrintItemsetsNew(Database database, ArrayList<Integer> clusterIds, Set<Integer> transactionIds, int numClusters) {
+    private void printClustersNew(Database database, ArrayList<Integer> clusterIds, Set<Integer> transactionIds, int numClusters) {
         //TODO
         Debug.println("ItemsetSize : " + clusterIds.size());
         Debug.println("MinTime : " + minTime);
@@ -267,7 +282,6 @@ public class Solver implements ISolver {
      * @return
      */
     private boolean PPCTest(Database database, ArrayList<Integer> clusters, Set<Integer> transactionIds, int freqClusterId, Set<Integer> newTransactionIds) {
-        Debug.stack('P');
         // CalcTransactionList
         for (int transactionId : transactionIds) {
             Transaction transaction = database.getTransaction(transactionId);
@@ -278,11 +292,9 @@ public class Solver implements ISolver {
 
         for (int clusterId = 0; clusterId < freqClusterId; clusterId++) {
             if (!clusters.contains(clusterId) && CheckItemInclusion(database, newTransactionIds, clusterId)) {
-                Debug.unstack();
                 return false;
             }
         }
-        Debug.unstack();
         return true;
     }
 
@@ -293,7 +305,21 @@ public class Solver implements ISolver {
      *
      * @param clusterIds         (itemsets)
      * @param frequentClusterIds (freqList)
-     * @return l'avant dernier élement du frequentClusterIds, si frequentClusterIds est trop petit, renvoie le premier element de clusterIds, renvoi 0 si clusterIds est vide;
+     * @return le dernier élement different du dernier clusterId de frequentClusterIds, si frequentClusterIds est trop petit, renvoie le premier element de clusterIds, sinon renvoi 0 si clusterIds est vide
+     * @deprecated use {@link #getDifferentFromLastCluster(ArrayList, ArrayList)}
+     */
+    private int CalcurateCoreI(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
+        return getDifferentFromLastCluster(clusterIds, frequentClusterIds);
+    }
+
+    /**
+     * <pre>
+     * Lcm::CalcurateCoreI(database, itemsets, freqList)
+     * </pre>
+     *
+     * @param clusterIds         (itemsets)
+     * @param frequentClusterIds (freqList)
+     * @return le dernier élement different du dernier clusterId de frequentClusterIds, si frequentClusterIds est trop petit, renvoie le premier element de clusterIds, sinon renvoi 0 si clusterIds est vide
      */
     private int getDifferentFromLastCluster(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
         if (clusterIds.size() > 0) {
@@ -310,22 +336,7 @@ public class Solver implements ISolver {
         return 0;
     }
 
-    /**
-     * <pre>
-     * Lcm::CalcurateCoreI(database, itemsets, freqList)
-     * </pre>
-     *
-     * @param clusterIds         (itemsets)
-     * @param frequentClusterIds (freqList)
-     * @return l'avant dernier élement du frequentClusterIds, si frequentClusterIds est trop petit, renvoie le premier element de clusterIds, renvoi 0 si clusterIds est vide;
-     * @deprecated use {@link #getDifferentFromLastCluster(ArrayList, ArrayList)}
-     */
-    private int calcurateCoreI(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
-        return getDifferentFromLastCluster(clusterIds, frequentClusterIds);
-    }
-
     private void MakeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets, ArrayList<Integer> itemset, int freq) {
-        Debug.stack('M');
         Debug.println("transactionIds : " + transactionIds);
         Debug.println("qSets : " + qSets);
         Debug.println("itemset : " + itemset);
@@ -348,7 +359,6 @@ public class Solver implements ISolver {
             }
         }
         Debug.println("qSets : " + qSets);
-        Debug.unstack();
     }
 
 
@@ -534,7 +544,6 @@ public class Solver implements ISolver {
         generatedArrayOfClusters = checkedArrayOfClusterIds; // why
         generatedArrayOfTimeIds.add(times); // whyy
         generatedArrayOfClusterIds.add(database.getClusterIds()); // but whyy ?
-
     }
 
     /**
