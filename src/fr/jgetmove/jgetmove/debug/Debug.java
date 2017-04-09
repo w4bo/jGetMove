@@ -3,7 +3,7 @@ package fr.jgetmove.jgetmove.debug;
 import java.util.ArrayList;
 
 /**
- * Utilisée afin d'affichir les erreurs
+ * Utilisée afin d'afficher les erreurs
  */
 public class Debug {
     private final static String SEPARATOR = " ";
