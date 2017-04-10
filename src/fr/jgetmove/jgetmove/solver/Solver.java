@@ -3,6 +3,7 @@ package fr.jgetmove.jgetmove.solver;
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
+import fr.jgetmove.jgetmove.debug.TraceMethod;
 
 import java.util.*;
 
@@ -46,6 +47,7 @@ public class Solver implements ISolver {
      *
      * @param database la base de données à analyser
      */
+    @TraceMethod
     public void init(Database database) {
         Debug.println("totalItem : " + database.getClusterIds());
 
@@ -56,7 +58,7 @@ public class Solver implements ISolver {
     }
 
     /**
-     * Boucle récursive
+     * Boucle r&eacute;cursive
      * <p>
      * <pre>
      * Lcm::LcmIterNew(database, []itemsets, []transactionList, occ,
@@ -64,12 +66,13 @@ public class Solver implements ISolver {
      * []timeID, [][]level2ItemID, [][]level2TimeID) {
      * </pre>
      *
-     * @param database           (database, transactionsets, itemID, timeID) La database à analyser
+     * @param database           (database, transactionsets, itemID, timeID) La database &agrave; analyser
      * @param clusterIds         (itemsets) une liste representant les id
      * @param transactionIds     (transactionList)
      * @param frequentClusterIds (freqList) une liste reprensentant les clusterIds frequents
      * @param numItems           (numItems)
      */
+    @TraceMethod
     private void run(Database database, ArrayList<Integer> clusterIds, Set<Integer> transactionIds, ArrayList<Integer> frequentClusterIds, int numItems) {
         // TODO numItems est passé en paramètres :)
 
@@ -281,6 +284,7 @@ public class Solver implements ISolver {
      * @param newTransactionIds (newTransactionList)
      * @return
      */
+    @TraceMethod(displayTitle = true)
     private boolean PPCTest(Database database, ArrayList<Integer> clusters, Set<Integer> transactionIds, int freqClusterId, Set<Integer> newTransactionIds) {
         // CalcTransactionList
         for (int transactionId : transactionIds) {
@@ -289,7 +293,6 @@ public class Solver implements ISolver {
                 newTransactionIds.add(transactionId);
             }
         }
-
         for (int clusterId = 0; clusterId < freqClusterId; clusterId++) {
             if (!clusters.contains(clusterId) && CheckItemInclusion(database, newTransactionIds, clusterId)) {
                 return false;
@@ -336,6 +339,7 @@ public class Solver implements ISolver {
         return 0;
     }
 
+    @TraceMethod(displayTitle = true)
     private void MakeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets, ArrayList<Integer> itemset, int freq) {
         Debug.println("transactionIds : " + transactionIds);
         Debug.println("qSets : " + qSets);
@@ -409,6 +413,7 @@ public class Solver implements ISolver {
      * @param generatedArrayOfTimeIds    (generatedtimeID) une liste reprensentant les tempsGenerees
      * @param generatedArrayOfClusterIds (generateditemID) une liste reprensentant les itemGenerees
      */
+    @TraceMethod(displayTitle = true)
     private void generateClusters(Database database, ArrayList<Integer> clusterIds,
                                   ArrayList<ArrayList<Integer>> generatedArrayOfClusters,
                                   ArrayList<Set<Integer>> generatedArrayOfTimeIds,
