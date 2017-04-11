@@ -1,6 +1,7 @@
 package fr.jgetmove.jgetmove.solver;
 
 import fr.jgetmove.jgetmove.database.Database;
+import fr.jgetmove.jgetmove.database.Cluster;
 import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.TraceMethod;
@@ -55,6 +56,7 @@ public class Solver implements ISolver {
         ArrayList<Integer> freqItemset = new ArrayList<>();
 
         run(database, itemsets, database.getTransactionIds(), freqItemset, 0);
+        rgPatternDetect(database); //On a besoin de database pour faire appel à la structure table (voir c++)
     }
 
     /**
@@ -564,5 +566,71 @@ public class Solver implements ISolver {
         TreeSet<Integer> treeList = new TreeSet<>(list);
 
         return treeSet.equals(treeList);
+    }
+    
+    /**
+     * Detecte les group patterns des itemsets générés precédemment
+     *
+     * @param Database notre base de donnees
+     */
+    
+    private void rgPatternDetect(Database database) {
+    	//Ne t'occupe pas des sorties dans les fichiers pour commencer, juste l'affichage
+    	System.out.println("---------------");
+    	System.out.println("rgPattern: ");
+    	HashMap<Integer, Cluster> allClusters = database.getClusters(); //Je recupere l'ensemble des clusters
+    	ArrayList<Integer> time;
+        int firsttime = 0;
+        int lv2firsttime = -1; //LV2 ? est-ce reellement utile ?
+        int lasttime = 0;
+        ArrayList<Boolean> way;
+        ArrayList<Integer> allfirsttime;
+        ArrayList<Integer> alllasttime;
+        Boolean conv;
+        Boolean dis;
+        for(Map.Entry<Integer, Cluster> entry : allClusters.entrySet()) { //Parcours de l'ensemble des clusters
+        	Integer key = entry.getKey();
+        	Cluster value = entry.getValue();
+        	if(key < allClusters.size() - 1){
+        		if(isIncluded(database.getCluster(key).getTransactions(),database.getCluster(key+1).getTransactions())==1){
+            		
+            	}
+        		else if(isIncluded(database.getCluster(key+1).getTransactions(),database.getCluster(key).getTransactions())==1){ 
+        			
+        		}
+        		else if(isIncluded(database.getCluster(key+1).getTransactions(),database.getCluster(key).getTransactions())==2){
+        			//Je doute de l'utilité de ce if car il utilise lv2firsttime = -1;
+        		}
+        		else {
+        			
+        		}
+        	}
+        	
+        }
+        
+    	
+    }
+    /**
+     * Verifie si un ensemble de transaction est inclus dans un autre
+     *
+     * @param TransactionSet  le premier ensemble a compare
+     * @param TransactionSet2 le deuxieme ensemble a compare
+     * @return 0 si c'est pas inclus
+     * @return 1 si c'est inclus
+     * @return 2 si c'est egal
+     */
+    private int isIncluded(HashMap<Integer, Transaction> TransactionSet,HashMap<Integer, Transaction> TransactionSet2) {
+    	if(TransactionSet.size() > TransactionSet2.size()) {
+    		return 0;
+    	}
+    	if(TransactionSet.keySet().containsAll(TransactionSet2.keySet())){
+    		if(TransactionSet.keySet().equals(TransactionSet2.keySet())){
+    			return 2;
+            }
+            return 1;
+        } else {
+        	return 0;
+        }
+    	
     }
 }
