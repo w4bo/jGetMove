@@ -1,4 +1,4 @@
-package fr.jgetmove.detector;
+package fr.jgetmove.jgetmove.detector;
 
 import java.util.ArrayList;
 import java.util.HashMap;

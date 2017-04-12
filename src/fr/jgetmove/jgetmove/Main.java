@@ -1,10 +1,10 @@
 package fr.jgetmove.jgetmove;
 
-import fr.jgetmove.detector.ConvoyDetector;
-import fr.jgetmove.detector.IDetector;
-import fr.jgetmove.detector.PatternDetector;
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.debug.Debug;
+import fr.jgetmove.jgetmove.detector.ConvoyDetector;
+import fr.jgetmove.jgetmove.detector.IDetector;
+import fr.jgetmove.jgetmove.detector.PatternDetector;
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
 import fr.jgetmove.jgetmove.solver.Solver;
