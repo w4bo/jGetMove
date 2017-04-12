@@ -1,19 +1,18 @@
 package fr.jgetmove.jgetmove.solver;
 
-import fr.jgetmove.detector.IDetector;
-import fr.jgetmove.detector.PatternDetector;
 import fr.jgetmove.jgetmove.database.Cluster;
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.TraceMethod;
+import fr.jgetmove.jgetmove.detector.IDetector;
+import fr.jgetmove.jgetmove.detector.PatternDetector;
 
 import java.util.*;
 
 public class Solver implements ISolver {
 
     private int minSupport, maxPattern, minTime;
-
     /**
      * Initialise le solveur.
      *
