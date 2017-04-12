@@ -1,7 +1,7 @@
 package fr.jgetmove.jgetmove.solver;
 
-import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.database.Cluster;
+import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.TraceMethod;
@@ -343,6 +343,7 @@ public class Solver implements ISolver {
 
     @TraceMethod(displayTitle = true)
     private void MakeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets, ArrayList<Integer> itemset, int freq) {
+        // TODO doc
         Debug.println("transactionIds : " + transactionIds);
         Debug.println("qSets : " + qSets);
         Debug.println("itemset : " + itemset);
@@ -415,7 +416,6 @@ public class Solver implements ISolver {
      * @param generatedArrayOfTimeIds    (generatedtimeID) une liste reprensentant les tempsGenerees
      * @param generatedArrayOfClusterIds (generateditemID) une liste reprensentant les itemGenerees
      */
-    @TraceMethod(displayTitle = true)
     private void generateClusters(Database database, ArrayList<Integer> clusterIds,
                                   ArrayList<ArrayList<Integer>> generatedArrayOfClusters,
                                   ArrayList<Set<Integer>> generatedArrayOfTimeIds,
@@ -567,19 +567,19 @@ public class Solver implements ISolver {
 
         return treeSet.equals(treeList);
     }
-    
+
     /**
-     * Detecte les group patterns des itemsets générés precédemment
+     * Detecte les group patterns des clusters générés precédemment
+     * TODO : Documentation
      *
-     * @param Database notre base de donnees
+     * @param database notre base de donnees
      */
-    
+    @TraceMethod
     private void rgPatternDetect(Database database) {
-    	//Ne t'occupe pas des sorties dans les fichiers pour commencer, juste l'affichage
-    	System.out.println("---------------");
-    	System.out.println("rgPattern: ");
-    	HashMap<Integer, Cluster> allClusters = database.getClusters(); //Je recupere l'ensemble des clusters
-    	ArrayList<Integer> time;
+        Debug.displayTitle();
+        //Ne t'occupe pas des sorties dans les fichiers pour commencer, juste l'affichage
+        HashMap<Integer, Cluster> allClusters = database.getClusters(); //Je recupere l'ensemble des clusters
+        ArrayList<Integer> time;
         int firsttime = 0;
         int lv2firsttime = -1; //LV2 ? est-ce reellement utile ?
         int lasttime = 0;
@@ -588,49 +588,50 @@ public class Solver implements ISolver {
         ArrayList<Integer> alllasttime;
         Boolean conv;
         Boolean dis;
-        for(Map.Entry<Integer, Cluster> entry : allClusters.entrySet()) { //Parcours de l'ensemble des clusters
-        	Integer key = entry.getKey();
-        	Cluster value = entry.getValue();
-        	if(key < allClusters.size() - 1){
-        		if(isIncluded(database.getCluster(key).getTransactions(),database.getCluster(key+1).getTransactions())==1){
-            		
-            	}
-        		else if(isIncluded(database.getCluster(key+1).getTransactions(),database.getCluster(key).getTransactions())==1){ 
-        			
-        		}
-        		else if(isIncluded(database.getCluster(key+1).getTransactions(),database.getCluster(key).getTransactions())==2){
-        			//Je doute de l'utilité de ce if car il utilise lv2firsttime = -1;
-        		}
-        		else {
-        			
-        		}
-        	}
-        	
+
+        // fait pas un foreach pour faire un for i --"
+        for (Map.Entry<Integer, Cluster> entry : allClusters.entrySet()) { //Parcours de l'ensemble des clusters
+            Integer key = entry.getKey();
+            Cluster value = entry.getValue();
+            if (key < allClusters.size() - 1) {
+                if (isAIncludedInB(database.getCluster(key).getTransactions(), database.getCluster(key + 1).getTransactions()) == 1) {
+
+                } else if (isAIncludedInB(database.getCluster(key + 1).getTransactions(), database.getCluster(key).getTransactions()) == 1) {
+
+                } else if (isAIncludedInB(database.getCluster(key + 1).getTransactions(), database.getCluster(key).getTransactions()) == 2) {
+                    //Je doute de l'utilité de ce if car il utilise lv2firsttime = -1;
+                } else {
+
+                }
+            }
+
         }
-        
-    	
+
+
     }
+
     /**
      * Verifie si un ensemble de transaction est inclus dans un autre
+     * <p>
+     * TODO : Documentation
+     * <pre>isIncluded</pre>
      *
-     * @param TransactionSet  le premier ensemble a compare
-     * @param TransactionSet2 le deuxieme ensemble a compare
-     * @return 0 si c'est pas inclus
-     * @return 1 si c'est inclus
+     * @param a le premier ensemble qui doit être contenu dans b
+     * @param b le deuxieme ensemble qui doit contenir a
      * @return 2 si c'est egal
      */
-    private int isIncluded(HashMap<Integer, Transaction> TransactionSet,HashMap<Integer, Transaction> TransactionSet2) {
-    	if(TransactionSet.size() > TransactionSet2.size()) {
-    		return 0;
-    	}
-    	if(TransactionSet.keySet().containsAll(TransactionSet2.keySet())){
-    		if(TransactionSet.keySet().equals(TransactionSet2.keySet())){
-    			return 2;
+    private int isAIncludedInB(HashMap<Integer, Transaction> a, HashMap<Integer, Transaction> b) {
+        if (a.size() > b.size()) {
+            return 0;
+        }
+
+        if (b.keySet().containsAll(a.keySet())) {
+            if (a.keySet().equals(b.keySet())) {
+                return 2;
             }
             return 1;
-        } else {
-        	return 0;
         }
-    	
+
+        return 0;
     }
 }

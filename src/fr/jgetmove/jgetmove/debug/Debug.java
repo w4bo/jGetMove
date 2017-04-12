@@ -12,19 +12,18 @@ public class Debug {
     private final static String SEPARATOR_MORE = " \\ ";
     private final static String SEPARATOR_LESS = " / ";
     private final static String METHOD_PREFIX = " +-- ";
-    private final static String METHOD_PREFIX_MORE = " \\-∵ ";
-    private final static String METHOD_PREFIX_LESS = "  /-∴ ";
-    private final static String METHOD_SUFFIX = " ∵∴ " + System.getProperty("line.separator");
-    private final static String STACK_TITLE_PREFIX = ":";
+    private final static String METHOD_PREFIX_MORE = " \\-- ";
+    private final static String METHOD_PREFIX_LESS = " /-- ";
+    private final static String METHOD_SUFFIX = " --" + System.getProperty("line.separator");
     private final static String METHOD_SEPARATOR = "·";
 
     private static boolean displayDebug = false;
-    private static String stack = "";
+    private static String path = "";
+    private static String content = "";
     private static ArrayList<Integer> customStackPositions = new ArrayList<>();
     private static String lastMethodName = "";
-    private static int lastStackLenght = 0;
+    private static int lastPathSize = 0;
     private static int sizeDirection = 0;
-    ;
 
     /**
      * Affiche l'objet, alias de
@@ -36,8 +35,8 @@ public class Debug {
      */
     public static void print(Object o) {
         if (displayDebug) {
-            updateStack();
-            System.out.print(prefixStack(o));
+            updateDebugString();
+            System.out.print(concatAll(o));
         }
     }
 
@@ -51,8 +50,8 @@ public class Debug {
      */
     public static void println(Object o) {
         if (displayDebug) {
-            updateStack();
-            System.out.println(prefixStack(o));
+            updateDebugString();
+            System.out.println(concatAll(o));
         }
     }
 
@@ -66,8 +65,8 @@ public class Debug {
      */
     public static void err(Object o) {
         if (displayDebug) {
-            updateStack();
-            System.err.print(prefixStack(o));
+            updateDebugString();
+            System.err.print(concatAll(o));
         }
     }
 
@@ -81,8 +80,8 @@ public class Debug {
      */
     public static void errln(Object o) {
         if (displayDebug) {
-            updateStack();
-            System.err.println(prefixStack(o));
+            updateDebugString();
+            System.err.println(concatAll(o));
         }
     }
 
@@ -93,96 +92,127 @@ public class Debug {
         displayDebug = true;
     }
 
+    /**
+     * Ajoute un path personalisé
+     *
+     * @param letter l'initiale a afficher dans la traceroute
+     */
     public static void stack(char letter) {
-        updateStack();
-        customStackPositions.add(stack.length());
-        stack += letter;
+        stack(letter, null, 3);
     }
 
     /**
      * Ajoute un stack personalisé
      *
-     * @param letter
-     * @param title
+     * @param letter l'initiale a afficher dans la traceroute
+     * @param title  Le titre à afficher lors de l'entree dans le path
      */
     public static void stack(char letter, String title) {
-        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-        StackTraceElement stackTraceElement = stackTrace[2];
-
-        int originalLastStackLenght = lastStackLenght;
-
-        addPathToStack(2, stackTrace);
-
-        sizeDirection = Integer.compare(lastStackLenght, stack.length());
-        lastStackLenght = stack.length();
-
-        String methodTitle = getMethodTitle(stackTraceElement);
-
-        customStackPositions.add(stack.length());
-        stack += letter;
-        sizeDirection = Integer.compare(lastStackLenght, stack.length());
-        lastStackLenght = stack.length();
-
-        if (methodTitle != null && !lastMethodName.equals(stackTraceElement.getMethodName())) {
-            System.out.print(methodTitle);
-        } else {
-            sizeDirection = Integer.compare(originalLastStackLenght, stack.length());
-        }
-
-
-        if (title != null) {
-            System.out.print(createTitle(title));
-        }
-
-        if (!lastMethodName.equals(stackTraceElement.getMethodName())) {
-            lastMethodName = stackTraceElement.getMethodName();
-        }
+        stack(letter, title, 3);
     }
 
+
+    /**
+     * Ajoute un stack personalisé
+     *
+     * @param letter  l'initiale a afficher dans la traceroute
+     * @param title   Le titre à afficher lors de l'entree dans le path
+     * @param padding le padding pour la gestion du path
+     */
+    private static void stack(char letter, String title, int padding) {
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        StackTraceElement stackTraceElement = stackTrace[padding];
+        content = "";
+        int originalPathSize = lastPathSize;
+
+        updatePath(stackTrace, padding);
+
+        if (!lastMethodName.equals(stackTraceElement.getMethodName())) {
+            String methodName = getMethodName(stackTraceElement);
+
+            if (methodName != null) {
+                System.out.print(concatAll(createTitle(methodName)));
+                originalPathSize = lastPathSize;
+            }
+
+            updateLastMethodName(stackTraceElement.getMethodName());
+        }
+
+        customStackPositions.add(path.length());
+        path += letter;
+        sizeDirection = Integer.compare(originalPathSize, path.length());
+        lastPathSize = path.length();
+
+        if (title != null) {
+            System.out.print(concatAll(createTitle(title)));
+        }
+
+    }
+
+    /**
+     *
+     */
     public static void unstack() {
         if (customStackPositions.size() > 0) {
             customStackPositions.remove(customStackPositions.size() - 1);
         }
     }
 
+    /**
+     * Affiche le nom de la methode courante.
+     */
     public static void displayTitle() {
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-        int padding = 2;
+        StackTraceElement stackTraceElement = stackTrace[2];
+        content = "";
+        updatePath(stackTrace, 2);
 
-        addPathToStack(padding, stackTrace);
+        String methodName = getMethodName(stackTraceElement, true);
 
-        sizeDirection = Integer.compare(lastStackLenght, stack.length());
-        lastStackLenght = stack.length();
-
-        System.out.print(getMethodTitle(stackTrace[padding]));
-
-        if (!lastMethodName.equals(stackTrace[padding].getMethodName())) {
-            lastMethodName = stackTrace[padding].getMethodName();
+        if (methodName != null) {
+            System.out.print(concatAll(createTitle(methodName)));
+            updateLastMethodName(stackTraceElement.getMethodName());
         }
-
     }
 
-    private static void updateStack() {
-        //-updateStack() et - currentdebugfunction et -updateStack et à partir de 0
-        updateStack(4);
-    }
-
-    private static void updateStack(int padding) {
+    private static void updateDebugString() {
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        StackTraceElement stackTraceElement = stackTrace[3];
+        content = "";
+        updatePath(stackTrace, 3);
 
-        addPathToStack(padding, stackTrace);
+        String methodName = getMethodName(stackTraceElement, true);
 
-        sizeDirection = Integer.compare(lastStackLenght, stack.length());
-        lastStackLenght = stack.length();
-
-        addTitleToStack(stackTrace[padding]);
-
-        if (stack.length() > 0) {
-            stack = stack.concat(pathSeparatorDirection(sizeDirection, SEPARATOR, SEPARATOR_MORE, SEPARATOR_LESS));
+        if (methodName != null && !lastMethodName.equals(stackTraceElement.getMethodName())) {
+            content = createTitle(methodName);
+            sizeDirection = 0;
+            updateLastMethodName(stackTraceElement.getMethodName());
         }
 
-        if (!lastMethodName.equals(stackTrace[padding].getMethodName())) {
-            lastMethodName = stackTrace[padding].getMethodName();
+        if (path.length() > 0) {
+            if (content.length() > 0) {
+                content = content.concat(path).concat(pathSeparatorDirection(sizeDirection, SEPARATOR, SEPARATOR_MORE, SEPARATOR_LESS));
+            } else {
+                content = pathSeparatorDirection(sizeDirection, SEPARATOR, SEPARATOR_MORE, SEPARATOR_LESS);
+            }
+        }
+
+    }
+
+    private static void updatePath(StackTraceElement[] stackTrace, int padding) {
+        path = createPath(stackTrace, padding);
+        sizeDirection = Integer.compare(lastPathSize, path.length());
+        lastPathSize = path.length();
+    }
+
+    /**
+     * Updates {@link #lastMethodName} only if methodName is different
+     *
+     * @param methodName the name of the actual method
+     */
+    private static void updateLastMethodName(String methodName) {
+        if (!lastMethodName.equals(methodName)) {
+            lastMethodName = methodName;
         }
     }
 
@@ -196,7 +226,7 @@ public class Debug {
         }
     }
 
-    private static void addPathToStack(int padding, StackTraceElement[] stackTrace) {
+    private static String createPath(StackTraceElement[] stackTrace, int padding) {
         StringBuilder str = new StringBuilder();
         for (int i = stackTrace.length - 1; i >= padding; i--) {
             TraceMethod traceMethod =
@@ -204,9 +234,9 @@ public class Debug {
 
             if (traceMethod != null) {
                 if (i == padding && traceMethod.displayTitleIfLast()) {
-                    // dernier element du stack et on souhaite afficher le nom de la methode
+                    // dernier element du path et on souhaite afficher le nom de la methode
                     // on ajoute le separateur
-                    str.append(METHOD_SEPARATOR).append(getAvaliableMethodTitle(stackTrace[i], traceMethod));
+                    str.append(METHOD_SEPARATOR).append(getAvaliableMethodName(stackTrace[i], traceMethod));
                 } else {
                     // si ce n'est pas le dernier element, ou si celui-ci n'est pas affiché en entier
                     str.append(getMethodSymbol(stackTrace[i], traceMethod));
@@ -214,10 +244,10 @@ public class Debug {
             }
 
             while (customStackPositions.contains(str.length())) {
-                str.append(stack.charAt(str.length()));
+                str.append(path.charAt(str.length()));
             }
         }
-        stack = str.toString();
+        return str.toString();
     }
 
     private static TraceMethod getTraceMethod(String className, String methodName) {
@@ -240,45 +270,50 @@ public class Debug {
         return stackTraceElement.getMethodName().charAt(0);
     }
 
-    private static void addTitleToStack(StackTraceElement stackTraceElement) {
-        String methodTitle = getMethodTitle(stackTraceElement);
-
-        if (methodTitle != null && !lastMethodName.equals(stackTraceElement.getMethodName())) {
-            sizeDirection = Integer.compare(lastStackLenght, stack.length());
-            lastStackLenght = stack.length();
-
-            stack = methodTitle.concat(stack);
-        }
+    /**
+     * Renvoi le nom de la methode, ou celui spécifié par l'annotation {@link TraceMethod}
+     *
+     * @param stackTraceElement l'element à partir duquel on récupère la méthode
+     * @return le nom de la méthode ou le titre qui à été spécifié dans l'annotation {@link TraceMethod}, null si {@link TraceMethod#displayTitle()} est a false
+     */
+    private static String getMethodName(StackTraceElement stackTraceElement) {
+        return getMethodName(stackTraceElement, false);
     }
 
     /**
+     * Renvoi le nom de la methode, ou celui spécifié par l'annotation {@link TraceMethod} formatté en tant que titre
+     *
      * @param stackTraceElement l'element à partir duquel on récupère la méthode
-     * @return le nom de la méthode ou le titre qui à été spécifié dans l'annotation {@link TraceMethod}
+     * @param forceDisplay      Surpasse la permission de l'annotation {@link TraceMethod#displayTitle()} et affiche son nom
+     * @return le nom de la méthode ou le titre qui à été spécifié dans l'annotation {@link TraceMethod}, null si la methode n'est pas trouvée.
      */
-    private static String getMethodTitle(StackTraceElement stackTraceElement) {
+    private static String getMethodName(StackTraceElement stackTraceElement, boolean forceDisplay) {
         TraceMethod traceMethod = getTraceMethod(stackTraceElement.getClassName(), stackTraceElement.getMethodName());
 
-        if (traceMethod != null && traceMethod.displayTitle()) {
-            return createTitle(getAvaliableMethodTitle(stackTraceElement, traceMethod));
+        if (traceMethod != null && (traceMethod.displayTitle() || forceDisplay)) {
+            return getAvaliableMethodName(stackTraceElement, traceMethod);
         }
         return null;
     }
 
-    private static String getAvaliableMethodTitle(StackTraceElement stackTraceElement, TraceMethod traceMethod) {
+    private static String getAvaliableMethodName(StackTraceElement stackTraceElement, TraceMethod traceMethod) {
         // sinon on affiche le nom de la fonction
-        if (Objects.equals(traceMethod.title(), "")) {
+        if (traceMethod.title().isEmpty()) {
             // si la fonction à un titre personalisé
             return stackTraceElement.getMethodName();
         }
         return traceMethod.title();
     }
 
+    /**
+     * @param title le texte a transformer en titre
+     * @return le titre sera prefixé et suffixé par {@link #METHOD_PREFIX} et {@link #METHOD_SUFFIX}
+     */
     private static String createTitle(String title) {
-        return stack.concat(pathSeparatorDirection(sizeDirection, METHOD_PREFIX, METHOD_PREFIX_MORE, METHOD_PREFIX_LESS))
-                .concat(title).concat(METHOD_SUFFIX);
+        return pathSeparatorDirection(sizeDirection, METHOD_PREFIX, METHOD_PREFIX_MORE, METHOD_PREFIX_LESS).concat(title).concat(METHOD_SUFFIX);
     }
 
-    private static String prefixStack(Object o) {
-        return stack.concat(o.toString());
+    private static String concatAll(Object o) {
+        return path.concat(content).concat(o.toString());
     }
 }
