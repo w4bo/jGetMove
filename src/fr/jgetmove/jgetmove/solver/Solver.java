@@ -1,309 +1,642 @@
 package fr.jgetmove.jgetmove.solver;
 
-import java.util.Set;
-
-import java.util.ArrayList;
-import java.util.Collections;
-
+import fr.jgetmove.detector.IDetector;
+import fr.jgetmove.detector.PatternDetector;
+import fr.jgetmove.jgetmove.database.Cluster;
 import fr.jgetmove.jgetmove.database.Database;
+import fr.jgetmove.jgetmove.database.Transaction;
+import fr.jgetmove.jgetmove.debug.Debug;
+import fr.jgetmove.jgetmove.debug.TraceMethod;
+
+import java.util.*;
 
 public class Solver implements ISolver {
-	
-	private int minSupport, maxPattern, minTime;
-	private Set<Integer> totalItem;
-	
-	private int sizeGenerated;
-	
-	/**
-	 * @param minSupport support minimal
-	 * @param maxPattern nombre maximal de pattern a trouv�
-	 * @param minTime temps minimal
-	 */
-	public Solver(int minSupport, int maxPattern,  int minTime ){
-		this.minSupport = minSupport;
-		this.maxPattern = maxPattern;
-		this.minTime = minTime;
-	}
-	
-	/**
-	 * Initialise le solver � partir d'une base de donn�es
-	 * @param database la base de donn�es � analyser
-	 */
-	public void initLcm(Database database){
-		
-		totalItem = database.getItemset();
-		System.out.println("totalItem : " + totalItem);
-		
-		ArrayList<Integer> itemsets = new ArrayList<Integer>();
-		ArrayList<Integer> freqList = new ArrayList<Integer>();
-		
-		LcmIterNew(database,itemsets, freqList);
-	}
-	
-	/**
-	 * @param database La database � analyser
-	 * @param itemsets une liste representant les id/itemsets
-	 * @param freqList une liste reprensentant less clusters frequents
-	 */
-	private void LcmIterNew(Database database, ArrayList<Integer> itemsets , ArrayList<Integer> freqList){
-		
-		ArrayList <ArrayList<Integer>> generatedItemsets = new ArrayList<ArrayList<Integer>>();
-		ArrayList <ArrayList<Integer>> generatedTimeId = new ArrayList<ArrayList<Integer>>();
-		ArrayList <ArrayList<Integer>> generatedItemId = new ArrayList<ArrayList<Integer>>();
-		
-		sizeGenerated = 1;
-		
-		GenerateItemset(database,itemsets,generatedItemsets,generatedTimeId, generatedItemId);	
-	    
-	    System.out.println("GeneratedItemsets : " + generatedItemsets);
-		System.out.println("GeneratedItemId : " + generatedItemId);
-		System.out.println("GeneratedTimeId : " + generatedTimeId);
-		System.out.println("SizeGenerated : " + sizeGenerated);
-		
-		for(int nbItemSets=0 ; nbItemSets < generatedItemsets.size() ; nbItemSets++){
-			System.out.println("Test");
-			int core_i = CalcurateCoreI(database, generatedItemsets.get(nbItemSets),freqList);
-			System.out.println("Core_i : " + core_i);
-			
-			int index = lower_bound(new ArrayList<Integer>(totalItem) , core_i);
-			
-			ArrayList<Integer> freq_i = new ArrayList<Integer>();
-			
-			for(int i=index;i<totalItem.size();i++){
-				System.out.println("Total Item : " + totalItem);
-				System.out.println("Index : " + i);
-				System.out.println("Transaction : " + database.getTransactions());
-				if( !((database.getClusters().get(i).getTransactions().size()) >= minSupport) &&
-						Collections.binarySearch(generatedItemsets.get(nbItemSets), i) == 0 ){
-					freq_i.add(i);
-				}
-				
-				ArrayList<Integer> newTransactionList = new ArrayList<Integer>();
-				ArrayList<Integer> q_sets = new ArrayList<Integer>();
-				ArrayList<Integer> newFreqList = new ArrayList<Integer>();
-				
-				for(int j=0; j<freq_i.size();j++){
-					newTransactionList.clear();
-					
-					//if (PPCTest)
-					
-					q_sets.clear();
-					
-					MakeClosure(database,newTransactionList,q_sets,generatedItemsets.get(nbItemSets) , j);
-				}	
-			}
-		}
-	}
-	
-	 public static int lower_bound(ArrayList<Integer> arr, int key) {
-	        int len = arr.size();
-	        int lo = 0;
-	        int hi = len-1;
-	        int mid = (lo + hi)/2;
-	        while (true) {
-	            boolean cmp = arr.get(mid)<= key;
-	            if (!cmp) {
-	                hi = mid-1;
-	                if (hi < lo)
-	                    return mid;
-	            } else {
-	                lo = mid+1;
-	                if (hi < lo)
-	                    return mid<len-1?mid+1:-1;
-	            }
-	            mid = (lo + hi)/2;
-	        }
-	    }
 
-	private int CalcurateCoreI(Database database, ArrayList<Integer> itemsets, ArrayList<Integer> freqList) {
-		// TODO Auto-generated method stub
-		int nbTransactions = database.getTransactions().size();
-		ArrayList<Integer> tempo = new ArrayList<Integer>();
-		
-		for(int i=0;i<nbTransactions;i++){
-			tempo = database.getTransaction(i).getItemsets();
-		}
-		
-		if(itemsets.size() > 0){
-			int current = freqList.get(freqList.size()-1);
-			
-			for(int i=freqList.size()-1 ; i>=0 ; i--){
-				if(current!=freqList.get(i)){
-					return freqList.get(i);
-				}
-			}
-			return itemsets.get(0);
-		}
-		return 0;
-	}
-	
-	private void MakeClosure(Database database, ArrayList<Integer> transactionList , ArrayList<Integer> q_sets, ArrayList<Integer> itemSet , int freq){
-		
-		for(int i=0 ; i<itemSet.size();i++){
-			q_sets.add(itemSet.get(i));
-		}
-		q_sets.add(freq);
-		
-		int index = lower_bound(new ArrayList<Integer>(totalItem), freq + 1);
-		
-		for(int i=index ; i<totalItem.size();i++){
-			if(CheckItemInclusion(database, transactionList,i) == true){
-				q_sets.add(i);
-			}
-		}
-	}
-	
-	
+    private int minSupport, maxPattern, minTime;
 
-	/**
-	 * CheckItemInclusion
-  	 * Check whether item is included in the transactions pointed to transactionList
-	 * @param database la base de donn�es 
-	 * @param transactionList la liste des transactions
-	 * @param item item to find
-	 * @return 
-	 */
-	private boolean CheckItemInclusion(Database database, ArrayList<Integer> transactionList, int item) {
-		// TODO Auto-generated method stub
-		
-		for(int i=0;i<transactionList.size();i++){
-			if(Collections.binarySearch(database.getTransaction(i).getItemsets(), item) == 0) return false;
-		}
-		return true;
-	}
+    /**
+     * Initialise le solveur.
+     *
+     * @param minSupport support minimal
+     * @param maxPattern nombre maximal de pattern a trouvé
+     * @param minTime    temps minimal
+     */
+    public Solver(int minSupport, int maxPattern, int minTime) {
+        this.minSupport = minSupport;
+        this.maxPattern = maxPattern;
+        this.minTime = minTime;
+    }
+    
+    /**
+     * Gets the lower_bound of an array
+     *
+     * @param array find the lower_bound from
+     * @param key   the item to compare
+     * @return an array beginning from key
+     * @deprecated use {@link TreeSet#tailSet(Object)}
+     */
+    private static SortedSet<Integer> lower_bound(TreeSet<Integer> array, int key) {
+        return array.tailSet(key);
+    }
 
-	/**
-	 * @param database la database � analyser
-	 * @param itemsets une liste representant les id/itemsets
-	 * @param generatedItemsets une liste reprensentant les itemsetsGenerees
-	 * @param generatedTimeId une liste reprensentant les tempsGenerees
-	 * @param generatedItemId une liste reprensentant les itemGenerees
-	 * @param sizeGenerated la taille des itemsets gener�es
-	 */
-	private void GenerateItemset(Database database, ArrayList<Integer> itemsets,
-			ArrayList<ArrayList<Integer>> generatedItemsets, ArrayList<ArrayList<Integer>> generatedTimeId,
-			ArrayList<ArrayList<Integer>> generatedItemId) {
-		
-		if(itemsets.size() == 0){
-			sizeGenerated = 0;
-			generatedItemsets.add(itemsets);
-			return;
-		}
-		else {
-			Integer [] times = database.getTimes().keySet().toArray(new Integer[database.getTimes().keySet().size()]);
-			ArrayList <Integer> clusterId = new ArrayList <Integer> (database.getClusters().keySet());
-			ArrayList <Integer> listOfDates = new ArrayList<Integer>();
-			int numberSameTime = 0;
-			int lastTime = 0;
-			
-			for(int i=0;i<itemsets.size();i++){
-				listOfDates.add(times[itemsets.get(i)]);
-				if(i!= itemsets.size() -1){
-					if(times[itemsets.get(i)] == times[itemsets.get(i+1)]){
-						numberSameTime++;
-					}	
-				}
-				lastTime = times[itemsets.get(i)];
-			}
-			generatedItemsets.clear();
-			
-			if(numberSameTime == 0){
-				generatedTimeId.add(listOfDates);
-				generatedItemId.add(clusterId);
-			}
-			
-			//Manage MultiClustering
-			ArrayList<ArrayList<Integer>> posDates = new ArrayList<ArrayList<Integer>>();
-			for(int i=1; i<lastTime ; i++){
-				ArrayList<Integer> row = new ArrayList<Integer>();
-				for(int j=0; j<itemsets.size(); j++){
-					if(times[itemsets.get(i)]==i){
-						row.add(itemsets.get(i));
-					}
-				}
-				posDates.add(row);
-			}
-			//sizeGenerated stands for the number of potential itemsets to generate
-			System.out.println("sizeGenerated stands for the number of potential itemsets to generate");
-			sizeGenerated = 1;
-			for(int i=0; i<posDates.size();i++){
-				sizeGenerated *= posDates.get(i).size();
-			}
-			
-			//initialise the set of generated itemsets
-			System.out.println("initialise the set of generated itemsets");
-			for (int itemsetIndex = 0; itemsetIndex < posDates.size(); ++itemsetIndex)
-			{
-				ArrayList<Integer> itemset = posDates.get(itemsetIndex);
-				ArrayList<Integer> singleton = new ArrayList<Integer>();
-				
-				if(itemsetIndex == 0){
-					for(Integer iterator : itemset){
-						singleton.add(iterator);
-						System.out.println("Add Singleton : " + singleton);
-						generatedItemsets.add(singleton);	
-					}
-				} else {
-					//OUI
-					ArrayList<ArrayList<Integer> > new_results = new ArrayList<ArrayList<Integer> >();
-					ArrayList<Integer> new_result = new ArrayList<Integer>();
-					for(ArrayList<Integer> iterator : generatedItemsets){
-						ArrayList<Integer> result = iterator;
-						for(Integer itItem : itemset){
-							new_result = result;
-							new_result.add(itItem);
-							new_results.add(new_result);
-						}	
-					}
-					System.out.println("Test : " + new_result );
-					generatedItemsets = new_results;
-				}
-			}
-			// Remove the itemsets already existing in the set of transactions
-			
-			System.out.println("Remove Itemsets already existing");
-			int nb = database.getNumberOfTransaction();
-			ArrayList<Integer> tempo;
-			ArrayList<ArrayList<Integer> > CheckedItemsets = new ArrayList<ArrayList<Integer> >();
-			ArrayList<Integer> currentItemsets = new ArrayList<Integer>();
-			int nbitemsets = 0;
-			boolean insertok;
-			for (int u = 0; u < generatedItemsets.size(); u++){
-				insertok = true;
-				currentItemsets.clear();
-				currentItemsets = generatedItemsets.get(u);
-				for (int i = 0; i < nb ; i++){
-					tempo = database.getTransaction(i).getItemsets();
-					if(tempo==generatedItemsets.get(u)) {
-						insertok = false; 
-						break;
-					}
-				}
-				if(insertok) {
-					CheckedItemsets.add(currentItemsets);
-					nbitemsets++;
-				}
-			}
-			sizeGenerated=nbitemsets;
-			generatedItemsets.clear();
-		    generatedItemsets=CheckedItemsets;
-		    System.out.println("GeneratedItemsets : " + CheckedItemsets);
-		    
-		    // updating list of dates
-		    System.out.println("updating list of dates");
-		    listOfDates.clear();
-		    for (int l=0;l< sizeGenerated;l++){
-		    	for(int u=0; u<generatedItemsets.get(l).size(); u++){
-		    		for(int i=0; i<itemsets.size();i++){
-		    			if(generatedItemsets.get(l).get(u) == itemsets.get(i)){
-		    				listOfDates.add(times[itemsets.get(i)]);
-		    			}
-		    		}
-		    	}
-		    }
-		    generatedTimeId.add(listOfDates);
-		    generatedItemId.add(clusterId);
-		    
-		}	
-	}
+    /**
+     * Initialise le solver à partir d'une base de données
+     * <p>
+     * <pre>
+     * Lcm::RunLcmNew(database, []transactionsets,
+     * numItems, []itemID, []timeID,
+     * [][]level2ItemID, [][]level2TimeID)
+     * </pre>
+     *
+     * @param database la base de données à analyser
+     */
+    @TraceMethod
+    public void init(Database database) {
+        Debug.println("totalItem : " + database.getClusterIds());
+
+        ArrayList<Integer> itemsets = new ArrayList<>();
+        ArrayList<Integer> freqItemset = new ArrayList<>();
+
+        run(database, itemsets, database.getTransactionIds(), freqItemset, 0);
+        rgPatternDetect(database); //On a besoin de database pour faire appel à la structure table (voir c++)
+    }
+
+    /**
+     * Boucle r&eacute;cursive
+     * <p>
+     * <pre>
+     * Lcm::LcmIterNew(database, []itemsets, []transactionList, occ,
+     * []freqList, []transactionsets, numItems, []itemID,
+     * []timeID, [][]level2ItemID, [][]level2TimeID) {
+     * </pre>
+     *
+     * @param database           (database, transactionsets, itemID, timeID) La database &agrave; analyser
+     * @param clusterIds         (itemsets) une liste representant les id
+     * @param transactionIds     (transactionList)
+     * @param frequentClusterIds (freqList) une liste reprensentant les clusterIds frequents
+     * @param numItems           (numItems)
+     */
+    @TraceMethod
+    private void run(Database database, ArrayList<Integer> clusterIds, Set<Integer> transactionIds, ArrayList<Integer> frequentClusterIds, int numItems) {
+        // TODO numItems est passé en paramètres :)
+
+        ArrayList<ArrayList<Integer>> generatedArrayOfClusters = new ArrayList<>();
+        ArrayList<Set<Integer>> generatedArrayOfTimeIds = new ArrayList<>();
+        ArrayList<TreeSet<Integer>> generatedArrayOfClusterIds = new ArrayList<>();
+
+        int[] sizeGenerated = {1};
+
+        generateClusters(database, clusterIds, generatedArrayOfClusters, generatedArrayOfTimeIds, generatedArrayOfClusterIds, sizeGenerated);
+        Debug.println("GeneratedItemsets : " + generatedArrayOfClusters);
+        Debug.println("GeneratedItemId : " + generatedArrayOfClusterIds);
+        Debug.println("GeneratedTimeId : " + generatedArrayOfTimeIds);
+        Debug.println("SizeGenerated : " + sizeGenerated[0]);
+        Debug.println("");
+
+        for (ArrayList<Integer> generatedClusters : generatedArrayOfClusters) {
+            // TODO : PrintItemsetsNew on l'a oublié
+            PrintItemsetsNew(database, generatedClusters, database.getTransactionIds(), numItems);
+
+            int calcurateCoreI = CalcurateCoreI(generatedClusters, frequentClusterIds);
+
+            Debug.println("Core_i : " + calcurateCoreI);
+
+            SortedSet<Integer> lowerBounds = lower_bound(database.getClusterIds(), calcurateCoreI);
+
+            // freq_i
+            ArrayList<Integer> freqClusterIds = new ArrayList<>();
+            Debug.println("lower bounds : " + lowerBounds.size());
+
+            for (int clusterId : lowerBounds) {
+                Debug.println("GeneratedClusters : " + generatedClusters + " Cluster : " + database.getCluster(clusterId) + " Min Support : " + minSupport);
+
+                if (database.getClusterTransactions(clusterId).size() >= minSupport &&
+                        !generatedClusters.contains(clusterId)) {
+                    freqClusterIds.add(clusterId);
+                }
+            }
+
+            ArrayList<Integer> qSets = new ArrayList<>();
+
+            Debug.println("Frequent : " + freqClusterIds);
+
+            for (int freqClusterId : freqClusterIds) {
+                Set<Integer> newTransactionIds = new HashSet<>(); // newTransactionList
+
+                if (PPCTest(database, generatedClusters, transactionIds, freqClusterId, newTransactionIds)) {
+                    qSets.clear();
+
+                    MakeClosure(database, newTransactionIds, qSets, generatedClusters, freqClusterId);
+                    if (maxPattern == 0 || qSets.size() <= maxPattern) {
+                        ArrayList<Integer> newFreqList;
+
+                        Set<Integer> iterTransactionIds = updateTransactions(database, transactionIds, qSets, freqClusterId);
+                        newFreqList = updateFreqList(database, transactionIds, qSets, frequentClusterIds, freqClusterId);
+
+                        //updateOccurenceDeriver(database, iterTransactionIds);
+                        // clusterIds -> qSets
+                        // transactionIds -> newTransactionIds
+                        // freqList -> newFreqlist
+                        run(database, qSets, iterTransactionIds, newFreqList, numItems);
+
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * <pre>
+     * Lcm::PrintItemsetsNew([]itemsets, occ, [Transaction]transactionsets,
+     * numItems, []timeID,[][]level2ItemID,
+     * [][]level2TimeID)
+     * </pre>
+     *
+     * @param database       (occ)
+     * @param clusterIds     (itemsets)
+     * @param transactionIds (transactionsets)
+     * @param numClusters    (numItems)
+     * @deprecated use {@link #printClustersNew(Database, ArrayList, Set, int)}
+     */
+    private void PrintItemsetsNew(Database database, ArrayList<Integer> clusterIds, Set<Integer> transactionIds, int numClusters) {
+        printClustersNew(database, clusterIds, transactionIds, numClusters);
+    }
+
+    /**
+     * <pre>
+     * Lcm::PrintItemsetsNew([]itemsets, occ, [Transaction]transactionsets,
+     * numItems, []timeID,[][]level2ItemID,
+     * [][]level2TimeID)
+     * </pre>
+     *
+     * @param database       (occ)
+     * @param clusterIds     (itemsets)
+     * @param transactionIds (transactionsets)
+     * @param numClusters    (numItems)
+     */
+    private void printClustersNew(Database database, ArrayList<Integer> clusterIds, Set<Integer> transactionIds, int numClusters) {
+        //TODO
+        Debug.println("ItemsetSize : " + clusterIds.size());
+        Debug.println("MinTime : " + minTime);
+        if (clusterIds.size() > minTime) {
+            Set<Integer> transactionOfLast = database.getClusterTransactions(clusterIds.get(clusterIds.size() - 1)).keySet();
+            //Pour chaque transaction, on ajoute le cluster qui a l'id numItem
+            for (Integer transactionId : transactionOfLast) {
+                database.getTransaction(transactionId).add(database.getCluster(numClusters));
+                numClusters++;
+            }
+        }
+    }
+
+    /**
+     * @param database
+     * @param transactionIds
+     * @param qSets
+     * @param frequentClusters
+     * @param freqClusterId
+     * @return
+     */
+    private ArrayList<Integer> updateFreqList(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets,
+                                              ArrayList<Integer> frequentClusters, int freqClusterId) {
+        //On ajoute les frequences des itemsets de qSets
+        ArrayList<Integer> newFrequentClusters = new ArrayList<>();
+
+        int clusterId = 0;
+        if (frequentClusters.size() > 0) {
+            for (; clusterId < qSets.size(); clusterId++) {
+                if (qSets.get(clusterId) >= freqClusterId) break;
+                newFrequentClusters.add(frequentClusters.get(clusterId));
+            }
+        }
+        // newList = database.getTransactionsId()
+        // pour chaque item de Qset
+        //      pour chaque transaction de newList
+        //          si la transaction contient item
+        //              increment compteur
+        //              ajouter transaction dans newnewList
+        //      ajouter compteur a newFreqlist
+        //      newlist = newnewlist
+        ArrayList<Integer> previousList = new ArrayList<>(transactionIds);
+
+        for (; clusterId < qSets.size(); clusterId++) {
+            ArrayList<Integer> lastList = new ArrayList<>();
+
+            int freqCount = 0;
+
+            for (int transactionId : previousList) {
+                Transaction transaction = database.getTransaction(transactionId);
+
+                if (transaction.getClusterIds().contains(qSets.get(clusterId))) {
+                    freqCount++;
+                    lastList.add(previousList.get(previousList.get(transactionId)));
+                }
+            }
+            newFrequentClusters.add(freqCount);
+            previousList = lastList;
+        }
+
+        return newFrequentClusters;
+    }
+    /**
+     * 
+     * @param database
+     * @param newTransactionIds
+     * @deprecated
+     */
+    private void updateOccurenceDeriver(Database database, Set<Integer> newTransactionIds) {
+        //TODO
+        for (int transactionId : newTransactionIds) {
+            Transaction transaction = database.getTransaction(transactionId);
+
+            for (int clusterId : transaction.getClusterIds()) {
+                transaction.getClusters()
+                        .put(clusterId, database.getCluster(clusterId));
+                database.getClusterTransactions(clusterId)
+                        .put(transactionId, transaction);
+            }
+        }
+    }
+
+    private Set<Integer> updateTransactions(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets, int freqClusterId) {
+        Set<Integer> newTransactionIds = new HashSet<>();
+
+        for (int transactionId : transactionIds) {
+            Transaction transaction = database.getTransaction(transactionId);
+            boolean canAdd = true;
+
+            for (int qSetClusterId : qSets) {
+                if (qSetClusterId >= freqClusterId && !transaction.getClusterIds().contains(qSetClusterId)) {
+                    canAdd = false;
+                }
+            }
+            if (canAdd) {
+                newTransactionIds.add(transactionId);
+            }
+        }
+        return newTransactionIds;
+
+    }
+
+    /**
+     * Teste si p(i-1) == q(i-1)
+     * <p>
+     * <pre>
+     * Lcm::PpcTest(database, []itemsets, []transactionList, item, []newTransactionList)
+     * </pre>
+     *
+     * @param database          (database)
+     * @param clusters          (itemsets)
+     * @param transactionIds    (transactionList)
+     * @param freqClusterId     (item)
+     * @param newTransactionIds (newTransactionList)
+     * @return
+     */
+    @TraceMethod(displayTitle = true)
+    private boolean PPCTest(Database database, ArrayList<Integer> clusters, Set<Integer> transactionIds, int freqClusterId, Set<Integer> newTransactionIds) {
+        // CalcTransactionList
+        for (int transactionId : transactionIds) {
+            Transaction transaction = database.getTransaction(transactionId);
+            if (transaction.getClusterIds().contains(freqClusterId)) {
+                newTransactionIds.add(transactionId);
+            }
+        }
+        for (int clusterId = 0; clusterId < freqClusterId; clusterId++) {
+            if (!clusters.contains(clusterId) && CheckItemInclusion(database, newTransactionIds, clusterId)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * <pre>
+     * Lcm::CalcurateCoreI(database, itemsets, freqList)
+     * </pre>
+     *
+     * @param clusterIds         (itemsets)
+     * @param frequentClusterIds (freqList)
+     * @return le dernier élement different du dernier clusterId de frequentClusterIds, si frequentClusterIds est trop petit, renvoie le premier element de clusterIds, sinon renvoi 0 si clusterIds est vide
+     * @deprecated use {@link #getDifferentFromLastCluster(ArrayList, ArrayList)}
+     */
+    private int CalcurateCoreI(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
+        return getDifferentFromLastCluster(clusterIds, frequentClusterIds);
+    }
+
+    /**
+     * <pre>
+     * Lcm::CalcurateCoreI(database, itemsets, freqList)
+     * </pre>
+     *
+     * @param clusterIds         (itemsets)
+     * @param frequentClusterIds (freqList)
+     * @return le dernier élement different du dernier clusterId de frequentClusterIds, si frequentClusterIds est trop petit, renvoie le premier element de clusterIds, sinon renvoi 0 si clusterIds est vide
+     */
+    private int getDifferentFromLastCluster(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
+        if (clusterIds.size() > 0) {
+            int current = frequentClusterIds.get(frequentClusterIds.size() - 1);
+            for (int i = frequentClusterIds.size() - 1; i >= 0; i--) {
+                if (current != frequentClusterIds.get(i)) return frequentClusterIds.get(i);
+            }
+            /*if (frequentClusterIds.size() > 1) {
+                return frequentClusterIds.get(frequentClusterIds.size() - 2);
+            }*/
+
+            return clusterIds.get(0);
+        }
+        return 0;
+    }
+
+    @TraceMethod(displayTitle = true)
+    private void MakeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets, ArrayList<Integer> itemset, int freq) {
+        // TODO doc
+        Debug.println("transactionIds : " + transactionIds);
+        Debug.println("qSets : " + qSets);
+        Debug.println("itemset : " + itemset);
+        Debug.println("freq : " + freq);
+        Debug.println("");
+
+        for (int clusterId = 0; clusterId < itemset.size() && itemset.get(clusterId) < freq; clusterId++) {
+            qSets.add(itemset.get(clusterId));
+        }
+
+        //qSets.addAll(itemset);
+
+        qSets.add(freq);
+
+        SortedSet<Integer> lowerBoundSet = lower_bound(database.getClusterIds(), freq + 1);
+
+        for (int clusterId : lowerBoundSet) {
+            if (CheckItemInclusion(database, transactionIds, clusterId)) {
+                qSets.add(clusterId);
+            }
+        }
+        Debug.println("qSets : " + qSets);
+    }
+
+
+    /**
+     * CheckItemInclusion(Database,transactionlist,item)
+     * Check whether clusterId is included in any of the transactions pointed to transactions
+     *
+     * @param database       (database) la base de données
+     * @param transactionIds (transactionList) la liste des transactions
+     * @param clusterId      (item) clusterId to find
+     * @return true if the clusterId is in one of the transactions
+     * @deprecated not expressive naming use {@link #clusterInTransactions(Database, Set, int)}
+     */
+    private boolean CheckItemInclusion(Database database, Set<Integer> transactionIds, int clusterId) {
+        return clusterInTransactions(database, transactionIds, clusterId);
+    }
+
+    /**
+     * Verifie si le cluster est inclus dans toute la liste des transactions
+     * <p>
+     * Dans GetMove :
+     * <pre>
+     * Lcm::CheckItemInclusion(Database,transactionList,item)
+     * </pre>
+     *
+     * @param database       (database) la base de données
+     * @param transactionIds (transactionList) la liste des transactions
+     * @param clusterId      (item) le cluster à trouver
+     * @return vrai si le cluster est présent dans toute les transactions de la liste
+     */
+    private boolean clusterInTransactions(Database database, Set<Integer> transactionIds, int clusterId) {
+        for (int transactionId : transactionIds) {
+            if (!database.getTransaction(transactionId).getClusterIds().contains(clusterId)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * <pre>
+     * Lcm::GenerateItemset(Database,[]itemsets,[]itemID,[]timeID,[][]generatedItemsets, [][]generatedtimeID,[][]generateditemID,sizeGenerated)
+     * </pre>
+     *
+     * @param database                   (database, itemID, timeID) la database a analyser
+     * @param clusterIds                 (itemsets) une liste representant les clusterId
+     * @param generatedArrayOfClusters   (generateItemsets) une liste reprensentant les itemsetsGenerees
+     * @param generatedArrayOfTimeIds    (generatedtimeID) une liste reprensentant les tempsGenerees
+     * @param generatedArrayOfClusterIds (generateditemID) une liste reprensentant les itemGenerees
+     */
+    private void generateClusters(Database database, ArrayList<Integer> clusterIds,
+                                  ArrayList<ArrayList<Integer>> generatedArrayOfClusters,
+                                  ArrayList<Set<Integer>> generatedArrayOfTimeIds,
+                                  ArrayList<TreeSet<Integer>> generatedArrayOfClusterIds,
+                                  int[] sizeGenerated) {
+        // todo aplatir generated* dans cette fonction : raison, non utilisées
+        if (clusterIds.size() == 0) {
+            sizeGenerated[0] = 0;
+            generatedArrayOfClusters.add(clusterIds);
+            return;
+        }
+        //pk 2d generated* ???
+        generatedArrayOfClusters.clear();
+
+        Set<Integer> times = new HashSet<>(); // listOfDates
+        boolean isMonoCluster = true; // numberSameTime
+
+        // liste des temps qui n'ont qu'un seul cluster
+        for (int i = 0; i < clusterIds.size(); ++i) {
+            int clusterId = clusterIds.get(i);
+            times.add(database.getClusterTimeId(clusterId));
+
+            if (i != clusterIds.size() - 1) {
+                int nextClusterId = clusterIds.get(i + 1);
+
+                if (database.getClusterTimeId(clusterId)
+                        == database.getClusterTimeId(nextClusterId)) {
+                    isMonoCluster = false;
+                }
+            }
+        }
+
+        if (isMonoCluster) {
+            generatedArrayOfClusters.add(clusterIds); // why
+            generatedArrayOfTimeIds.add(times); // whyyy
+            generatedArrayOfClusterIds.add(database.getClusterIds()); // but why ???
+            return;
+        }
+
+        //Manage MultiClustering
+
+        ArrayList<ArrayList<Integer>> timesClusterIds = new ArrayList<>(); // PosDates
+
+        for (int timeId : times) {
+            ArrayList<Integer> tempClusterIds = new ArrayList<>();
+
+            for (int clusterId : clusterIds) {
+                if (database.getClusterTimeId(clusterId) == timeId) {
+                    tempClusterIds.add(clusterId);
+                }
+            }
+
+            timesClusterIds.add(tempClusterIds);
+        }
+
+        //sizeGenerated stands for the number of potential itemsets to generate
+        Debug.println("sizeGenerated stands for the number of potential itemsets to generate");
+        sizeGenerated[0] = 1;
+
+        for (ArrayList<Integer> temp : timesClusterIds) {
+            sizeGenerated[0] *= temp.size();
+        }
+
+        //initialise the set of generated itemsets
+        Debug.println("initialise the set of generated itemsets");
+
+        /*
+         * For each clusterId in timeClusterIds[0], push itemset of size 1
+         */
+        for (Integer clusterId : timesClusterIds.get(0)) {
+            ArrayList<Integer> singleton = new ArrayList<>(1);
+            singleton.add(clusterId);
+            generatedArrayOfClusters.add(singleton);
+            Debug.println("Add Singleton : " + singleton);
+        }
+        /*
+         * For each time [1+], get the clusters associated
+         */
+        for (int clusterIdsIndex = 1, size = timesClusterIds.size(); clusterIdsIndex < size; ++clusterIdsIndex) {
+            ArrayList<Integer> tempClusterIds = timesClusterIds.get(clusterIdsIndex);
+            ArrayList<ArrayList<Integer>> results = new ArrayList<>();
+
+            for (ArrayList<Integer> generatedItems : generatedArrayOfClusters) {
+                for (int item : tempClusterIds) {
+                    ArrayList<Integer> result = new ArrayList<>(generatedItems);
+                    result.add(item);
+                    results.add(result); // but why ???
+                }
+            }
+            generatedArrayOfClusters = results;
+        }
+
+        // Remove the itemsets already existing in the set of transactions
+        Debug.println("Remove Itemsets already existing");
+        ArrayList<ArrayList<Integer>> checkedArrayOfClusterIds = new ArrayList<>(); //checkedItemsets
+
+        boolean insertok;
+        int nbClusters = 0;
+
+        for (ArrayList<Integer> currentClusterIds : generatedArrayOfClusters) {
+            insertok = true;
+
+            for (Transaction transaction : database.getTransactions().values()) {
+
+                if (compareSetAndList(transaction.getClusterIds(), currentClusterIds)) {
+                    insertok = false;
+                    break;
+                }
+            }
+
+            if (insertok) {
+                checkedArrayOfClusterIds.add(currentClusterIds);
+                nbClusters++;
+            }
+        }
+
+        sizeGenerated[0] = nbClusters;
+
+        // updating list of dates
+        Debug.println("updating list of dates");
+        times.clear();
+
+
+        for (ArrayList<Integer> checkedClusterIds : checkedArrayOfClusterIds) {
+            for (int checkedClusterId : checkedClusterIds) {
+                if (clusterIds.contains(checkedClusterId)) {
+                    times.add(database.getClusterTimeId(checkedClusterId));
+                }
+            }
+        }
+
+        generatedArrayOfClusters.clear();
+        generatedArrayOfClusters = checkedArrayOfClusterIds; // why
+        generatedArrayOfTimeIds.add(times); // whyy
+        generatedArrayOfClusterIds.add(database.getClusterIds()); // but whyy ?
+    }
+
+    /**
+     * Retourne vrai si les deux tableaux sont identiques
+     *
+     * @param set  le Set a comparer
+     * @param list la liste a comparer
+     * @return vrai si les deux sont identiques
+     */
+    private boolean compareSetAndList(Set<Integer> set, List<Integer> list) {
+        // meilleure optimisation possible : http://stackoverflow.com/a/1075817
+        TreeSet<Integer> treeSet = new TreeSet<>(set);
+        TreeSet<Integer> treeList = new TreeSet<>(list);
+
+        return treeSet.equals(treeList);
+    }
+
+    /**
+     * Detecte les group patterns des clusters générés precédemment
+     * TODO : Documentation
+     *
+     * @param database notre base de donnees
+     */
+    @TraceMethod
+    private void rgPatternDetect(Database database) {
+        Debug.displayTitle();
+        //Ne t'occupe pas des sorties dans les fichiers pour commencer, juste l'affichage
+        HashMap<Integer, Cluster> allClusters = database.getClusters(); //Je recupere l'ensemble des clusters
+        ArrayList<Integer> time;
+        int firsttime = 0;
+        int lv2firsttime = -1; //LV2 ? est-ce reellement utile ?
+        int lasttime = 0;
+        ArrayList<Boolean> way;
+        ArrayList<Integer> allfirsttime;
+        ArrayList<Integer> alllasttime;
+        Boolean conv;
+        Boolean dis;
+
+        // fait pas un foreach pour faire un for i --"
+        for (Map.Entry<Integer, Cluster> entry : allClusters.entrySet()) { //Parcours de l'ensemble des clusters
+            Integer key = entry.getKey();
+            Cluster value = entry.getValue();
+            if (key < allClusters.size() - 1) {
+                if (isAIncludedInB(database.getCluster(key).getTransactions(), database.getCluster(key + 1).getTransactions()) == 1) {
+
+                } else if (isAIncludedInB(database.getCluster(key + 1).getTransactions(), database.getCluster(key).getTransactions()) == 1) {
+
+                } else if (isAIncludedInB(database.getCluster(key + 1).getTransactions(), database.getCluster(key).getTransactions()) == 2) {
+                    //Je doute de l'utilité de ce if car il utilise lv2firsttime = -1;
+                } else {
+
+                }
+            }
+
+        }
+
+
+    }
+
+    /**
+     * Verifie si un ensemble de transaction est inclus dans un autre
+     * <p>
+     * TODO : Documentation
+     * <pre>isIncluded</pre>
+     *
+     * @param a le premier ensemble qui doit être contenu dans b
+     * @param b le deuxieme ensemble qui doit contenir a
+     * @return 2 si c'est egal
+     */
+    private int isAIncludedInB(HashMap<Integer, Transaction> a, HashMap<Integer, Transaction> b) {
+        if (a.size() > b.size()) {
+            return 0;
+        }
+
+        if (b.keySet().containsAll(a.keySet())) {
+            if (a.keySet().equals(b.keySet())) {
+                return 2;
+            }
+            return 1;
+        }
+
+        return 0;
+    }
 }

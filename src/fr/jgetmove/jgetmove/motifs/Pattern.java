@@ -1,5 +1,5 @@
 package fr.jgetmove.jgetmove.motifs;
 
-public interface Motif {
+public interface Pattern {
 
 }

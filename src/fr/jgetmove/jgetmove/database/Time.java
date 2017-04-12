@@ -7,6 +7,8 @@ import java.util.HashMap;
  */
 public class Time {
     private int id;
+
+    private Bloc bloc;
     /**
      * Hashmap contenant la liste des clusters idCluster=>Cluster
      */
@@ -30,14 +32,29 @@ public class Time {
     /**
      * @return id du temps
      */
-    int getId() {
+    public int getId() {
         return id;
+    }
+
+
+    /**
+     * @return le bloc associé au Time
+     */
+    public Bloc getBloc() {
+        return bloc;
+    }
+
+    /**
+     * @param bloc set le bloc associé au time
+     */
+    public void setBloc(Bloc bloc) {
+        this.bloc = bloc;
     }
 
     /**
      * @return ensemble des cluster
      */
-    HashMap<Integer, Cluster> getClusters() {
+    public HashMap<Integer, Cluster> getClusters() {
         return clusters;
     }
 

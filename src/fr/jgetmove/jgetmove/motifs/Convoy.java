@@ -1,5 +1,5 @@
 package fr.jgetmove.jgetmove.motifs;
 
-public class Convoy implements Motif {
+public class Convoy implements Pattern {
 
 }

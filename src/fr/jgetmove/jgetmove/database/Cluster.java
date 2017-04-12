@@ -8,10 +8,12 @@ import java.util.HashMap;
 public class Cluster {
 
     private int id;
+
     /**
      * HashMap contenant idTransaction => Transaction
      */
     private HashMap<Integer, Transaction> transactions;
+
     /**
      * Temps associé à un cluster
      */
@@ -30,29 +32,36 @@ public class Cluster {
      *
      * @param transaction la transaction à ajouter
      */
-    void add(Transaction transaction) {
+    public void add(Transaction transaction) {
         transactions.put(transaction.getId(), transaction);
     }
 
     /**
      * @return id du cluster courant
      */
-    int getId() {
+    public int getId() {
         return id;
     }
 
     /**
      * @return le Time associé au cluster
      */
-    Time getTime() {
+    public Time getTime() {
         return time;
     }
 
     /**
      * @param time le temps à associer au cluster
      */
-    void setTime(Time time) {
+    public void setTime(Time time) {
         this.time = time;
+    }
+
+    /**
+     * @return l'id du temps associé au cluster
+     */
+    public int getTimeId() {
+        return time.getId();
     }
 
     /**

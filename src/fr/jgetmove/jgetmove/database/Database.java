@@ -4,10 +4,7 @@ import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.TreeSet;
 
 /**
@@ -20,9 +17,14 @@ public class Database {
     private HashMap<Integer, Cluster> clusters;
     private HashMap<Integer, Transaction> transactions;
     private HashMap<Integer, Time> times;
-    private ArrayList<Integer> itemsets;
+
+    private TreeSet<Integer> clusterIdsTree;
+    private TreeSet<Integer> transactionIdsTree;
+    private TreeSet<Integer> timeIdsTree;
 
     /**
+     * Initialise Database en fonction des fichiers de données
+     *
      * @param inputObj  fichier (transactionId [clusterId ...])
      * @param inputTime fichier (timeId clusterId)
      * @throws IOException              si inputObj ou inputTime est incorrect
@@ -35,13 +37,15 @@ public class Database {
         clusters = new HashMap<>();
         transactions = new HashMap<>();
         times = new HashMap<>();
-        itemsets = new ArrayList<Integer>();
+
+        clusterIdsTree = new TreeSet<>();
+        transactionIdsTree = new TreeSet<>();
+        timeIdsTree = new TreeSet<>();
+
         //Initialisation des clusters et transactions
         initClusterAndTransaction();
         //Initialisation des temps
         initTimeAndCluster();
-
-
     }
 
     /**
@@ -64,10 +68,10 @@ public class Database {
                 if (clusters.get(clusterId) == null) {
                     cluster = new Cluster(clusterId);
                     this.add(cluster);
-                    itemsets.add(clusterId);
                 } else {
                     cluster = clusters.get(clusterId);
                 }
+
                 cluster.add(transaction);
                 transaction.add(cluster);
             }
@@ -92,6 +96,7 @@ public class Database {
 
         while ((line = inputTime.readLine()) != null) {
             String[] splitLine = line.split("( |\\t)+");
+
             if (splitLine.length == 2) { //Check si non malformé
 
                 timeId = Integer.parseInt(splitLine[0]);
@@ -118,46 +123,29 @@ public class Database {
             }
         }
     }
-    public Set<Integer> getItemset(){
-    	
-    	Set<Integer> itemsets = new TreeSet<Integer>();
-    	
-    	for(Entry<Integer, Transaction> entry : transactions.entrySet()) {
-    		
-    	    itemsets.addAll(entry.getValue().getClusters().keySet());
-      
-    	}
-    	
-    	return itemsets;
-    }
-    
-    /**
-     * @return l'ensemble des itemsets dans une arrayList
-     */
-    public ArrayList<Integer> getItemsets(){
-		return itemsets;
-    	
-    }
 
     /**
      * @param cluster le cluster à ajouter à la base
      */
     private void add(Cluster cluster) {
-        this.clusters.put(cluster.getId(), cluster);
+        clusters.put(cluster.getId(), cluster);
+        clusterIdsTree.add(cluster.getId());
     }
 
     /**
      * @param transaction la transaction à ajouter à la base
      */
     private void add(Transaction transaction) {
-        this.transactions.put(transaction.getId(), transaction);
+        transactions.put(transaction.getId(), transaction);
+        transactionIdsTree.add(transaction.getId());
     }
 
     /**
      * @param time le temps � ajouter � la base
      */
     private void add(Time time) {
-        this.times.put(time.getId(), time);
+        times.put(time.getId(), time);
+        timeIdsTree.add(time.getId());
     }
 
     /**
@@ -166,13 +154,42 @@ public class Database {
     public HashMap<Integer, Cluster> getClusters() {
         return clusters;
     }
-    
+
     /**
-     * @param i l'index du cluster
-     * @return le cluster poss�dant l'identifiant i
+     * @return l'ensemble des ClustersIds de la base
      */
-    public Cluster getClusters(int i) {
-        return clusters.get(i);
+    public TreeSet<Integer> getClusterIds() {
+        return clusterIdsTree;
+    }
+
+    /**
+     * @param clusterId identifiant du cluster
+     * @return le cluster ayant le clusterId
+     */
+    public Cluster getCluster(int clusterId) {
+        return clusters.get(clusterId);
+    }
+
+    /**
+     * @param clusterId identifiant du cluster
+     * @return l'ensemble des transactions du cluster
+     */
+    public HashMap<Integer, Transaction> getClusterTransactions(int clusterId) {
+        return getCluster(clusterId).getTransactions();
+    }
+
+    /**
+     * Renvoie le Time du cluster
+     *
+     * @param clusterId l'identifiant du cluster
+     * @return
+     */
+    public Time getClusterTime(int clusterId) {
+        return clusters.get(clusterId).getTime();
+    }
+
+    public int getClusterTimeId(int clusterId) {
+        return clusters.get(clusterId).getTimeId();
     }
 
     /**
@@ -181,19 +198,16 @@ public class Database {
     public HashMap<Integer, Transaction> getTransactions() {
         return transactions;
     }
-    
+
+    public TreeSet<Integer> getTransactionIds() {
+        return transactionIdsTree;
+    }
+
     /**
      * @return La transaction de la base à l'index en paramètre
      */
-    public Transaction getTransaction(int i) {
-        return transactions.get(i);
-    }
-    
-    /**
-     * @return le nombre de Transaction de la base
-     */
-    public int getNumberOfTransaction() {
-    	return transactions.size();
+    public Transaction getTransaction(int transactionId) {
+        return transactions.get(transactionId);
     }
 
     /**
@@ -201,6 +215,14 @@ public class Database {
      */
     public HashMap<Integer, Time> getTimes() {
         return times;
+    }
+
+    public TreeSet<Integer> getTimeIds() {
+        return timeIdsTree;
+    }
+
+    public Time getTime(int timeId) {
+        return times.get(timeId);
     }
 
     @Override
