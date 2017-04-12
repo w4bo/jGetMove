@@ -237,8 +237,13 @@ public class Solver implements ISolver {
 
         return newFrequentClusters;
     }
-
-    /*private void updateOccurenceDeriver(Database database, Set<Integer> newTransactionIds) {
+    /**
+     * 
+     * @param database
+     * @param newTransactionIds
+     * @deprecated
+     */
+    private void updateOccurenceDeriver(Database database, Set<Integer> newTransactionIds) {
         //TODO
         for (int transactionId : newTransactionIds) {
             Transaction transaction = database.getTransaction(transactionId);
@@ -250,7 +255,7 @@ public class Solver implements ISolver {
                         .put(transactionId, transaction);
             }
         }
-    }*/
+    }
 
     private Set<Integer> updateTransactions(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets, int freqClusterId) {
         Set<Integer> newTransactionIds = new HashSet<>();
@@ -633,15 +638,5 @@ public class Solver implements ISolver {
         }
 
         return 0;
-    }
-    /**
-     * Main function for detection of patterns
-     * @param database la database à analyser
-     */
-    public void detectPatterns(Database database,Set<IDetector> detectors){
-    	
-    	PatternDetector patternDetector = new PatternDetector(database,detectors);
-    	patternDetector.run();
-    	
     }
 }

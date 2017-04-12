@@ -2,7 +2,7 @@ package fr.jgetmove.detector;
 
 import java.util.ArrayList;
 import fr.jgetmove.jgetmove.database.Database;
-import fr.jgetmove.jgetmove.motifs.Motif;
+import fr.jgetmove.jgetmove.motifs.Pattern;
 
 /**
  * Class/Singleton related to the detection of convoys in a database
@@ -15,7 +15,7 @@ public class ConvoyDetector implements IDetector{
 	/**
 	 * Empty Constructor
 	 */
-	public ConvoyDetector(){
+	private ConvoyDetector(){
 		
 	}
 	
@@ -23,7 +23,7 @@ public class ConvoyDetector implements IDetector{
 	 * Cree une instance de ConvoyDetector ou retourne celle deja presente
 	 * @return une nouvelle instance de convoyDetector si elle n'a pas été deja crée
 	 */
-	public ConvoyDetector newInstance(){
+	public static ConvoyDetector getInstance(){
 		if(convoyDetector == null){
 			convoyDetector = new ConvoyDetector();
 			return convoyDetector;
@@ -35,7 +35,7 @@ public class ConvoyDetector implements IDetector{
 	 * Detect les pattern associé au detecteur
 	 * @return une liste de motif/pattern present dans la database pour ce detecteur
 	 */
-	public ArrayList<Motif> detect(Database database) {
+	public ArrayList<Pattern> detect(Database database) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -2,7 +2,7 @@ package fr.jgetmove.detector;
 
 import java.util.ArrayList;
 import fr.jgetmove.jgetmove.database.Database;
-import fr.jgetmove.jgetmove.motifs.Motif;
+import fr.jgetmove.jgetmove.motifs.Pattern;
 
 /**
  * 
@@ -11,6 +11,6 @@ import fr.jgetmove.jgetmove.motifs.Motif;
  */
 public interface IDetector {
 	
-	public ArrayList<Motif> detect(Database database);
+	public ArrayList<Pattern> detect(Database database);
 
 }
