@@ -15,15 +15,17 @@ public class PatternDetector {
 	
 	private Database database;
 	private Set<IDetector> detectors;
+	private ArrayList<ArrayList<ArrayList<Integer>>> clustersGenerated;
 	
 	/**
 	 * Constructor
 	 * @param database
 	 * @param detectors
 	 */
-	public PatternDetector(Database database, Set<IDetector> detectors){
+	public PatternDetector(Database database, Set<IDetector> detectors,ArrayList<ArrayList<ArrayList<Integer>>> clustersGenerated){
 		this.database = database;
 		this.detectors = detectors;
+		this.clustersGenerated = clustersGenerated;
 	}
 	
 	/**
@@ -31,9 +33,10 @@ public class PatternDetector {
 	 * @param database
 	 * @param detector
 	 */
-	public PatternDetector(Database database, IDetector detector){
+	public PatternDetector(Database database, IDetector detector,ArrayList<ArrayList<ArrayList<Integer>>> clustersGenerated){
 		this.database = database;
 		this.detectors.add(detector);
+		this.clustersGenerated = clustersGenerated;
 	}
 	
 	/**
@@ -44,7 +47,7 @@ public class PatternDetector {
 		
 		HashMap <IDetector,ArrayList<Pattern>> motifs = new HashMap<>();
 		for(IDetector detector : detectors){
-			motifs.put(detector, detector.detect(database));
+			motifs.put(detector, detector.detect(database,clustersGenerated));
 		}
 		return motifs;
 		

@@ -13,6 +13,7 @@ import java.util.*;
 public class Solver implements ISolver {
 
     private int minSupport, maxPattern, minTime;
+    public ArrayList<ArrayList<ArrayList<Integer>>> clustersGenerated;
     /**
      * Initialise le solveur.
      *
@@ -24,6 +25,7 @@ public class Solver implements ISolver {
         this.minSupport = minSupport;
         this.maxPattern = maxPattern;
         this.minTime = minTime;
+        this.clustersGenerated = new ArrayList<ArrayList<ArrayList<Integer>>>();
     }
     
     /**
@@ -77,7 +79,7 @@ public class Solver implements ISolver {
      */
     @TraceMethod
     private void run(Database database, ArrayList<Integer> clusterIds, Set<Integer> transactionIds, ArrayList<Integer> frequentClusterIds, int numItems) {
-        // TODO numItems est passÃ© en paramÃ¨tres :)
+        // TODO numItems est passé en paramètres :)
 
         ArrayList<ArrayList<Integer>> generatedArrayOfClusters = new ArrayList<>();
         ArrayList<Set<Integer>> generatedArrayOfTimeIds = new ArrayList<>();
@@ -86,6 +88,9 @@ public class Solver implements ISolver {
         int[] sizeGenerated = {1};
 
         generateClusters(database, clusterIds, generatedArrayOfClusters, generatedArrayOfTimeIds, generatedArrayOfClusterIds, sizeGenerated);
+        if(generatedArrayOfClusters.get(0).size() > 0){
+        	 clustersGenerated.add(generatedArrayOfClusters);
+        }
         Debug.println("GeneratedItemsets : " + generatedArrayOfClusters);
         Debug.println("GeneratedItemId : " + generatedArrayOfClusterIds);
         Debug.println("GeneratedTimeId : " + generatedArrayOfTimeIds);
@@ -637,5 +642,13 @@ public class Solver implements ISolver {
         }
 
         return 0;
+    }
+    
+    /**
+     * Getter sur la liste des itemsets
+     * @return la liste des itemsets genérées
+     */
+    public ArrayList<ArrayList<ArrayList<Integer>>> getClustersGenerated(){
+    	return clustersGenerated;
     }
 }

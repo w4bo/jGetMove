@@ -6,11 +6,11 @@ import fr.jgetmove.jgetmove.motifs.Pattern;
 
 /**
  * 
- * Interface related to the detection of patterns in the 
+ * Interface related to the detection of patterns
  *
  */
 public interface IDetector {
 	
-	public ArrayList<Pattern> detect(Database database);
+	public ArrayList<Pattern> detect(Database database, ArrayList<ArrayList<ArrayList<Integer>>> clustersGenerated);
 
 }

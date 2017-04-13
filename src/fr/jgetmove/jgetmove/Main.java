@@ -26,14 +26,13 @@ public class Main {
 
             Solver solver = new Solver(1, 0, 0);
             solver.init(database);
-            
             /**
              * Init Detectors
              */
             Set<IDetector> detectors = new HashSet<IDetector>();
             detectors.add(ConvoyDetector.getInstance());
 
-        	PatternDetector patternDetector = new PatternDetector(database,detectors);
+        	PatternDetector patternDetector = new PatternDetector(database,detectors,solver.getClustersGenerated());
         	patternDetector.run();
         	
 
