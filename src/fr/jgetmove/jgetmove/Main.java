@@ -3,8 +3,8 @@ package fr.jgetmove.jgetmove;
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.detector.ConvoyDetector;
-import fr.jgetmove.jgetmove.detector.IDetector;
-import fr.jgetmove.jgetmove.detector.PatternDetector;
+import fr.jgetmove.jgetmove.detector.DetectionManager;
+import fr.jgetmove.jgetmove.detector.Detector;
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
 import fr.jgetmove.jgetmove.solver.Solver;
@@ -26,16 +26,15 @@ public class Main {
 
             Solver solver = new Solver(1, 0, 0);
             solver.init(database);
-            /**
+
+            /*
              * Init Detectors
              */
-            Set<IDetector> detectors = new HashSet<IDetector>();
+            Set<Detector> detectors = new HashSet<>();
             detectors.add(ConvoyDetector.getInstance());
 
-        	PatternDetector patternDetector = new PatternDetector(database,detectors,solver.getClustersGenerated());
-        	patternDetector.run();
-        	
-
+            DetectionManager detectionManager = new DetectionManager(database, detectors, solver.getClustersGenerated());
+            detectionManager.run();
         } catch (IOException | ClusterNotExistException e) {
             e.printStackTrace();
         }

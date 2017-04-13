@@ -5,15 +5,14 @@ import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.TraceMethod;
-import fr.jgetmove.jgetmove.detector.IDetector;
-import fr.jgetmove.jgetmove.detector.PatternDetector;
 
 import java.util.*;
 
 public class Solver implements ISolver {
 
+    private ArrayList<ArrayList<ArrayList<Integer>>> clustersGenerated;
     private int minSupport, maxPattern, minTime;
-    public ArrayList<ArrayList<ArrayList<Integer>>> clustersGenerated;
+
     /**
      * Initialise le solveur.
      *
@@ -25,9 +24,9 @@ public class Solver implements ISolver {
         this.minSupport = minSupport;
         this.maxPattern = maxPattern;
         this.minTime = minTime;
-        this.clustersGenerated = new ArrayList<ArrayList<ArrayList<Integer>>>();
+        this.clustersGenerated = new ArrayList<>();
     }
-    
+
     /**
      * Gets the lower_bound of an array
      *
@@ -79,7 +78,7 @@ public class Solver implements ISolver {
      */
     @TraceMethod
     private void run(Database database, ArrayList<Integer> clusterIds, Set<Integer> transactionIds, ArrayList<Integer> frequentClusterIds, int numItems) {
-        // TODO numItems est passé en paramètres :)
+        // TODO numItems est passÃ©s en paramÃ¨tres :)
 
         ArrayList<ArrayList<Integer>> generatedArrayOfClusters = new ArrayList<>();
         ArrayList<Set<Integer>> generatedArrayOfTimeIds = new ArrayList<>();
@@ -88,8 +87,8 @@ public class Solver implements ISolver {
         int[] sizeGenerated = {1};
 
         generateClusters(database, clusterIds, generatedArrayOfClusters, generatedArrayOfTimeIds, generatedArrayOfClusterIds, sizeGenerated);
-        if(generatedArrayOfClusters.get(0).size() > 0){
-        	 clustersGenerated.add(generatedArrayOfClusters);
+        if (generatedArrayOfClusters.get(0).size() > 0) {
+            clustersGenerated.add(generatedArrayOfClusters);
         }
         Debug.println("GeneratedItemsets : " + generatedArrayOfClusters);
         Debug.println("GeneratedItemId : " + generatedArrayOfClusterIds);
@@ -241,8 +240,8 @@ public class Solver implements ISolver {
 
         return newFrequentClusters;
     }
+
     /**
-     * 
      * @param database
      * @param newTransactionIds
      * @deprecated
@@ -528,7 +527,6 @@ public class Solver implements ISolver {
             insertok = true;
 
             for (Transaction transaction : database.getTransactions().values()) {
-
                 if (compareSetAndList(transaction.getClusterIds(), currentClusterIds)) {
                     insertok = false;
                     break;
@@ -643,12 +641,13 @@ public class Solver implements ISolver {
 
         return 0;
     }
-    
+
     /**
      * Getter sur la liste des itemsets
-     * @return la liste des itemsets genérées
+     *
+     * @return la liste des itemsets genï¿½rï¿½es
      */
-    public ArrayList<ArrayList<ArrayList<Integer>>> getClustersGenerated(){
-    	return clustersGenerated;
+    public ArrayList<ArrayList<ArrayList<Integer>>> getClustersGenerated() {
+        return clustersGenerated;
     }
 }
