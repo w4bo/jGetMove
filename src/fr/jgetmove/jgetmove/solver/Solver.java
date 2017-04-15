@@ -10,7 +10,7 @@ import java.util.*;
 
 public class Solver implements ISolver {
 
-    private ArrayList<ArrayList<ArrayList<Integer>>> clustersGenerated;
+    private ArrayList<ArrayList<Integer>> clustersGenerated;
     private int minSupport, maxPattern, minTime;
 
     /**
@@ -88,7 +88,7 @@ public class Solver implements ISolver {
 
         generateClusters(database, clusterIds, generatedArrayOfClusters, generatedArrayOfTimeIds, generatedArrayOfClusterIds, sizeGenerated);
         if (generatedArrayOfClusters.get(0).size() > 0) {
-            clustersGenerated.add(generatedArrayOfClusters);
+            clustersGenerated.addAll(generatedArrayOfClusters);
         }
         Debug.println("GeneratedItemsets : " + generatedArrayOfClusters);
         Debug.println("GeneratedItemId : " + generatedArrayOfClusterIds);
@@ -647,7 +647,7 @@ public class Solver implements ISolver {
      *
      * @return la liste des itemsets gen�r�es
      */
-    public ArrayList<ArrayList<ArrayList<Integer>>> getClustersGenerated() {
+    public ArrayList<ArrayList<Integer>> getClustersGenerated() {
         return clustersGenerated;
     }
 }

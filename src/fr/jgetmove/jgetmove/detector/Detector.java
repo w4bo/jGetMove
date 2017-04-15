@@ -10,6 +10,6 @@ import java.util.ArrayList;
  */
 public interface Detector {
 
-    ArrayList<Pattern> detect(Database database, ArrayList<ArrayList<ArrayList<Integer>>> clustersGenerated);
+    ArrayList<Pattern> detect(Database database, ArrayList<ArrayList<Integer>> clustersGenerated);
 
 }

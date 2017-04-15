@@ -14,7 +14,7 @@ public class DetectionManager {
 
     private Database database;
     private Set<Detector> detectors;
-    private ArrayList<ArrayList<ArrayList<Integer>>> clustersGenerated;
+    private ArrayList<ArrayList<Integer>> clustersGenerated;
 
     /**
      * Constructor
@@ -22,7 +22,7 @@ public class DetectionManager {
      * @param database
      * @param detectors
      */
-    public DetectionManager(Database database, Set<Detector> detectors, ArrayList<ArrayList<ArrayList<Integer>>> clustersGenerated) {
+    public DetectionManager(Database database, Set<Detector> detectors, ArrayList<ArrayList<Integer>> clustersGenerated) {
         this.database = database;
         this.detectors = detectors;
         this.clustersGenerated = clustersGenerated;
@@ -34,7 +34,7 @@ public class DetectionManager {
      * @param database
      * @param detector
      */
-    public DetectionManager(Database database, Detector detector, ArrayList<ArrayList<ArrayList<Integer>>> clustersGenerated) {
+    public DetectionManager(Database database, Detector detector, ArrayList<ArrayList<Integer>> clustersGenerated) {
         this.database = database;
         this.detectors.add(detector);
         this.clustersGenerated = clustersGenerated;
