@@ -3,13 +3,14 @@ package fr.jgetmove.jgetmove;
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.detector.ConvoyDetector;
-import fr.jgetmove.jgetmove.detector.DetectionManager;
 import fr.jgetmove.jgetmove.detector.Detector;
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
-import fr.jgetmove.jgetmove.solver.Solver;
+import fr.jgetmove.jgetmove.solver.ClusterGenerator;
+import fr.jgetmove.jgetmove.solver.SolverManager;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,18 +26,18 @@ public class Main {
 
             Database database = new Database(inputObj, inputTime);
             Debug.println(database);
-
-            Solver solver = new Solver(1, 0, 0);
-            solver.init(database);
-
-            /*
-             * Init Detectors
+            
+            /**
+             * Init ClusterGenerator and detectors
              */
+            ClusterGenerator clusterGenerator = new ClusterGenerator(1, 0, 0);
             Set<Detector> detectors = new HashSet<>();
             detectors.add(ConvoyDetector.getInstance(minTime));
-
-            DetectionManager detectionManager = new DetectionManager(database, detectors, solver.getClustersGenerated());
-            detectionManager.run();
+            
+            SolverManager solverManager = new SolverManager(database,clusterGenerator,detectors);
+            ArrayList<ArrayList<Integer>> generatedClusters = solverManager.generateClusters();
+            solverManager.detectPatterns();
+                
         } catch (IOException | ClusterNotExistException e) {
             e.printStackTrace();
         }

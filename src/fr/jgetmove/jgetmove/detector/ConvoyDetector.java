@@ -73,9 +73,7 @@ public class ConvoyDetector implements Detector {
             	 currentTransactionSet = new HashSet<>(database.getClusterTransactions(itemset.get(i)).keySet());
                  currentTime = timeSet.get(i);
                  currentIndex = i;
-                 System.out.println("Current Time : " + currentTime);
-                 System.out.println("lastTime : " + lastTime);
-                 
+
                  //Recopie inutile ?
                  if (currentTime == lastTime + 1) {
                 	 ArrayList<Integer> transactionList = new ArrayList<>();

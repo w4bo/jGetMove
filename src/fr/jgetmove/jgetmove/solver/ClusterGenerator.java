@@ -8,7 +8,7 @@ import fr.jgetmove.jgetmove.debug.TraceMethod;
 
 import java.util.*;
 
-public class Solver implements ISolver {
+public class ClusterGenerator implements Generator {
 
     private ArrayList<ArrayList<Integer>> clustersGenerated;
     private int minSupport, maxPattern, minTime;
@@ -20,7 +20,7 @@ public class Solver implements ISolver {
      * @param maxPattern nombre maximal de pattern a trouvé
      * @param minTime    temps minimal
      */
-    public Solver(int minSupport, int maxPattern, int minTime) {
+    public ClusterGenerator(int minSupport, int maxPattern, int minTime) {
         this.minSupport = minSupport;
         this.maxPattern = maxPattern;
         this.minTime = minTime;
@@ -51,14 +51,15 @@ public class Solver implements ISolver {
      * @param database la base de données à analyser
      */
     @TraceMethod
-    public void init(Database database) {
+    public ArrayList<ArrayList<Integer>> generateClusters(Database database) {
         Debug.println("totalItem : " + database.getClusterIds());
 
         ArrayList<Integer> itemsets = new ArrayList<>();
         ArrayList<Integer> freqItemset = new ArrayList<>();
 
         run(database, itemsets, database.getTransactionIds(), freqItemset, 0);
-        rgPatternDetect(database); //On a besoin de database pour faire appel à la structure table (voir c++)
+        
+        return clustersGenerated;
     }
 
     /**
@@ -574,49 +575,7 @@ public class Solver implements ISolver {
 
         return treeSet.equals(treeList);
     }
-
-    /**
-     * Detecte les group patterns des clusters générés precédemment
-     * TODO : Documentation
-     *
-     * @param database notre base de donnees
-     */
-    @TraceMethod
-    private void rgPatternDetect(Database database) {
-        Debug.displayTitle();
-        //Ne t'occupe pas des sorties dans les fichiers pour commencer, juste l'affichage
-        HashMap<Integer, Cluster> allClusters = database.getClusters(); //Je recupere l'ensemble des clusters
-        ArrayList<Integer> time;
-        int firsttime = 0;
-        int lv2firsttime = -1; //LV2 ? est-ce reellement utile ?
-        int lasttime = 0;
-        ArrayList<Boolean> way;
-        ArrayList<Integer> allfirsttime;
-        ArrayList<Integer> alllasttime;
-        Boolean conv;
-        Boolean dis;
-
-        // fait pas un foreach pour faire un for i --"
-        for (Map.Entry<Integer, Cluster> entry : allClusters.entrySet()) { //Parcours de l'ensemble des clusters
-            Integer key = entry.getKey();
-            Cluster value = entry.getValue();
-            if (key < allClusters.size() - 1) {
-                if (isAIncludedInB(database.getCluster(key).getTransactions(), database.getCluster(key + 1).getTransactions()) == 1) {
-
-                } else if (isAIncludedInB(database.getCluster(key + 1).getTransactions(), database.getCluster(key).getTransactions()) == 1) {
-
-                } else if (isAIncludedInB(database.getCluster(key + 1).getTransactions(), database.getCluster(key).getTransactions()) == 2) {
-                    //Je doute de l'utilité de ce if car il utilise lv2firsttime = -1;
-                } else {
-
-                }
-            }
-
-        }
-
-
-    }
-
+    
     /**
      * Verifie si un ensemble de transaction est inclus dans un autre
      * <p>
