@@ -228,9 +228,9 @@ public class Database {
     @Override
     public String toString() {
         String str = "Fichiers :" + inputObj + "; " + inputTime + "\n";
-        str += "Clusters :" + clusters + "\n";
-        str += "Transactions :" + transactions + "\n";
-        str += "Temps :" + times + "\n";
+        str += "Clusters :" + clusters.values() + "\n";
+        str += "Transactions :" + transactions.values() + "\n";
+        str += "Temps :" + times.values() + "\n";
         return str;
     }
 }

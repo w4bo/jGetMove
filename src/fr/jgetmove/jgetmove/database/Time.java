@@ -68,6 +68,6 @@ public class Time {
 
     @Override
     public String toString() {
-        return String.valueOf(clusters.keySet());
+        return "{" + id + "=" + String.valueOf(clusters.keySet()) + "}";
     }
 }

@@ -75,6 +75,6 @@ public class Cluster {
 
     @Override
     public String toString() {
-        return String.valueOf(transactions.keySet());
+        return "{" + id + "=" + String.valueOf(transactions.keySet()) + "}";
     }
 }
