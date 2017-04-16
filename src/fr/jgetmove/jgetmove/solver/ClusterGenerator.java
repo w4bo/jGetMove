@@ -1,10 +1,10 @@
 package fr.jgetmove.jgetmove.solver;
 
-import fr.jgetmove.jgetmove.database.Cluster;
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.TraceMethod;
+import fr.jgetmove.jgetmove.utils.ArrayUtils;
 
 import java.util.*;
 
@@ -58,7 +58,7 @@ public class ClusterGenerator implements Generator {
         ArrayList<Integer> freqItemset = new ArrayList<>();
 
         run(database, itemsets, database.getTransactionIds(), freqItemset, 0);
-        
+
         return clustersGenerated;
     }
 
@@ -83,16 +83,19 @@ public class ClusterGenerator implements Generator {
 
         ArrayList<ArrayList<Integer>> generatedArrayOfClusters = new ArrayList<>();
         ArrayList<Set<Integer>> generatedArrayOfTimeIds = new ArrayList<>();
-        ArrayList<TreeSet<Integer>> generatedArrayOfClusterIds = new ArrayList<>();
+        //ArrayList<TreeSet<Integer>> generatedArrayOfClusterIds = new ArrayList<>();
 
         int[] sizeGenerated = {1};
 
-        generateClusters(database, clusterIds, generatedArrayOfClusters, generatedArrayOfTimeIds, generatedArrayOfClusterIds, sizeGenerated);
+        generateClusters(database, clusterIds, generatedArrayOfClusters, generatedArrayOfTimeIds, sizeGenerated);
+
         if (generatedArrayOfClusters.get(0).size() > 0) {
+            // TODO: ca pourrait être optimisé tout ca :/
             clustersGenerated.addAll(generatedArrayOfClusters);
         }
+
         Debug.println("GeneratedItemsets : " + generatedArrayOfClusters);
-        Debug.println("GeneratedItemId : " + generatedArrayOfClusterIds);
+        Debug.println("GeneratedItemId : " + database.getClusterIds());
         Debug.println("GeneratedTimeId : " + generatedArrayOfTimeIds);
         Debug.println("SizeGenerated : " + sizeGenerated[0]);
         Debug.println("");
@@ -243,6 +246,8 @@ public class ClusterGenerator implements Generator {
     }
 
     /**
+     * TODO: documentation
+     *
      * @param database
      * @param newTransactionIds
      * @deprecated
@@ -300,6 +305,7 @@ public class ClusterGenerator implements Generator {
         // CalcTransactionList
         for (int transactionId : transactionIds) {
             Transaction transaction = database.getTransaction(transactionId);
+
             if (transaction.getClusterIds().contains(freqClusterId)) {
                 newTransactionIds.add(transactionId);
             }
@@ -338,12 +344,10 @@ public class ClusterGenerator implements Generator {
     private int getDifferentFromLastCluster(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
         if (clusterIds.size() > 0) {
             int current = frequentClusterIds.get(frequentClusterIds.size() - 1);
+
             for (int i = frequentClusterIds.size() - 1; i >= 0; i--) {
                 if (current != frequentClusterIds.get(i)) return frequentClusterIds.get(i);
             }
-            /*if (frequentClusterIds.size() > 1) {
-                return frequentClusterIds.get(frequentClusterIds.size() - 2);
-            }*/
 
             return clusterIds.get(0);
         }
@@ -419,16 +423,14 @@ public class ClusterGenerator implements Generator {
      * Lcm::GenerateItemset(Database,[]itemsets,[]itemID,[]timeID,[][]generatedItemsets, [][]generatedtimeID,[][]generateditemID,sizeGenerated)
      * </pre>
      *
-     * @param database                   (database, itemID, timeID) la database a analyser
-     * @param clusterIds                 (itemsets) une liste representant les clusterId
-     * @param generatedArrayOfClusters   (generateItemsets) une liste reprensentant les itemsetsGenerees
-     * @param generatedArrayOfTimeIds    (generatedtimeID) une liste reprensentant les tempsGenerees
-     * @param generatedArrayOfClusterIds (generateditemID) une liste reprensentant les itemGenerees
+     * @param database                 (database, itemID, timeID, generateditemID) la database a analyser
+     * @param clusterIds               (itemsets) une liste representant les clusterId
+     * @param generatedArrayOfClusters (generateItemsets) une liste reprensentant les itemsetsGenerees
+     * @param generatedArrayOfTimeIds  (generatedtimeID) une liste reprensentant les tempsGenerees
      */
     private void generateClusters(Database database, ArrayList<Integer> clusterIds,
                                   ArrayList<ArrayList<Integer>> generatedArrayOfClusters,
                                   ArrayList<Set<Integer>> generatedArrayOfTimeIds,
-                                  ArrayList<TreeSet<Integer>> generatedArrayOfClusterIds,
                                   int[] sizeGenerated) {
         // todo aplatir generated* dans cette fonction : raison, non utilisées
         if (clusterIds.size() == 0) {
@@ -460,7 +462,7 @@ public class ClusterGenerator implements Generator {
         if (isMonoCluster) {
             generatedArrayOfClusters.add(clusterIds); // why
             generatedArrayOfTimeIds.add(times); // whyyy
-            generatedArrayOfClusterIds.add(database.getClusterIds()); // but why ???
+            //generatedArrayOfClusterIds.add(database.getClusterIds()); // but why ???
             return;
         }
 
@@ -522,13 +524,12 @@ public class ClusterGenerator implements Generator {
         ArrayList<ArrayList<Integer>> checkedArrayOfClusterIds = new ArrayList<>(); //checkedItemsets
 
         boolean insertok;
-        int nbClusters = 0;
 
         for (ArrayList<Integer> currentClusterIds : generatedArrayOfClusters) {
             insertok = true;
 
             for (Transaction transaction : database.getTransactions().values()) {
-                if (compareSetAndList(transaction.getClusterIds(), currentClusterIds)) {
+                if (ArrayUtils.isSame(transaction.getClusterIds(), currentClusterIds)) {
                     insertok = false;
                     break;
                 }
@@ -536,11 +537,10 @@ public class ClusterGenerator implements Generator {
 
             if (insertok) {
                 checkedArrayOfClusterIds.add(currentClusterIds);
-                nbClusters++;
             }
         }
 
-        sizeGenerated[0] = nbClusters;
+        sizeGenerated[0] = checkedArrayOfClusterIds.size();
 
         // updating list of dates
         Debug.println("updating list of dates");
@@ -558,24 +558,9 @@ public class ClusterGenerator implements Generator {
         generatedArrayOfClusters.clear();
         generatedArrayOfClusters = checkedArrayOfClusterIds; // why
         generatedArrayOfTimeIds.add(times); // whyy
-        generatedArrayOfClusterIds.add(database.getClusterIds()); // but whyy ?
+        //generatedArrayOfClusterIds.add(database.getClusterIds()); // but whyy ?
     }
 
-    /**
-     * Retourne vrai si les deux tableaux sont identiques
-     *
-     * @param set  le Set a comparer
-     * @param list la liste a comparer
-     * @return vrai si les deux sont identiques
-     */
-    private boolean compareSetAndList(Set<Integer> set, List<Integer> list) {
-        // meilleure optimisation possible : http://stackoverflow.com/a/1075817
-        TreeSet<Integer> treeSet = new TreeSet<>(set);
-        TreeSet<Integer> treeList = new TreeSet<>(list);
-
-        return treeSet.equals(treeList);
-    }
-    
     /**
      * Verifie si un ensemble de transaction est inclus dans un autre
      * <p>
@@ -591,8 +576,8 @@ public class ClusterGenerator implements Generator {
             return 0;
         }
 
-        if (b.keySet().containsAll(a.keySet())) {
-            if (a.keySet().equals(b.keySet())) {
+        if (ArrayUtils.isIncluded(a.keySet(), b.keySet())) {
+            if (ArrayUtils.areEqual(a.keySet(), b.keySet())) {
                 return 2;
             }
             return 1;

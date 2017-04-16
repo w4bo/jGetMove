@@ -7,7 +7,7 @@ import fr.jgetmove.jgetmove.detector.Detector;
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
 import fr.jgetmove.jgetmove.solver.ClusterGenerator;
-import fr.jgetmove.jgetmove.solver.SolverManager;
+import fr.jgetmove.jgetmove.solver.Solver;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,25 +19,26 @@ public class Main {
         Debug.enable();
 
         try {
-        	int minTime = 0;
-        	
+            int minTime = 0;
+
             Input inputObj = new Input("assets/test.dat");
             Input inputTime = new Input("assets/testtimeindex.dat");
 
             Database database = new Database(inputObj, inputTime);
             Debug.println(database);
-            
-            /**
+
+            /*
              * Init ClusterGenerator and detectors
              */
             ClusterGenerator clusterGenerator = new ClusterGenerator(1, 0, 0);
             Set<Detector> detectors = new HashSet<>();
             detectors.add(ConvoyDetector.getInstance(minTime));
-            
-            SolverManager solverManager = new SolverManager(database,clusterGenerator,detectors);
-            ArrayList<ArrayList<Integer>> generatedClusters = solverManager.generateClusters();
-            solverManager.detectPatterns();
-                
+
+            Solver solver = new Solver(database, clusterGenerator, detectors);
+
+            ArrayList<ArrayList<Integer>> generatedClusters = solver.generateClusters();
+            solver.detectPatterns();
+
         } catch (IOException | ClusterNotExistException e) {
             e.printStackTrace();
         }
