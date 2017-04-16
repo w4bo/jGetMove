@@ -3,6 +3,7 @@ package fr.jgetmove.jgetmove.detector;
 import fr.jgetmove.jgetmove.database.Cluster;
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.database.Time;
+import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.motifs.Convoy;
 import fr.jgetmove.jgetmove.motifs.Pattern;
 
@@ -22,7 +23,7 @@ public class ConvoyDetector implements Detector {
      * Empty Constructor
      */
     private ConvoyDetector(int minTime) {
-    	this.minTime = minTime;
+        this.minTime = minTime;
     }
 
     /**
@@ -41,106 +42,88 @@ public class ConvoyDetector implements Detector {
     /**
      * Detect les pattern associé au detecteur
      *
+     * TODO: fonction d'origine
+     *
      * @return une liste de motif/pattern present dans la database pour ce detecteur
      */
     public ArrayList<Pattern> detect(Database database, ArrayList<ArrayList<Integer>> clustersGenerated) {
-        
-    	ArrayList<Pattern> convoys = new ArrayList<>();
-    	int numConvoys = 0;
 
-         for (ArrayList<Integer> itemset : clustersGenerated) {
-        	 ArrayList<Integer> timeSet = new ArrayList<>();
-             for (int clusterId : itemset) {
-            	 timeSet.add(database.getClusterTime(clusterId).getId());
-             }
+        ArrayList<Pattern> convoys = new ArrayList<>();
 
-             int lastTime = -1;
-             int firstTime = -1;
-             int currentTime = -1;
-             int currentIndex = -1;
-             int lastIndex = -1;
-             int firstIndex = -1;
+        for (ArrayList<Integer> itemset : clustersGenerated) {
+            ArrayList<Integer> timeSet = new ArrayList<>();
+            for (int clusterId : itemset) {
+                timeSet.add(database.getClusterTimeId(clusterId));
+            }
 
-             firstTime = 0; //Premier temps
-             firstIndex = 0; //Premier Index
-             lastTime = firstTime; //lastTime
-             lastIndex = firstIndex; //lastIndex*/
-                
-             Set<Integer> correctTransactionSet = new HashSet<>(database.getClusterTransactions(itemset.get(0)).keySet());
-             Set<Integer> currentTransactionSet;
-             //Pour tout les temps
-             for (int i = 0; i < timeSet.size(); i++) {
-            	 currentTransactionSet = new HashSet<>(database.getClusterTransactions(itemset.get(i)).keySet());
-                 currentTime = timeSet.get(i);
-                 currentIndex = i;
 
-                 //Recopie inutile ?
-                 if (currentTime == lastTime + 1) {
-                	 ArrayList<Integer> transactionList = new ArrayList<>();
-                	 for (int transactionId : correctTransactionSet) {
-	                     if (currentTransactionSet.contains(transactionId)) {
-	                    		 transactionList.add(transactionId);
-	                     	}
-                     }
-                     correctTransactionSet.clear();
-                     correctTransactionSet.addAll(transactionList);
-                     
-                     lastTime = currentTime;
-                     lastIndex = currentIndex;
-                 } else {
-                	 if (currentTime > (lastTime + 1)) {
-                     //Si l'ecart de temps est superieur a min_t
-                		 if (lastTime - firstTime >= minTime) {
+            int firstTime = 0; //Premier temps
+            int lastTime = firstTime; //lastTime
+            int currentTime;
 
-                			firstTime = currentTime;
-                         	firstIndex = currentIndex;
-                            lastTime = currentTime;
-                            lastIndex = currentIndex;
-                                
+            Set<Integer> correctTransactionSet = new HashSet<>(database.getClusterTransactions(itemset.get(0)).keySet());
+            Set<Integer> currentTransactionSet;
+            //Pour tout les temps
+            for (int i = 0; i < timeSet.size(); i++) {
+                currentTransactionSet = new HashSet<>(database.getClusterTransactions(itemset.get(i)).keySet());
+                currentTime = timeSet.get(i);
+
+                //Recopie inutile ?
+                if (currentTime == lastTime + 1) {
+                    ArrayList<Integer> transactionList = new ArrayList<>();
+                    for (int transactionId : correctTransactionSet) {
+                        if (currentTransactionSet.contains(transactionId)) {
+                            transactionList.add(transactionId);
+                        }
+                    }
+                    correctTransactionSet.clear();
+                    correctTransactionSet.addAll(transactionList);
+
+                    lastTime = currentTime;
+                } else {
+                    if (currentTime > (lastTime + 1)) {
+                        firstTime = currentTime;
+                        lastTime = currentTime;
+
+                        //Si l'ecart de temps est superieur a min_t
+                        if (lastTime - firstTime >= minTime) {
                             //Init new Convoy
                             Set<Time> timesOfItemset = new HashSet<>();
                             Set<Cluster> clustersOfItemset = new HashSet<>();
+
                             //Get Clusters Object from database
-                            for(int clusterIndex=0;clusterIndex<correctTransactionSet.size();clusterIndex++){
-                            	clustersOfItemset.add(database.getCluster(clusterIndex));
-                           	}
-                            //Get Times Object from database
-                            for(int time = firstTime; time < lastTime ; time++){
-                            	timesOfItemset.add(database.getTime(timeSet.get(time)));
-                            }	
-                            convoys.add(new Convoy(clustersOfItemset,timesOfItemset));
-                            
-                            } else {
-                                firstTime = currentTime;
-                                firstIndex = currentIndex;
-                                lastTime = currentTime;
-                                lastIndex = currentIndex;
-                                correctTransactionSet.clear();
-                                correctTransactionSet.addAll(currentTransactionSet);
+                            for (int clusterIndex = 0; clusterIndex < correctTransactionSet.size(); clusterIndex++) {
+                                clustersOfItemset.add(database.getCluster(clusterIndex));
                             }
+
+                            convoys.add(new Convoy(clustersOfItemset, timesOfItemset));
+                        } else {
+                            correctTransactionSet.clear();
+                            correctTransactionSet.addAll(currentTransactionSet);
                         }
                     }
                 }
-                //Si L'ecart entre lastTime et firstTime est superieur a min_t
-                if ((lastTime - firstTime) >= minTime) {
-                	//Init new Convoy
-                	Set<Time> timesOfItemset = new HashSet<>();
-                	Set<Cluster> clustersOfItemset = new HashSet<>();
-                	//Get Clusters Object from database
-                	for(int clusterIndex=0;clusterIndex<correctTransactionSet.size();clusterIndex++){
-                		clustersOfItemset.add(database.getCluster(clusterIndex));
-                	}
-                	//Get Times Object from database
-                	for(int time = firstTime; time < lastTime ; time++){
-                		timesOfItemset.add(database.getTime(timeSet.get(time)));
-                	}
-                	convoys.add(new Convoy(clustersOfItemset,timesOfItemset));
-                    numConvoys++;
-                }
             }
-        // TODO : mais svp les gars ...
-        System.err.println("Il y a : " + convoys.size() + "Convoy");
+            //Si L'ecart entre lastTime et firstTime est superieur a min_t
+            if ((lastTime - firstTime) >= minTime) {
+                //Init new Convoy
+                Set<Time> timesOfItemset = new HashSet<>();
+                Set<Cluster> clustersOfItemset = new HashSet<>();
+                //Get Clusters Object from database
+                for (int clusterIndex = 0; clusterIndex < correctTransactionSet.size(); clusterIndex++) {
+                    clustersOfItemset.add(database.getCluster(clusterIndex));
+                }
+                //Get Times Object from database
+
+                for (int time = firstTime; time < lastTime; time++) {
+                    timesOfItemset.add(database.getTime(timeSet.get(time)));
+                }
+
+                convoys.add(new Convoy(clustersOfItemset, timesOfItemset));
+            }
+        }
+        Debug.println("Il y a : " + convoys.size() + "Convoy");
+
         return convoys;
     }
-
 }
