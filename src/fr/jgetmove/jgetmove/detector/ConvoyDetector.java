@@ -16,12 +16,13 @@ import java.util.Set;
 public class ConvoyDetector implements Detector {
 
     private static ConvoyDetector convoyDetector;
+    private int minTime;
 
     /**
      * Empty Constructor
      */
-    private ConvoyDetector() {
-
+    private ConvoyDetector(int minTime) {
+    	this.minTime = minTime;
     }
 
     /**
@@ -29,9 +30,9 @@ public class ConvoyDetector implements Detector {
      *
      * @return une nouvelle instance de convoyDetector si elle n'a pas été deja crée
      */
-    public static ConvoyDetector getInstance() {
+    public static ConvoyDetector getInstance(int minTime) {
         if (convoyDetector == null) {
-            convoyDetector = new ConvoyDetector();
+            convoyDetector = new ConvoyDetector(minTime);
             return convoyDetector;
         }
         return convoyDetector;
@@ -72,7 +73,10 @@ public class ConvoyDetector implements Detector {
             	 currentTransactionSet = new HashSet<>(database.getClusterTransactions(itemset.get(i)).keySet());
                  currentTime = timeSet.get(i);
                  currentIndex = i;
-
+                 System.out.println("Current Time : " + currentTime);
+                 System.out.println("lastTime : " + lastTime);
+                 
+                 //Recopie inutile ?
                  if (currentTime == lastTime + 1) {
                 	 ArrayList<Integer> transactionList = new ArrayList<>();
                 	 for (int transactionId : correctTransactionSet) {
@@ -82,20 +86,20 @@ public class ConvoyDetector implements Detector {
                      }
                      correctTransactionSet.clear();
                      correctTransactionSet.addAll(transactionList);
-
+                     
                      lastTime = currentTime;
                      lastIndex = currentIndex;
                  } else {
                 	 if (currentTime > (lastTime + 1)) {
                      //Si l'ecart de temps est superieur a min_t
-                		 if (lastTime - firstTime >= 0) {
+                		 if (lastTime - firstTime >= minTime) {
 
                 			firstTime = currentTime;
                          	firstIndex = currentIndex;
                             lastTime = currentTime;
                             lastIndex = currentIndex;
                                 
-                              //Init new Convoy
+                            //Init new Convoy
                             Set<Time> timesOfItemset = new HashSet<>();
                             Set<Cluster> clustersOfItemset = new HashSet<>();
                             //Get Clusters Object from database
@@ -120,7 +124,7 @@ public class ConvoyDetector implements Detector {
                     }
                 }
                 //Si L'ecart entre lastTime et firstTime est superieur a min_t
-                if ((lastTime - firstTime) >= 0) {
+                if ((lastTime - firstTime) >= minTime) {
                 	//Init new Convoy
                 	Set<Time> timesOfItemset = new HashSet<>();
                 	Set<Cluster> clustersOfItemset = new HashSet<>();

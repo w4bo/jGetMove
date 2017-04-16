@@ -18,6 +18,8 @@ public class Main {
         Debug.enable();
 
         try {
+        	int minTime = 0;
+        	
             Input inputObj = new Input("assets/test.dat");
             Input inputTime = new Input("assets/testtimeindex.dat");
 
@@ -31,7 +33,7 @@ public class Main {
              * Init Detectors
              */
             Set<Detector> detectors = new HashSet<>();
-            detectors.add(ConvoyDetector.getInstance());
+            detectors.add(ConvoyDetector.getInstance(minTime));
 
             DetectionManager detectionManager = new DetectionManager(database, detectors, solver.getClustersGenerated());
             detectionManager.run();
