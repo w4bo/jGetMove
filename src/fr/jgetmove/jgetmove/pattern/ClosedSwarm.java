@@ -1,4 +1,4 @@
-package fr.jgetmove.jgetmove.motifs;
+package fr.jgetmove.jgetmove.pattern;
 
 public class ClosedSwarm extends Swarm {
 

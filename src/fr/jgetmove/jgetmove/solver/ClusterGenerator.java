@@ -51,7 +51,7 @@ public class ClusterGenerator implements Generator {
      * @param database la base de données à analyser
      */
     @TraceMethod
-    public ArrayList<ArrayList<Integer>> generateClusters(Database database) {
+    public ArrayList<ArrayList<Integer>> generate(Database database) {
         Debug.println("totalItem : " + database.getClusterIds());
 
         ArrayList<Integer> itemsets = new ArrayList<>();

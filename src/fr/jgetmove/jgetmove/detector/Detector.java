@@ -1,7 +1,7 @@
 package fr.jgetmove.jgetmove.detector;
 
 import fr.jgetmove.jgetmove.database.Database;
-import fr.jgetmove.jgetmove.motifs.Pattern;
+import fr.jgetmove.jgetmove.pattern.Pattern;
 
 import java.util.ArrayList;
 

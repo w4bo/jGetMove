@@ -2,7 +2,7 @@ package fr.jgetmove.jgetmove.solver;
 
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.detector.Detector;
-import fr.jgetmove.jgetmove.motifs.Pattern;
+import fr.jgetmove.jgetmove.pattern.Pattern;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,7 +60,7 @@ public class Solver {
      * @return the list of clusters (Itemsets) generated from clusterGenerator
      */
     public ArrayList<ArrayList<Integer>> generateClusters() {
-        return clusterGenerator.generateClusters(database);
+        return clusterGenerator.generate(database);
     }
 
     /**

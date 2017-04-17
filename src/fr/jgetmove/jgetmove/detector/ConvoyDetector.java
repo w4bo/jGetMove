@@ -4,8 +4,8 @@ import fr.jgetmove.jgetmove.database.Cluster;
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.database.Time;
 import fr.jgetmove.jgetmove.debug.Debug;
-import fr.jgetmove.jgetmove.motifs.Convoy;
-import fr.jgetmove.jgetmove.motifs.Pattern;
+import fr.jgetmove.jgetmove.pattern.Convoy;
+import fr.jgetmove.jgetmove.pattern.Pattern;
 
 import java.util.ArrayList;
 import java.util.HashSet;
