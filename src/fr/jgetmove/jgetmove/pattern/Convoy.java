@@ -12,7 +12,7 @@ import java.util.Set;
 public class Convoy implements Pattern {
 
     /**
-     * Liste des clusters présents dans le convoy
+     * Liste des transactions présents dans le convoy
      */
     private Set<Transaction> transactions;
     /**
@@ -23,7 +23,7 @@ public class Convoy implements Pattern {
     /**
      * Constructeur
      *
-     * @param clusters Liste de clusters present dans le convoy
+     * @param clusters Liste de transactions present dans le convoy
      * @param times    La liste des temps associées
      */
     public Convoy(Set<Transaction> transactions, Set<Time> times) {
@@ -33,7 +33,7 @@ public class Convoy implements Pattern {
     }
 
     /**
-     * Getter sur la liste des clusters
+     * Getter sur la liste des transactions
      *
      * @return la liste des clusters présents dans le convoy
      */
@@ -42,11 +42,11 @@ public class Convoy implements Pattern {
     }
 
     /**
-     * Setter sur la liste des clusters
+     * Setter sur la liste des transactions
      *
-     * @param clusters une nouvelle liste de clusters
+     * @param clusters une nouvelle liste de transactions
      */
-    public void setClusters(Set<Transaction> transactions) {
+    public void setTransactions(Set<Transaction> transactions) {
         this.transactions = transactions;
     }
 
@@ -70,7 +70,7 @@ public class Convoy implements Pattern {
 
 
     public String toString() {
-        return "Convoy:\n" + " ClustersId : [" + transactions;
+        return "Convoy:\n" + " transactions : [" + transactions;
     }
 
 }
