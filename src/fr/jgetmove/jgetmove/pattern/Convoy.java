@@ -1,7 +1,7 @@
 package fr.jgetmove.jgetmove.pattern;
 
-import fr.jgetmove.jgetmove.database.Cluster;
 import fr.jgetmove.jgetmove.database.Time;
+import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
 
 import java.util.Set;
@@ -14,7 +14,7 @@ public class Convoy implements Pattern {
     /**
      * Liste des clusters présents dans le convoy
      */
-    private Set<Cluster> clusters;
+    private Set<Transaction> transactions;
     /**
      * Liste des temps présents dans le convoy
      */
@@ -26,8 +26,8 @@ public class Convoy implements Pattern {
      * @param clusters Liste de clusters present dans le convoy
      * @param times    La liste des temps associées
      */
-    public Convoy(Set<Cluster> clusters, Set<Time> times) {
-        this.clusters = clusters;
+    public Convoy(Set<Transaction> transactions, Set<Time> times) {
+        this.transactions = transactions;
         this.times = times;
         Debug.println(this);
     }
@@ -37,8 +37,8 @@ public class Convoy implements Pattern {
      *
      * @return la liste des clusters présents dans le convoy
      */
-    public Set<Cluster> getClusters() {
-        return clusters;
+    public Set<Transaction> getTransactions() {
+        return transactions;
     }
 
     /**
@@ -46,8 +46,8 @@ public class Convoy implements Pattern {
      *
      * @param clusters une nouvelle liste de clusters
      */
-    public void setClusters(Set<Cluster> clusters) {
-        this.clusters = clusters;
+    public void setClusters(Set<Transaction> transactions) {
+        this.transactions = transactions;
     }
 
     /**
@@ -70,7 +70,7 @@ public class Convoy implements Pattern {
 
 
     public String toString() {
-        return "Convoy:\n" + " ClustersId : [" + clusters;
+        return "Convoy:\n" + " ClustersId : [" + transactions;
     }
 
 }
