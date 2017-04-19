@@ -3,6 +3,7 @@ package fr.jgetmove.jgetmove.detector;
 import fr.jgetmove.jgetmove.database.Cluster;
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.database.Time;
+import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.pattern.Convoy;
 import fr.jgetmove.jgetmove.pattern.Pattern;
@@ -49,6 +50,7 @@ public class ConvoyDetector implements Detector {
     public ArrayList<Pattern> detect(Database database, ArrayList<ArrayList<Integer>> clustersGenerated) {
 
         ArrayList<Pattern> convoys = new ArrayList<>();
+        int numConvoys = 0;
 
         for (ArrayList<Integer> itemset : clustersGenerated) {
             ArrayList<Integer> timeSet = new ArrayList<>();
@@ -56,8 +58,7 @@ public class ConvoyDetector implements Detector {
                 timeSet.add(database.getClusterTimeId(clusterId));
             }
 
-
-            int firstTime = 0; //Premier temps
+            int firstTime = timeSet.get(0); //Premier temps
             int lastTime = firstTime; //lastTime
             int currentTime;
 
@@ -89,14 +90,21 @@ public class ConvoyDetector implements Detector {
                         if (lastTime - firstTime >= minTime) {
                             //Init new Convoy
                             Set<Time> timesOfItemset = new HashSet<>();
-                            Set<Cluster> clustersOfItemset = new HashSet<>();
+                            Set<Transaction> transactionOfItemset = new HashSet<>();
 
-                            //Get Clusters Object from database
-                            for (int clusterIndex = 0; clusterIndex < correctTransactionSet.size(); clusterIndex++) {
-                                clustersOfItemset.add(database.getCluster(clusterIndex));
+                            //Get transactions Object from database
+                            for(int transactionIndex : correctTransactionSet){
+                            	transactionOfItemset.add(database.getTransaction(transactionIndex));
+                            }
+                            
+                            //Get Times Object from database
+                            for(int timeId : timeSet){
+                            	timesOfItemset.add(database.getTime(timeId));
                             }
 
-                            convoys.add(new Convoy(clustersOfItemset, timesOfItemset));
+                            convoys.add(new Convoy(transactionOfItemset, timesOfItemset));
+                        	numConvoys++;
+                        	
                         } else {
                             correctTransactionSet.clear();
                             correctTransactionSet.addAll(currentTransactionSet);
@@ -106,24 +114,26 @@ public class ConvoyDetector implements Detector {
             }
             //Si L'ecart entre lastTime et firstTime est superieur a min_t
             if ((lastTime - firstTime) >= minTime) {
-                //Init new Convoy
+            	//Init new Convoy
                 Set<Time> timesOfItemset = new HashSet<>();
-                Set<Cluster> clustersOfItemset = new HashSet<>();
-                //Get Clusters Object from database
-                for (int clusterIndex = 0; clusterIndex < correctTransactionSet.size(); clusterIndex++) {
-                    clustersOfItemset.add(database.getCluster(clusterIndex));
+                Set<Transaction> transactionOfItemset = new HashSet<>();
+
+                //Get transactions Object from database
+                for(int transactionIndex : correctTransactionSet){
+                	transactionOfItemset.add(database.getTransaction(transactionIndex));
                 }
+                
                 //Get Times Object from database
-
-                for (int time = firstTime; time < lastTime; time++) {
-                    timesOfItemset.add(database.getTime(timeSet.get(time)));
+                for(int timeId : timeSet){
+                	timesOfItemset.add(database.getTime(timeId));
                 }
 
-                convoys.add(new Convoy(clustersOfItemset, timesOfItemset));
+                convoys.add(new Convoy(transactionOfItemset, timesOfItemset));
+            	numConvoys++;
             }
         }
-        Debug.println("Il y a : " + convoys.size() + "Convoy");
+        Debug.println("Il y a : " + numConvoys + "Convoy");
 
         return convoys;
-    }
+    }   
 }

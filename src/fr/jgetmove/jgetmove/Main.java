@@ -30,13 +30,14 @@ public class Main {
             /*
              * Init ClusterGenerator and detectors
              */
-            ClusterGenerator clusterGenerator = new ClusterGenerator(1, 0, 0);
+            ClusterGenerator clusterGenerator = new ClusterGenerator(1, 0, minTime);
             Set<Detector> detectors = new HashSet<>();
             detectors.add(ConvoyDetector.getInstance(minTime));
 
             Solver solver = new Solver(database, clusterGenerator, detectors);
 
             ArrayList<ArrayList<Integer>> generatedClusters = solver.generateClusters();
+            Debug.println(generatedClusters);
             solver.detectPatterns();
 
         } catch (IOException | ClusterNotExistException e) {
