@@ -22,7 +22,7 @@ public class ConvoyDetector implements Detector {
     /**
      * Empty Constructor
      */
-    private ConvoyDetector(int minTime) {
+    public ConvoyDetector(int minTime) {
         this.minTime = minTime;
     }
 

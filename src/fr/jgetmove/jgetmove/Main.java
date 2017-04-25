@@ -2,6 +2,7 @@ package fr.jgetmove.jgetmove;
 
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.debug.Debug;
+import fr.jgetmove.jgetmove.detector.ClosedSwarmDetector;
 import fr.jgetmove.jgetmove.detector.ConvoyDetector;
 import fr.jgetmove.jgetmove.detector.Detector;
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
@@ -19,7 +20,7 @@ public class Main {
         Debug.enable();
 
         try {
-            int minTime = 0;
+            int minTime = 1;
 
             Input inputObj = new Input("assets/test.dat");
             Input inputTime = new Input("assets/testtimeindex.dat");
@@ -32,12 +33,13 @@ public class Main {
              */
             ClusterGenerator clusterGenerator = new ClusterGenerator(1, 0, minTime);
             Set<Detector> detectors = new HashSet<>();
-            detectors.add(ConvoyDetector.getInstance(minTime));
+            detectors.add(new ConvoyDetector(minTime));
+            detectors.add(new ClosedSwarmDetector(minTime));
 
             Solver solver = new Solver(database, clusterGenerator, detectors);
 
-            ArrayList<ArrayList<Integer>> generatedClusters = solver.generateClusters();
-            Debug.println(generatedClusters);
+            solver.generateClusters();
+            //Debug.println(generatedClusters);
             solver.detectPatterns();
 
         } catch (IOException | ClusterNotExistException e) {

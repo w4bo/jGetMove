@@ -78,8 +78,12 @@ public class ClusterGenerator implements Generator {
      * @param numItems           (numItems)
      */
     @TraceMethod
+    //TODO Review and fix 
     private void run(Database database, ArrayList<Integer> clusterIds, Set<Integer> transactionIds, ArrayList<Integer> frequentClusterIds, int numItems) {
         // TODO numItems est passés en paramètres :)
+    	Debug.println("clustersIds " + clusterIds );
+    	Debug.println("transactionIds " + transactionIds);
+    	Debug.println("frequentClusterIds " + frequentClusterIds);
 
         ArrayList<ArrayList<Integer>> generatedArrayOfClusters = new ArrayList<>();
         ArrayList<Set<Integer>> generatedArrayOfTimeIds = new ArrayList<>();
