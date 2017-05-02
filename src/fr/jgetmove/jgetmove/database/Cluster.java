@@ -22,7 +22,7 @@ public class Cluster {
     /**
      * @param id identifiant du cluster
      */
-    Cluster(int id) {
+    public Cluster(int id) {
         this.id = id;
         transactions = new HashMap<>();
     }
@@ -76,5 +76,9 @@ public class Cluster {
     @Override
     public String toString() {
         return "{" + id + "=" + String.valueOf(transactions.keySet()) + "}";
+    }
+
+    public void clear() {
+        transactions.clear();
     }
 }

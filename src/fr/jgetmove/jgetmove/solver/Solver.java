@@ -60,7 +60,7 @@ public class Solver {
      * @return the list of clusters (Itemsets) generated from clusterGenerator
      */
     public ArrayList<ArrayList<Integer>> generateClusters() {
-        return clusterGenerator.generate(database);
+        return clusterGenerator.generate();
     }
 
     /**

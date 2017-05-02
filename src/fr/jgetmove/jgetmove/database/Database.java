@@ -2,6 +2,7 @@ package fr.jgetmove.jgetmove.database;
 
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -46,6 +47,89 @@ public class Database {
         initClusterAndTransaction();
         //Initialisation des temps
         initTimeAndCluster();
+    }
+
+    public Database(Database database) {
+        this.inputObj = null;
+        this.inputTime = null;
+
+        clusters = new HashMap<>();
+        transactions = new HashMap<>();
+        times = new HashMap<>();
+
+        clusterIdsTree = new TreeSet<>();
+        transactionIdsTree = new TreeSet<>();
+        timeIdsTree = new TreeSet<>();
+
+        for (Transaction originalTransaction : database.getTransactions().values()) {
+            Transaction transaction = getOrCreateTransaction(originalTransaction.getId());
+
+            for (Cluster originalCluster : originalTransaction.getClusters().values()) {
+                Cluster cluster = getOrCreateCluster(originalCluster.getId());
+
+                transaction.add(cluster);
+                cluster.add(transaction);
+            }
+        }
+
+        for (Cluster originalCluster : database.getClusters().values()) {
+            Cluster cluster = getOrCreateCluster(originalCluster.getId());
+
+            for (Transaction originalTransaction : originalCluster.getTransactions().values()) {
+                Transaction transaction = getOrCreateTransaction(originalTransaction.getId());
+
+                transaction.add(cluster);
+                cluster.add(transaction);
+            }
+        }
+
+        for (Cluster originalCluster : database.getClusters().values()) {
+            Cluster cluster = this.getCluster(originalCluster.getId());
+            Time time = this.getTime(originalCluster.getTimeId());
+
+            if (time == null) {
+                time = new Time(originalCluster.getTimeId());
+                this.add(time);
+            }
+
+            time.add(cluster);
+            cluster.setTime(time);
+        }
+    }
+
+    public Database() {
+        this.inputObj = null;
+        this.inputTime = null;
+
+        clusters = new HashMap<>();
+        transactions = new HashMap<>();
+        times = new HashMap<>();
+
+        clusterIdsTree = new TreeSet<>();
+        transactionIdsTree = new TreeSet<>();
+        timeIdsTree = new TreeSet<>();
+    }
+
+    @NotNull
+    private Transaction getOrCreateTransaction(int transactionId) {
+        Transaction transaction = this.getTransaction(transactionId);
+
+        if (transaction == null) {
+            transaction = new Transaction(transactionId);
+            this.add(transaction);
+        }
+        return transaction;
+    }
+
+    private Cluster getOrCreateCluster(int clusterId) {
+        Cluster cluster = this.getCluster(clusterId);
+
+        if (cluster == null) {
+            cluster = new Cluster(clusterId);
+            this.add(cluster);
+        }
+
+        return cluster;
     }
 
     /**
@@ -127,7 +211,7 @@ public class Database {
     /**
      * @param cluster le cluster à ajouter à la base
      */
-    private void add(Cluster cluster) {
+    public void add(Cluster cluster) {
         clusters.put(cluster.getId(), cluster);
         clusterIdsTree.add(cluster.getId());
     }
@@ -135,15 +219,15 @@ public class Database {
     /**
      * @param transaction la transaction à ajouter à la base
      */
-    private void add(Transaction transaction) {
+    public void add(Transaction transaction) {
         transactions.put(transaction.getId(), transaction);
         transactionIdsTree.add(transaction.getId());
     }
 
     /**
-     * @param time le temps � ajouter � la base
+     * @param time le temps à ajouter à la base
      */
-    private void add(Time time) {
+    public void add(Time time) {
         times.put(time.getId(), time);
         timeIdsTree.add(time.getId());
     }
@@ -232,5 +316,18 @@ public class Database {
         str += "Transactions :" + transactions.values() + "\n";
         str += "Temps :" + times.values() + "\n";
         return str;
+    }
+
+    public void clear() {
+        this.inputObj = null;
+        this.inputTime = null;
+
+        for (Cluster cluster : clusters.values()) {
+            cluster.clear();
+        }
+
+        for (Transaction transaction : transactions.values()) {
+            transaction.clear();
+        }
     }
 }

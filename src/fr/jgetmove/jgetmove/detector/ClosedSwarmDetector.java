@@ -1,35 +1,26 @@
 package fr.jgetmove.jgetmove.detector;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
 import fr.jgetmove.jgetmove.database.Database;
-import fr.jgetmove.jgetmove.database.Time;
-import fr.jgetmove.jgetmove.database.Transaction;
-import fr.jgetmove.jgetmove.debug.Debug;
-import fr.jgetmove.jgetmove.pattern.ClosedSwarm;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
-public class ClosedSwarmDetector implements Detector{
-	
-	private int minTime;
-	
-	public ClosedSwarmDetector(int minTime){
-		this.minTime = minTime;
-	}
+import java.util.ArrayList;
 
-	@Override
-	public ArrayList<Pattern> detect(Database fullDB, Set<Integer> timeBased, Set<Integer> clusterBased,
-			Collection<Transaction> transactions) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+public class ClosedSwarmDetector implements Detector {
+
+    private int minTime;
+
+    public ClosedSwarmDetector(int minTime) {
+        this.minTime = minTime;
+    }
+
+    @Override
+    public ArrayList<Pattern> detect(Database database, ArrayList<ArrayList<Integer>> clustersGenerated) {
+        return null;
+    }
 
 	
 	/*public ArrayList<Pattern> detect(Database database, ArrayList<ArrayList<Integer>> clustersGenerated) {
-		
+
 		ArrayList<Pattern> closedSwarm = new ArrayList<>();
 		
 		for (ArrayList<Integer> itemset : clustersGenerated) {
