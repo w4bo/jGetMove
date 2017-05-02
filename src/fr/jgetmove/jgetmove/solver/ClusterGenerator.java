@@ -6,6 +6,7 @@ import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.TraceMethod;
 import fr.jgetmove.jgetmove.utils.ArrayUtils;
+import fr.jgetmove.jgetmove.utils.GeneratorUtils;
 
 import java.util.*;
 
@@ -18,7 +19,7 @@ public class ClusterGenerator implements Generator {
     /**
      * Initialise le solveur.
      *
-     * @param database
+     * @param database   database par defaut
      * @param minSupport support minimal
      * @param maxPattern nombre maximal de pattern a trouvé
      * @param minTime    temps minimal
@@ -32,16 +33,58 @@ public class ClusterGenerator implements Generator {
     }
 
     /**
-     * Gets the lower_bound of an array
+     * <pre>
+     * Lcm::MakeClosure(const Database &database, vector<int> &transactionList,
+     * vector<int> &q_sets, vector<int> &itemsets,
+     * int item)
+     * </pre>
      *
-     * @param array find the lower_bound from
-     * @param key   the item to compare
-     * @return an array beginning from key
-     * @deprecated use {@link TreeSet#tailSet(Object)}
+     * @param database       (database)
+     * @param transactionIds (transactionList)
+     * @param qSets          (q_sets)
+     * @param itemset        (itemsets)
+     * @param freq           (item)
      */
-    private static SortedSet<Integer> lower_bound(TreeSet<Integer> array, int key) {
-        return array.tailSet(key);
+    @TraceMethod(displayTitle = true)
+    private static void MakeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets, ArrayList<Integer> itemset, int freq) {
+        GeneratorUtils.makeClosure(database, transactionIds, qSets, itemset, freq);
     }
+
+
+    /**
+     * Teste si p(i-1) == q(i-1)
+     * <p>
+     * <pre>
+     * Lcm::PpcTest(database, []itemsets, []transactionList, item, []newTransactionList)
+     * </pre>
+     *
+     * @param clusters          (itemsets)
+     * @param transactionIds    (transactionList)
+     * @param freqClusterId     (item)
+     * @param newTransactionIds (newTransactionList)
+     * @return vrai si ppctest est réussi
+     * @deprecated use {@link GeneratorUtils#ppcTest(Database, ArrayList, Set, int, Set)}
+     */
+    @TraceMethod(displayTitle = true)
+    private static boolean PPCTest(Database database, ArrayList<Integer> clusters, Set<Integer> transactionIds, int freqClusterId, Set<Integer> newTransactionIds) {
+        // CalcTransactionList
+        return GeneratorUtils.ppcTest(database, clusters, transactionIds, freqClusterId, newTransactionIds);
+    }
+
+    /**
+     * <pre>
+     * Lcm::CalcurateCoreI(database, itemsets, freqList)
+     * </pre>
+     *
+     * @param clusterIds         (itemsets)
+     * @param frequentClusterIds (freqList)
+     * @return le dernier élement different du dernier clusterId de frequentClusterIds, si frequentClusterIds est trop petit, renvoie le premier element de clusterIds, sinon renvoi 0 si clusterIds est vide
+     * @deprecated use {@link GeneratorUtils#getDifferentFromLastCluster(ArrayList, ArrayList)}
+     */
+    private static int CalcurateCoreI(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
+        return GeneratorUtils.getDifferentFromLastCluster(clusterIds, frequentClusterIds);
+    }
+
 
     /**
      * Initialise le solver à partir d'une base de données
@@ -90,9 +133,7 @@ public class ClusterGenerator implements Generator {
      * @param numItems           (numItems)
      */
     @TraceMethod
-    //TODO Review and fix 
     private void run(Database database, ArrayList<Transaction> transactions, ArrayList<Integer> clusterIds, Set<Integer> transactionIds, ArrayList<Integer> frequentClusterIds, int[] numItems) {
-        // TODO numItems est passés en paramètres :)
         Debug.println("clustersIds " + clusterIds);
         Debug.println("transactionIds " + transactionIds);
         Debug.println("frequentClusterIds " + frequentClusterIds);
@@ -124,7 +165,7 @@ public class ClusterGenerator implements Generator {
 
             Debug.println("Core_i : " + calcurateCoreI);
 
-            SortedSet<Integer> lowerBounds = lower_bound(defaultDatabase.getClusterIds(), calcurateCoreI);
+            SortedSet<Integer> lowerBounds = GeneratorUtils.lower_bound(defaultDatabase.getClusterIds(), calcurateCoreI);
 
             // freq_i
             ArrayList<Integer> freqClusterIds = new ArrayList<>();
@@ -145,14 +186,14 @@ public class ClusterGenerator implements Generator {
             for (int freqClusterId : freqClusterIds) {
                 Set<Integer> newTransactionIds = new HashSet<>(); // newTransactionList
 
-                if (PPCTest(generatedClusters, transactionIds, freqClusterId, newTransactionIds)) {
+                if (PPCTest(defaultDatabase, generatedClusters, transactionIds, freqClusterId, newTransactionIds)) {
                     ArrayList<Integer> qSets = new ArrayList<>();
 
-                    makeClosure(newTransactionIds, qSets, generatedClusters, freqClusterId);
+                    MakeClosure(defaultDatabase, newTransactionIds, qSets, generatedClusters, freqClusterId);
                     if (maxPattern == 0 || qSets.size() <= maxPattern) {
-                        Set<Integer> updatedTransactionIds = updateTransactions(transactionIds, qSets, freqClusterId);
+                        Set<Integer> updatedTransactionIds = GeneratorUtils.updateTransactions(defaultDatabase, transactionIds, qSets, freqClusterId);
                         // newFreqList
-                        ArrayList<Integer> updatedFreqList = updateFreqList(transactionIds, qSets, frequentClusterIds, freqClusterId);
+                        ArrayList<Integer> updatedFreqList = GeneratorUtils.updateFreqList(defaultDatabase, transactionIds, qSets, frequentClusterIds, freqClusterId);
 
                         database = updateOccurenceDeriver(database, updatedTransactionIds);
 
@@ -215,59 +256,6 @@ public class ClusterGenerator implements Generator {
 
     /**
      * <pre>
-     * Lcm::UpdateFreqList(const Database &database, const vector<int> &transactionList, const vector<int> &gsub, vector<int> &freqList, int freq, vector<int> &newFreq)
-     * </pre>
-     *
-     * @param transactionIds   (transactionList)
-     * @param qSets            (gsub)
-     * @param frequentClusters (freqList)
-     * @param freqClusterId    (freq)
-     * @return (newFreq)
-     */
-    private ArrayList<Integer> updateFreqList(Set<Integer> transactionIds, ArrayList<Integer> qSets,
-                                              ArrayList<Integer> frequentClusters, int freqClusterId) {
-        //On ajoute les frequences des itemsets de qSets
-        ArrayList<Integer> newFrequentClusters = new ArrayList<>();
-
-        int clusterId = 0;
-        if (frequentClusters.size() > 0) {
-            for (; clusterId < qSets.size(); clusterId++) {
-                if (qSets.get(clusterId) >= freqClusterId) break;
-                newFrequentClusters.add(frequentClusters.get(clusterId));
-            }
-        }
-        // newList = database.getTransactionsId()
-        // pour chaque item de Qset
-        //      pour chaque transaction de newList
-        //          si la transaction contient item
-        //              increment compteur
-        //              ajouter transaction dans newnewList
-        //      ajouter compteur a newFreqlist
-        //      newlist = newnewlist
-        ArrayList<Integer> previousList = new ArrayList<>(transactionIds);
-
-        for (; clusterId < qSets.size(); clusterId++) {
-            ArrayList<Integer> lastList = new ArrayList<>();
-
-            int freqCount = 0;
-
-            for (int transactionId : previousList) {
-                Transaction transaction = defaultDatabase.getTransaction(transactionId);
-
-                if (transaction.getClusterIds().contains(qSets.get(clusterId))) {
-                    freqCount++;
-                    lastList.add(previousList.get(previousList.get(transactionId)));
-                }
-            }
-            newFrequentClusters.add(freqCount);
-            previousList = lastList;
-        }
-
-        return newFrequentClusters;
-    }
-
-    /**
-     * <pre>
      * Lcm::UpdateOccurenceDeriver(const Database &database, const vector<int> &transactionList, OccurenceDeriver &occurence)
      * </pre>
      * <p>
@@ -309,177 +297,6 @@ public class ClusterGenerator implements Generator {
         }
 
         return database;
-    }
-
-    /**
-     * <pre>
-     * Lcm::UpdateTransactionList(const Database &database, const vector<int> &transactionList, const vector<int> &q_sets, int item, vector<int> &newTransactionList)
-     * </pre>
-     *
-     * @param transactionIds (transactionList)
-     * @param qSets          (q_sets)
-     * @param freqClusterId  (item)
-     * @return (newTransactionList)
-     */
-    private Set<Integer> updateTransactions(Set<Integer> transactionIds, ArrayList<Integer> qSets, int freqClusterId) {
-        Set<Integer> newTransactionIds = new HashSet<>();
-
-        for (int transactionId : transactionIds) {
-            Transaction transaction = defaultDatabase.getTransaction(transactionId);
-            boolean canAdd = true;
-
-            for (int qSetClusterId : qSets) {
-                if (qSetClusterId >= freqClusterId && !transaction.getClusterIds().contains(qSetClusterId)) {
-                    canAdd = false;
-                }
-            }
-            if (canAdd) {
-                newTransactionIds.add(transactionId);
-            }
-        }
-        return newTransactionIds;
-
-    }
-
-    /**
-     * Teste si p(i-1) == q(i-1)
-     * <p>
-     * <pre>
-     * Lcm::PpcTest(database, []itemsets, []transactionList, item, []newTransactionList)
-     * </pre>
-     *
-     * @param clusters          (itemsets)
-     * @param transactionIds    (transactionList)
-     * @param freqClusterId     (item)
-     * @param newTransactionIds (newTransactionList)
-     * @return
-     */
-    @TraceMethod(displayTitle = true)
-    private boolean PPCTest(ArrayList<Integer> clusters, Set<Integer> transactionIds, int freqClusterId, Set<Integer> newTransactionIds) {
-        // CalcTransactionList
-        for (int transactionId : transactionIds) {
-            Transaction transaction = defaultDatabase.getTransaction(transactionId);
-
-            if (transaction.getClusterIds().contains(freqClusterId)) {
-                newTransactionIds.add(transactionId);
-            }
-        }
-        for (int clusterId = 0; clusterId < freqClusterId; clusterId++) {
-            if (!clusters.contains(clusterId) && CheckItemInclusion(newTransactionIds, clusterId)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * <pre>
-     * Lcm::CalcurateCoreI(database, itemsets, freqList)
-     * </pre>
-     *
-     * @param clusterIds         (itemsets)
-     * @param frequentClusterIds (freqList)
-     * @return le dernier élement different du dernier clusterId de frequentClusterIds, si frequentClusterIds est trop petit, renvoie le premier element de clusterIds, sinon renvoi 0 si clusterIds est vide
-     * @deprecated use {@link #getDifferentFromLastCluster(ArrayList, ArrayList)}
-     */
-    private int CalcurateCoreI(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
-        return getDifferentFromLastCluster(clusterIds, frequentClusterIds);
-    }
-
-    /**
-     * <pre>
-     * Lcm::CalcurateCoreI(database, itemsets, freqList)
-     * </pre>
-     *
-     * @param clusterIds         (itemsets)
-     * @param frequentClusterIds (freqList)
-     * @return le dernier élement different du dernier clusterId de frequentClusterIds, si frequentClusterIds est trop petit, renvoie le premier element de clusterIds, sinon renvoi 0 si clusterIds est vide
-     */
-    private int getDifferentFromLastCluster(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
-        if (clusterIds.size() > 0) {
-            int current = frequentClusterIds.get(frequentClusterIds.size() - 1);
-
-            for (int i = frequentClusterIds.size() - 1; i >= 0; i--) {
-                if (current != frequentClusterIds.get(i))
-                    return frequentClusterIds.get(i);
-            }
-
-            return clusterIds.get(0);
-        }
-        return 0;
-    }
-
-    /**
-     * <pre>
-     * Lcm::MakeClosure(const Database &database, vector<int> &transactionList,
-     * vector<int> &q_sets, vector<int> &itemsets,
-     * int item)
-     * </pre>
-     *
-     * @param transactionIds (transactionList)
-     * @param qSets          (q_sets)
-     * @param itemset        (itemsets)
-     * @param freq           (item)
-     */
-    @TraceMethod(displayTitle = true)
-    private void makeClosure(Set<Integer> transactionIds, ArrayList<Integer> qSets, ArrayList<Integer> itemset, int freq) {
-        Debug.println("transactionIds : " + transactionIds);
-        Debug.println("qSets : " + qSets);
-        Debug.println("itemset : " + itemset);
-        Debug.println("freq : " + freq);
-        Debug.println("");
-
-        for (int clusterId = 0; clusterId < itemset.size() && itemset.get(clusterId) < freq; clusterId++) {
-            qSets.add(itemset.get(clusterId));
-        }
-
-        //qSets.addAll(itemset);
-
-        qSets.add(freq);
-
-        SortedSet<Integer> lowerBoundSet = lower_bound(defaultDatabase.getClusterIds(), freq + 1);
-
-        for (int clusterId : lowerBoundSet) {
-            if (CheckItemInclusion(transactionIds, clusterId)) {
-                qSets.add(clusterId);
-            }
-        }
-        Debug.println("qSets : " + qSets);
-    }
-
-
-    /**
-     * CheckItemInclusion(Database,transactionlist,item)
-     * Check whether clusterId is included in any of the transactions pointed to transactions
-     *
-     * @param transactionIds (transactionList) la liste des transactions
-     * @param clusterId      (item) clusterId to find
-     * @return true if the clusterId is in one of the transactions
-     * @deprecated not expressive naming use {@link #clusterInTransactions(Set, int)}
-     */
-    private boolean CheckItemInclusion(Set<Integer> transactionIds, int clusterId) {
-        return clusterInTransactions(transactionIds, clusterId);
-    }
-
-    /**
-     * Verifie si le cluster est inclus dans toute la liste des transactions
-     * <p>
-     * Dans GetMove :
-     * <pre>
-     * Lcm::CheckItemInclusion(Database,transactionList,item)
-     * </pre>
-     *
-     * @param transactionIds (transactionList) la liste des transactions
-     * @param clusterId      (item) le cluster à trouver
-     * @return vrai si le cluster est présent dans toute les transactions de la liste
-     */
-    private boolean clusterInTransactions(Set<Integer> transactionIds, int clusterId) {
-        for (int transactionId : transactionIds) {
-            if (!defaultDatabase.getTransaction(transactionId).getClusterIds().contains(clusterId)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**

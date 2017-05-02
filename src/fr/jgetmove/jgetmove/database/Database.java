@@ -2,7 +2,6 @@ package fr.jgetmove.jgetmove.database;
 
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -110,7 +109,10 @@ public class Database {
         timeIdsTree = new TreeSet<>();
     }
 
-    @NotNull
+    /**
+     * @param transactionId l'id de la transaction à récuperer
+     * @return La transaction crée ou récuperée
+     */
     private Transaction getOrCreateTransaction(int transactionId) {
         Transaction transaction = this.getTransaction(transactionId);
 
@@ -263,10 +265,8 @@ public class Database {
     }
 
     /**
-     * Renvoie le Time du cluster
-     *
      * @param clusterId l'identifiant du cluster
-     * @return
+     * @return le Time du cluster
      */
     public Time getClusterTime(int clusterId) {
         return clusters.get(clusterId).getTime();
