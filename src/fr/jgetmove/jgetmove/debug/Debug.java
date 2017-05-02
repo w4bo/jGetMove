@@ -15,6 +15,7 @@ public class Debug {
     private final static String METHOD_PREFIX = "--:";
     private final static String METHOD_SUFFIX = " :--";
     private final static String METHOD_FULL_DISPLAY_SEPARATOR = "·";
+    private final static String VARNAME_SEPARATOR = ": ";
 
     private static boolean displayDebug = false;
     private static String path = "";
@@ -52,6 +53,33 @@ public class Debug {
             updateDebugString();
             System.out.println(concatAll(o));
         }
+    }
+
+    /**
+     * Affiche l'objet, alias de
+     * <pre>
+     *     System.out.println(name + Object)
+     * </pre>
+     *
+     * @param name le nom de la variable
+     * @param o    l'objet a afficher
+     */
+    public static void println(String name, Object o) {
+        if (displayDebug) {
+            updateDebugString();
+            System.out.println(concatAll(name, o));
+        }
+    }
+
+    public static void printTitle(String title) {
+        if (displayDebug) {
+            updateDebugString();
+            System.out.println(concatAll(createTitle(title)));
+        }
+    }
+
+    private static String concatAll(String name, Object o) {
+        return path.concat(content).concat(name).concat(VARNAME_SEPARATOR).concat(o.toString());
     }
 
     /**
