@@ -26,12 +26,13 @@ public class Main {
             Input inputTime = new Input("assets/testtimeindex.dat");
 
             Database database = new Database(inputObj, inputTime);
+            System.out.println(database.toJSON());
             Debug.println(database);
 
             /*
              * Init ClusterGenerator and detectors
              */
-            ClusterGenerator clusterGenerator = new ClusterGenerator(1, 0, minTime);
+            /*ClusterGenerator clusterGenerator = new ClusterGenerator(1, 0, minTime);
             Set<Detector> detectors = new HashSet<>();
             detectors.add(new ConvoyDetector(minTime));
             detectors.add(new ClosedSwarmDetector(minTime));
@@ -40,7 +41,7 @@ public class Main {
 
             solver.generateClusters();
             //Debug.println(generatedClusters);
-            solver.detectPatterns();
+            solver.detectPatterns();*/
 
         } catch (IOException | ClusterNotExistException e) {
             e.printStackTrace();

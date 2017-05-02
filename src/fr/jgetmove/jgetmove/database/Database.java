@@ -2,7 +2,7 @@ package fr.jgetmove.jgetmove.database;
 
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
-
+import javax.json.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.TreeSet;
@@ -223,6 +223,52 @@ public class Database {
 
     public Time getTime(int timeId) {
         return times.get(timeId);
+    }
+    
+    /**
+     * @param index = id du cluster
+     * @return L'ensemble des transaction d'un cluster sous forme d'une chaine de caractère pour toJSON()
+     */
+    public String printGetClusterTransactions(int index){
+    	String s = "";
+    	for(Transaction transaction : this.getClusterTransactions(index).values()) {
+    		s += transaction.getId() + ",";
+    	}
+    	s = s.substring(0, s.length()-1); //retire la dernière virgule
+    	return s;
+    }
+    
+    /**
+     * @return la database en format json
+     */
+    public String toJSON() {
+    	int index = 0;
+    	System.out.println(this.getClusters().size() - 1);
+    	JsonArrayBuilder linksArray = Json.createArrayBuilder();
+    	for(Transaction transaction : this.getTransactions().values()){
+    		for(int i = 0; i < transaction.getClusters().size() - 1; i++){
+    			linksArray.add(Json.createObjectBuilder()
+    					.add("id",i + index)
+    					.add("source", transaction.getCluster(i).getId())
+    					.add("target", transaction.getCluster(i+1).getId())
+    					.add("value", 1)
+    					.add("label", transaction.getId()));
+    		}
+    		index += transaction.getClusters().size();
+    	}
+    	JsonObjectBuilder links = Json.createObjectBuilder()
+      			 .add("links",linksArray);
+    	
+    	JsonArrayBuilder nodesArray = Json.createArrayBuilder();
+    	for(int i = 0; i < this.getClusters().size() ; i++){
+    		nodesArray.add(Json.createObjectBuilder()
+    				.add("id",i)
+    				.add("label", this.printGetClusterTransactions(i))
+    				.add("time", this.getClusterTimeId(i)));
+    	}
+    	//JsonObjectBuilder nodes = Json.createObjectBuilder();
+    	JsonObject finaljson = links.add("nodes",nodesArray).build();
+    	return finaljson.toString();
     }
 
     @Override
