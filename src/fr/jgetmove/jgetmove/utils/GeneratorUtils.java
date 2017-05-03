@@ -32,6 +32,8 @@ public class GeneratorUtils {
     }
 
     /**
+     * Renvoie la valeur qui englobe le plus de transactions
+     * <p>
      * <pre>
      * Lcm::MakeClosure(const Database &database, vector<int> &transactionList,
      * vector<int> &q_sets, vector<int> &itemsets,
@@ -71,28 +73,6 @@ public class GeneratorUtils {
     }
 
     /**
-     * Verifie si le cluster est inclus dans toute la liste des transactions
-     * <p>
-     * Dans GetMove :
-     * <pre>
-     * Lcm::CheckItemInclusion(Database,transactionList,item)
-     * </pre>
-     *
-     * @param database       (database)
-     * @param transactionIds (transactionList) la liste des transactions
-     * @param clusterId      (item) le cluster à trouver
-     * @return vrai si le cluster est présent dans toute les transactions de la liste
-     */
-    public static boolean clusterInTransactions(Database database, Set<Integer> transactionIds, int clusterId) {
-        for (int transactionId : transactionIds) {
-            if (!database.getTransaction(transactionId).getClusterIds().contains(clusterId)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
      * <pre>
      * Lcm::UpdateTransactionList(const Database &database, const vector<int> &transactionList, const vector<int> &q_sets, int item, vector<int> &newTransactionList)
      * </pre>
@@ -119,8 +99,8 @@ public class GeneratorUtils {
                 newTransactionIds.add(transactionId);
             }
         }
-        return newTransactionIds;
 
+        return newTransactionIds;
     }
 
     /**
@@ -197,10 +177,10 @@ public class GeneratorUtils {
      * @param transactionIds (transactionList) la liste des transactions
      * @param clusterId      (item) clusterId to find
      * @return true if the clusterId is in one of the transactions
-     * @deprecated not expressive naming use {@link GeneratorUtils#clusterInTransactions(Database, Set, int)}
+     * @deprecated not expressive naming use {@link Database#isClusterInTransactions(Set, int)}
      */
     public static boolean CheckItemInclusion(Database database, Set<Integer> transactionIds, int clusterId) {
-        return clusterInTransactions(database, transactionIds, clusterId);
+        return database.isClusterInTransactions(transactionIds, clusterId);
     }
 
     /**
@@ -217,13 +197,6 @@ public class GeneratorUtils {
      * @return vrai si ppctest est réussi
      */
     public static boolean ppcTest(Database database, ArrayList<Integer> clusters, Set<Integer> transactionIds, int freqClusterId, Set<Integer> newTransactionIds) {
-        for (int transactionId : transactionIds) {
-            Transaction transaction = database.getTransaction(transactionId);
-
-            if (transaction.getClusterIds().contains(freqClusterId)) {
-                newTransactionIds.add(transactionId);
-            }
-        }
         for (int clusterId = 0; clusterId < freqClusterId; clusterId++) {
             if (!clusters.contains(clusterId) && CheckItemInclusion(database, newTransactionIds, clusterId)) {
                 return false;
@@ -231,4 +204,5 @@ public class GeneratorUtils {
         }
         return true;
     }
+
 }

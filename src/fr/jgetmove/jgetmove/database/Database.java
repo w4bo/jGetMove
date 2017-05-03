@@ -5,6 +5,8 @@ import fr.jgetmove.jgetmove.io.Input;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.TreeSet;
 
 /**
@@ -318,7 +320,10 @@ public class Database {
         return str;
     }
 
-    public void clear() {
+    /**
+     * Supprime les associations {@link Cluster} <=> {@link Transaction}
+     */
+    public void cleanClusterTransactionBinding() {
         this.inputObj = null;
         this.inputTime = null;
 
@@ -329,5 +334,85 @@ public class Database {
         for (Transaction transaction : transactions.values()) {
             transaction.clear();
         }
+    }
+
+    /**
+     * Supprime et recrée les associations {@link Cluster} <=> {@link Transaction} en fonction des transactions à prendre en compte
+     * <p>
+     * <pre>
+     * Lcm::UpdateOccurenceDeriver(const Database &database, const vector<int> &transactionList, OccurenceDeriver &occurence)
+     * </pre>
+     * this (occurence)
+     *
+     * @param defaultDatabase (database) base de données originale
+     * @param transactionIds  (transactionList) transactions à prendre en compte
+     */
+    public void rebindRelations(Database defaultDatabase, Set<Integer> transactionIds) {
+        this.cleanClusterTransactionBinding();
+
+        for (int transactionId : transactionIds) {
+            Transaction newtransaction = this.getTransaction(transactionId);
+            Transaction transaction = defaultDatabase.getTransaction(transactionId);
+            Set<Integer> clusterIds = transaction.getClusterIds();
+
+            if (newtransaction == null) {
+                newtransaction = new Transaction(transactionId);
+                this.add(newtransaction);
+            }
+
+            for (int clusterId : clusterIds) {
+                Cluster cluster = this.getCluster(clusterId);
+
+                if (cluster == null) {
+                    cluster = new Cluster(clusterId);
+                    this.add(cluster);
+                }
+
+                cluster.add(newtransaction);
+                newtransaction.add(cluster);
+            }
+        }
+    }
+
+    /**
+     * Verifie si le cluster est inclus dans toute la liste des transactions
+     * <p>
+     * Dans GetMove :
+     * <pre>
+     * Lcm::CheckItemInclusion(Database,transactionList,item)
+     * </pre>
+     *
+     * @param transactionIds (transactionList) la liste des transactions
+     * @param clusterId      (item) le cluster à trouver
+     * @return vrai si le cluster est présent dans toute les transactions de la liste
+     */
+    public boolean isClusterInTransactions(Set<Integer> transactionIds, int clusterId) {
+        for (int transactionId : transactionIds) {
+            if (!this.getTransaction(transactionId).getClusterIds().contains(clusterId)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Retourne une liste de transactions qui contienent le cluster défini par clusterId, seules les transactions contenues dans transactionIds seront itérés
+     *
+     * @param transactionIds liste de transactions à filter
+     * @param clusterId      le cluster qui doit être contenu par la transaction
+     * @return liste des transactionIds contenant le cluster
+     */
+    public Set<Integer> getTransactionIdsContainingClusterInSet(Set<Integer> transactionIds, int clusterId) {
+        Set<Integer> filteredTransactionIds = new HashSet<>();
+
+        for (int transactionId : transactionIds) {
+            Transaction transaction = this.getTransaction(transactionId);
+
+            if (transaction.getClusterIds().contains(clusterId)) {
+                filteredTransactionIds.add(transactionId);
+            }
+        }
+
+        return filteredTransactionIds;
     }
 }

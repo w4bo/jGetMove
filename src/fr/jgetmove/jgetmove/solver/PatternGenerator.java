@@ -44,6 +44,7 @@ public class PatternGenerator implements Generator {
      * @param qSets          (q_sets)
      * @param itemset        (itemsets)
      * @param freq           (item)
+     * @deprecated use {@link GeneratorUtils#makeClosure(Database, Set, ArrayList, ArrayList, int)}
      */
     @TraceMethod(displayTitle = true)
     private static void MakeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets, ArrayList<Integer> itemset, int freq) {
@@ -62,12 +63,26 @@ public class PatternGenerator implements Generator {
      * @param freqClusterId     (item)
      * @param newTransactionIds (newTransactionList)
      * @return vrai si ppctest est réussi
-     * @deprecated use {@link GeneratorUtils#ppcTest(Database, ArrayList, Set, int, Set)}
+     * @deprecated use {@link Database#getTransactionIdsContainingClusterInSet(Set, int)} and {@link GeneratorUtils#ppcTest(Database, ArrayList, Set, int, Set)}
      */
     @TraceMethod(displayTitle = true)
     private static boolean PPCTest(Database database, ArrayList<Integer> clusters, Set<Integer> transactionIds, int freqClusterId, Set<Integer> newTransactionIds) {
         // CalcTransactionList
-        return GeneratorUtils.ppcTest(database, clusters, transactionIds, freqClusterId, newTransactionIds);
+        for (int transactionId : transactionIds) {
+            Transaction transaction = database.getTransaction(transactionId);
+
+            if (transaction.getClusterIds().contains(freqClusterId)) {
+                newTransactionIds.add(transactionId);
+            }
+        }
+
+        for (int clusterId = 0; clusterId < freqClusterId; clusterId++) {
+            if (!clusters.contains(clusterId) && GeneratorUtils.CheckItemInclusion(database, newTransactionIds, clusterId)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -161,7 +176,7 @@ public class PatternGenerator implements Generator {
 
                 HashMap<Detector, ArrayList<Pattern>> motifs = new HashMap<>();
                 for (Detector detector : detectors) {
-                    motifs.put(detector, detector.detect(defaultDatabase, timeBased, clusterBased, transactions));
+                    // motifs.put(detector, detector.detect(defaultDatabase, timeBased, clusterBased, transactions));
                 }
             }
         }

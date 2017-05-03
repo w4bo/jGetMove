@@ -8,7 +8,10 @@ import fr.jgetmove.jgetmove.debug.TraceMethod;
 import fr.jgetmove.jgetmove.utils.ArrayUtils;
 import fr.jgetmove.jgetmove.utils.GeneratorUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.SortedSet;
 
 public class ClusterGenerator implements Generator {
 
@@ -63,12 +66,24 @@ public class ClusterGenerator implements Generator {
      * @param freqClusterId     (item)
      * @param newTransactionIds (newTransactionList)
      * @return vrai si ppctest est réussi
-     * @deprecated use {@link GeneratorUtils#ppcTest(Database, ArrayList, Set, int, Set)}
+     * @deprecated use {@link Database#getTransactionIdsContainingClusterInSet(Set, int)} and {@link GeneratorUtils#ppcTest(Database, ArrayList, Set, int, Set)}
      */
     @TraceMethod(displayTitle = true)
     private static boolean PPCTest(Database database, ArrayList<Integer> clusters, Set<Integer> transactionIds, int freqClusterId, Set<Integer> newTransactionIds) {
         // CalcTransactionList
-        return GeneratorUtils.ppcTest(database, clusters, transactionIds, freqClusterId, newTransactionIds);
+        for (int transactionId : transactionIds) {
+            Transaction transaction = database.getTransaction(transactionId);
+
+            if (transaction.getClusterIds().contains(freqClusterId)) {
+                newTransactionIds.add(transactionId);
+            }
+        }
+        for (int clusterId = 0; clusterId < freqClusterId; clusterId++) {
+            if (!clusters.contains(clusterId) && GeneratorUtils.CheckItemInclusion(database, newTransactionIds, clusterId)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -158,7 +173,6 @@ public class ClusterGenerator implements Generator {
         Debug.println("");
 
         for (ArrayList<Integer> generatedClusters : generatedArrayOfClusters) {
-            // TODO : PrintItemsetsNew on l'a oublié
             PrintItemsetsNew(database, generatedClusters, transactions, numItems);
 
             int calcurateCoreI = CalcurateCoreI(generatedClusters, frequentClusterIds);
@@ -195,7 +209,7 @@ public class ClusterGenerator implements Generator {
                         // newFreqList
                         ArrayList<Integer> updatedFreqList = GeneratorUtils.updateFreqList(defaultDatabase, transactionIds, qSets, frequentClusterIds, freqClusterId);
 
-                        database = updateOccurenceDeriver(database, updatedTransactionIds);
+                        updateOccurenceDeriver(database, updatedTransactionIds);
 
                         // clusterIds -> qSets
                         // transactionIds -> updatedTransactionIds
@@ -255,6 +269,8 @@ public class ClusterGenerator implements Generator {
     }
 
     /**
+     * Supprime et recrée les associations {@link Cluster} <=> {@link Transaction} en fonction des transactions à prendre en compte
+     * <p>
      * <pre>
      * Lcm::UpdateOccurenceDeriver(const Database &database, const vector<int> &transactionList, OccurenceDeriver &occurence)
      * </pre>
@@ -263,40 +279,10 @@ public class ClusterGenerator implements Generator {
      *
      * @param database          (occurence)
      * @param newTransactionIds (transactionList)
-     * @deprecated use {@link #updateDatabase(Database, Set)}
+     * @deprecated use {@link Database#rebindRelations(Database, Set)}
      */
-    private Database updateOccurenceDeriver(Database database, Set<Integer> newTransactionIds) {
-        return updateDatabase(database, newTransactionIds);
-    }
-
-    private Database updateDatabase(Database database, Set<Integer> newTransactionIds) {
-        database.clear();
-
-        for (int transactionId : newTransactionIds) {
-            Transaction newtransaction = database.getTransaction(transactionId);
-            Transaction transaction = defaultDatabase.getTransaction(transactionId);
-            Set<Integer> clusterIds = transaction.getClusterIds();
-
-            if (newtransaction == null) {
-                newtransaction = new Transaction(transactionId);
-                database.add(newtransaction);
-            }
-
-            for (int clusterId : clusterIds) {
-                Cluster cluster = database.getCluster(clusterId);
-
-                if (cluster == null) {
-                    cluster = new Cluster(clusterId);
-                    database.add(cluster);
-                }
-
-                cluster.add(newtransaction);
-                newtransaction.add(cluster);
-            }
-
-        }
-
-        return database;
+    private void updateOccurenceDeriver(Database database, Set<Integer> newTransactionIds) {
+        database.rebindRelations(defaultDatabase, newTransactionIds);
     }
 
     /**
@@ -436,34 +422,9 @@ public class ClusterGenerator implements Generator {
         }
 
         generatedArrayOfClusters.clear();
-        generatedArrayOfClusters = checkedArrayOfClusterIds; // why
+        generatedArrayOfClusters.addAll(checkedArrayOfClusterIds); // why
         generatedArrayOfTimeIds.add(times); // whyy
         //generatedArrayOfClusterIds.add(database.getClusterIds()); // but whyy ?
-    }
-
-    /**
-     * Verifie si un ensemble de transaction est inclus dans un autre
-     * <p>
-     * TODO : Documentation
-     * <pre>isIncluded</pre>
-     *
-     * @param a le premier ensemble qui doit être contenu dans b
-     * @param b le deuxieme ensemble qui doit contenir a
-     * @return 2 si c'est egal
-     */
-    private int isAIncludedInB(HashMap<Integer, Transaction> a, HashMap<Integer, Transaction> b) {
-        if (a.size() > b.size()) {
-            return 0;
-        }
-
-        if (ArrayUtils.isIncluded(a.keySet(), b.keySet())) {
-            if (ArrayUtils.areEqual(a.keySet(), b.keySet())) {
-                return 2;
-            }
-            return 1;
-        }
-
-        return 0;
     }
 
     /**
