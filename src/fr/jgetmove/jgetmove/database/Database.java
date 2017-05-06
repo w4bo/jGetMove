@@ -402,7 +402,7 @@ public class Database {
      * @param clusterId      le cluster qui doit être contenu par la transaction
      * @return liste des transactionIds contenant le cluster
      */
-    public Set<Integer> getTransactionIdsContainingClusterInSet(Set<Integer> transactionIds, int clusterId) {
+    public Set<Integer> getFilteredTransactionIdsIfHaveCluster(Set<Integer> transactionIds, int clusterId) {
         Set<Integer> filteredTransactionIds = new HashSet<>();
 
         for (int transactionId : transactionIds) {

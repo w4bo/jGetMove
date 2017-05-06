@@ -47,7 +47,8 @@ public class PatternGenerator implements Generator {
      * @deprecated use {@link GeneratorUtils#makeClosure(Database, Set, ArrayList, ArrayList, int)}
      */
     @TraceMethod(displayTitle = true)
-    private static void MakeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets, ArrayList<Integer> itemset, int freq) {
+    private static void MakeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets,
+                                    ArrayList<Integer> itemset, int freq) {
         GeneratorUtils.makeClosure(database, transactionIds, qSets, itemset, freq);
     }
 
@@ -63,10 +64,11 @@ public class PatternGenerator implements Generator {
      * @param freqClusterId     (item)
      * @param newTransactionIds (newTransactionList)
      * @return vrai si ppctest est réussi
-     * @deprecated use {@link Database#getTransactionIdsContainingClusterInSet(Set, int)} and {@link GeneratorUtils#ppcTest(Database, ArrayList, Set, int, Set)}
+     * @deprecated use {@link Database#getFilteredTransactionIdsIfHaveCluster(Set, int)} and {@link GeneratorUtils#ppcTest(Database, ArrayList, Set, int, Set)}
      */
     @TraceMethod(displayTitle = true)
-    private static boolean PPCTest(Database database, ArrayList<Integer> clusters, Set<Integer> transactionIds, int freqClusterId, Set<Integer> newTransactionIds) {
+    private static boolean PPCTest(Database database, ArrayList<Integer> clusters, Set<Integer> transactionIds,
+                                   int freqClusterId, Set<Integer> newTransactionIds) {
         // CalcTransactionList
         for (int transactionId : transactionIds) {
             Transaction transaction = database.getTransaction(transactionId);
@@ -77,7 +79,8 @@ public class PatternGenerator implements Generator {
         }
 
         for (int clusterId = 0; clusterId < freqClusterId; clusterId++) {
-            if (!clusters.contains(clusterId) && GeneratorUtils.CheckItemInclusion(database, newTransactionIds, clusterId)) {
+            if (!clusters.contains(clusterId) && GeneratorUtils
+                    .CheckItemInclusion(database, newTransactionIds, clusterId)) {
                 return false;
             }
         }
@@ -106,14 +109,17 @@ public class PatternGenerator implements Generator {
 
     /**
      */
-    protected void runLcm(Database database, ArrayList<ArrayList<Integer>> lvl2ClusterId, ArrayList<ArrayList<Integer>> lvl2TimeId, Set<Detector> detectors) {
+    protected void run(Database database, ArrayList<ArrayList<Integer>> lvl2ClusterId,
+                       ArrayList<ArrayList<Integer>> lvl2TimeId, Set<Detector> detectors) {
         ArrayList<Integer> itemsets = new ArrayList<>();
         ArrayList<Integer> freqList = new ArrayList<>();
         run(database, itemsets, database.getTransactionIds(), freqList, lvl2ClusterId, lvl2TimeId, detectors);
 
     }
 
-    private void run(Database database, ArrayList<Integer> itemsets, Set<Integer> transactionIds, ArrayList<Integer> freqList, ArrayList<ArrayList<Integer>> lvl2ClusterId, ArrayList<ArrayList<Integer>> lvl2TimeId, Set<Detector> detectors) {
+    private void run(Database database, ArrayList<Integer> itemsets, Set<Integer> transactionIds,
+                     ArrayList<Integer> freqList, ArrayList<ArrayList<Integer>> lvl2ClusterId,
+                     ArrayList<ArrayList<Integer>> lvl2TimeId, Set<Detector> detectors) {
 
         int calcurateCoreI = CalcurateCoreI(itemsets, freqList);
         System.err.println("CORE I : " + calcurateCoreI);
@@ -144,9 +150,11 @@ public class PatternGenerator implements Generator {
                 if (maxPattern == 0 || qSets.size() <= maxPattern) {
                     newTransactionIds.clear();
 
-                    Set<Integer> iterTransactionIds = GeneratorUtils.updateTransactions(database, database.getTransactionIds(), qSets, freqClusterId);
+                    Set<Integer> iterTransactionIds = GeneratorUtils
+                            .updateTransactions(database, database.getTransactionIds(), qSets, freqClusterId);
                     newFreqList.clear();
-                    newFreqList = GeneratorUtils.updateFreqList(database, database.getTransactionIds(), qSets, freqList, freqClusterId);
+                    newFreqList = GeneratorUtils
+                            .updateFreqList(database, database.getTransactionIds(), qSets, freqList, freqClusterId);
                     run(database, qSets, iterTransactionIds, newFreqList, lvl2ClusterId, lvl2TimeId, detectors);
                 }
             }
@@ -155,7 +163,8 @@ public class PatternGenerator implements Generator {
     }
 
     private void printItemsets(Database tempDb, ArrayList<Integer> itemsets,
-                               ArrayList<ArrayList<Integer>> lvl2ClusterId, ArrayList<ArrayList<Integer>> lvl2TimeId, Set<Detector> detectors) {
+                               ArrayList<ArrayList<Integer>> lvl2ClusterId, ArrayList<ArrayList<Integer>> lvl2TimeId,
+                               Set<Detector> detectors) {
 
         if (itemsets.size() > 0) {
 

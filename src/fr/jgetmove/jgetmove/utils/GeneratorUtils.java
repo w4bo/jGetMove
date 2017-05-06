@@ -17,7 +17,8 @@ public class GeneratorUtils {
      * @param frequentClusterIds (freqList)
      * @return le dernier élement different du dernier clusterId de frequentClusterIds, si frequentClusterIds est trop petit, renvoie le premier element de clusterIds, sinon renvoi 0 si clusterIds est vide
      */
-    public static int getDifferentFromLastCluster(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
+    public static int getDifferentFromLastCluster(ArrayList<Integer> clusterIds,
+                                                  ArrayList<Integer> frequentClusterIds) {
         if (clusterIds.size() > 0) {
             int current = frequentClusterIds.get(frequentClusterIds.size() - 1);
 
@@ -47,7 +48,8 @@ public class GeneratorUtils {
      * @param freq           (item)
      */
     @TraceMethod(displayTitle = true)
-    public static void makeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets, ArrayList<Integer> itemset, int freq) {
+    public static void makeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets,
+                                   ArrayList<Integer> itemset, int freq) {
         Debug.println("transactionIds : " + transactionIds);
         Debug.println("qSets : " + qSets);
         Debug.println("itemset : " + itemset);
@@ -83,7 +85,8 @@ public class GeneratorUtils {
      * @param freqClusterId  (item)
      * @return (newTransactionList)
      */
-    public static Set<Integer> updateTransactions(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets, int freqClusterId) {
+    public static Set<Integer> updateTransactions(Database database, Set<Integer> transactionIds,
+                                                  ArrayList<Integer> qSets, int freqClusterId) {
         Set<Integer> newTransactionIds = new HashSet<>();
 
         for (int transactionId : transactionIds) {
@@ -115,16 +118,17 @@ public class GeneratorUtils {
      * @param freqClusterId    (freq)
      * @return (newFreq)
      */
-    public static ArrayList<Integer> updateFreqList(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets,
+    public static ArrayList<Integer> updateFreqList(Database database, Set<Integer> transactionIds,
+                                                    ArrayList<Integer> qSets,
                                                     ArrayList<Integer> frequentClusters, int freqClusterId) {
         //On ajoute les frequences des itemsets de qSets
-        ArrayList<Integer> newFrequentClusters = new ArrayList<>();
+        ArrayList<Integer> updatedFrequentClusters = new ArrayList<>();
 
         int clusterId = 0;
         if (frequentClusters.size() > 0) {
             for (; clusterId < qSets.size(); clusterId++) {
                 if (qSets.get(clusterId) >= freqClusterId) break;
-                newFrequentClusters.add(frequentClusters.get(clusterId));
+                updatedFrequentClusters.add(frequentClusters.get(clusterId));
             }
         }
         // newList = database.getTransactionsId()
@@ -147,14 +151,14 @@ public class GeneratorUtils {
 
                 if (transaction.getClusterIds().contains(qSets.get(clusterId))) {
                     freqCount++;
-                    lastList.add(previousList.get(previousList.get(transactionId)));
+                    lastList.add(transactionId);
                 }
             }
-            newFrequentClusters.add(freqCount);
+            updatedFrequentClusters.add(freqCount);
             previousList = lastList;
         }
 
-        return newFrequentClusters;
+        return updatedFrequentClusters;
     }
 
     /**
@@ -196,7 +200,8 @@ public class GeneratorUtils {
      * @param newTransactionIds (newTransactionList)
      * @return vrai si ppctest est réussi
      */
-    public static boolean ppcTest(Database database, ArrayList<Integer> clusters, Set<Integer> transactionIds, int freqClusterId, Set<Integer> newTransactionIds) {
+    public static boolean ppcTest(Database database, ArrayList<Integer> clusters, Set<Integer> transactionIds,
+                                  int freqClusterId, Set<Integer> newTransactionIds) {
         for (int clusterId = 0; clusterId < freqClusterId; clusterId++) {
             if (!clusters.contains(clusterId) && CheckItemInclusion(database, newTransactionIds, clusterId)) {
                 return false;
