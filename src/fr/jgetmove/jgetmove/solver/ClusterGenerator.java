@@ -141,18 +141,18 @@ public class ClusterGenerator implements Generator {
         int[] numClusters = new int[1];
         numClusters[0] = 0;
 
-		run(database, transactions, itemsets, database.getTransactionIds(), freqItemset, numClusters);
-		Debug.println("Transactions : " + transactions);
+        run(database, transactions, itemsets, database.getTransactionIds(), freqItemset, numClusters);
+        Debug.println("Transactions : " + transactions);
 
-		Database database2 = new Database();
-		for(int i=0;i<transactions.size();i++){
-			transactions.get(i).setId(i);
-			database2.add(transactions.get(i));
-		}
-		ClusterGeneratorResult result = new ClusterGeneratorResult(database2, config, clustersGenerated, lvl2TimeIds,
-				lvl2ClusterIds);
-		return result;
-	}
+        Database database2 = new Database();
+        for (int i = 0; i < transactions.size(); i++) {
+            transactions.get(i).setId(i);
+            database2.add(transactions.get(i));
+        }
+        ClusterGeneratorResult result = new ClusterGeneratorResult(database2, config, clustersGenerated, lvl2TimeIds,
+                                                                   lvl2ClusterIds);
+        return result;
+    }
 
     /**
      * Boucle r&eacute;cursive
@@ -203,7 +203,6 @@ public class ClusterGenerator implements Generator {
 
             Debug.println("Core_i : " + calcurateCoreI);
 
-			SortedSet<Integer> lowerBounds = GeneratorUtils.lower_bound(defaultDatabase.getClusterIds(),calcurateCoreI);
             SortedSet<Integer> lowerBounds = GeneratorUtils
                     .lower_bound(defaultDatabase.getClusterIds(), calcurateCoreI);
 
