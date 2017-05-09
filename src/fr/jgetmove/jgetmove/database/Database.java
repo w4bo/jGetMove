@@ -241,7 +241,7 @@ public class Database {
     /**
      * @return la database en format json
      */
-    public String toJSON() {
+    public JsonObjectBuilder toJSON() {
     	int index = 0;
     	System.out.println(this.getClusters().size() - 1);
     	JsonArrayBuilder linksArray = Json.createArrayBuilder();
@@ -267,8 +267,12 @@ public class Database {
     				.add("time", this.getClusterTimeId(i)));
     	}
     	//JsonObjectBuilder nodes = Json.createObjectBuilder();
-    	JsonObject finaljson = links.add("nodes",nodesArray).build();
-    	return finaljson.toString();
+    	JsonObjectBuilder finalDatabaseJson = links.add("nodes",nodesArray);
+    	return finalDatabaseJson;
+    }
+    
+    public String stringToJson(JsonObjectBuilder finalJson) {
+    	return finalJson.build().toString();
     }
 
     @Override

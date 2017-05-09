@@ -31,7 +31,7 @@ public class Input {
     public String readLine() throws IOException {
         return reader.readLine();
     }
-
+    
     @Override
     public String toString() {
         return filePath;
