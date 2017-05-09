@@ -4,6 +4,7 @@ import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -96,6 +97,35 @@ public class Database {
             time.add(cluster);
             cluster.setTime(time);
         }
+    }
+    
+    public Database(Collection<Transaction> transactions){
+    	 this.inputObj = null;
+         this.inputTime = null;
+
+         clusters = new HashMap<>();
+         this.transactions = new HashMap<>();
+         times = new HashMap<>();
+
+         clusterIdsTree = new TreeSet<>();
+         transactionIdsTree = new TreeSet<>();
+         timeIdsTree = new TreeSet<>();
+         
+    	for(Transaction oldTransaction : transactions){
+    		Transaction transaction = new Transaction(oldTransaction.getId());
+    		add(transaction);
+    		for(Cluster oldCluster : oldTransaction.getClusters().values()){
+    			Cluster cluster = this.getCluster(oldCluster.getId());
+    			
+    			if(cluster == null){
+    				cluster = new Cluster(oldCluster.getId());
+    				add(cluster);
+    			}
+    			
+    			cluster.add(transaction);
+    			transaction.add(cluster);
+    		}
+    	}
     }
 
     public Database() {
@@ -366,6 +396,15 @@ public class Database {
                 if (cluster == null) {
                     cluster = new Cluster(clusterId);
                     this.add(cluster);
+                    
+                    Time time = this.getTime(defaultDatabase.getClusterTimeId(clusterId));
+                    if(time == null){
+                    	time = new Time(defaultDatabase.getClusterTimeId(clusterId));
+                    	add(time);
+                    }
+                    
+                    cluster.setTime(time);
+                    time.add(cluster);
                 }
 
                 cluster.add(newtransaction);

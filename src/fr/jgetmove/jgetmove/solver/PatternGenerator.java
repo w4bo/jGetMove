@@ -110,8 +110,13 @@ public class PatternGenerator implements Generator {
      */
     protected void run(Database database, ArrayList<ArrayList<Integer>> lvl2ClusterId,
                        ArrayList<ArrayList<Integer>> lvl2TimeId, Set<Detector> detectors) {
+    	
+    	
         ArrayList<Integer> itemsets = new ArrayList<>();
         ArrayList<Integer> freqList = new ArrayList<>();
+        Debug.println("Database : " + database);
+        Debug.println("Run Lvl2TimeId  " +lvl2TimeId);
+        Debug.println("Run Lvl2ClusterId  " +lvl2ClusterId);
         run(database, itemsets, database.getTransactionIds(), freqList, lvl2ClusterId, lvl2TimeId, detectors);
 
     }
@@ -168,7 +173,7 @@ public class PatternGenerator implements Generator {
     private void printItemsets(Database tempDb, ArrayList<Integer> itemsets,
                                ArrayList<ArrayList<Integer>> lvl2ClusterId, ArrayList<ArrayList<Integer>> lvl2TimeId,
                                Set<Detector> detectors) {
-    	
+    	Debug.println("itemsets : " + itemsets);
     	Debug.println("lvl2TimeId : " + lvl2TimeId);
     	Debug.println("lvl2ClusterId : " + lvl2ClusterId);
         if (itemsets.size() > 0) {

@@ -144,11 +144,8 @@ public class ClusterGenerator implements Generator {
         run(database, transactions, itemsets, database.getTransactionIds(), freqItemset, numClusters);
         Debug.println("Transactions : " + transactions);
 
-        Database database2 = new Database();
-        for (int i = 0; i < transactions.size(); i++) {
-            transactions.get(i).setId(i);
-            database2.add(transactions.get(i));
-        }
+        Database database2 = new Database(transactions);
+      
         ClusterGeneratorResult result = new ClusterGeneratorResult(database2, config, clustersGenerated, lvl2TimeIds,
                                                                    lvl2ClusterIds);
         return result;
