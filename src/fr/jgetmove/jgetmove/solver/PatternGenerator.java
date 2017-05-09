@@ -15,6 +15,7 @@ public class PatternGenerator implements Generator {
     private final Database defaultDatabase;
     private ArrayList<ArrayList<Integer>> clustersGenerated;
     private int minSupport, maxPattern, minTime;
+	private boolean printed;
 
     /**
      * Initialise le solveur.
@@ -24,13 +25,16 @@ public class PatternGenerator implements Generator {
      * @param maxPattern nombre maximal de pattern a trouvé
      * @param minTime    temps minimal
      */
-    public PatternGenerator(Database database, int minSupport, int maxPattern, int minTime) {
+    public PatternGenerator(Database database,int minSupport, int maxPattern, int minTime) {
         this.minSupport = minSupport;
         this.maxPattern = maxPattern;
         this.minTime = minTime;
         this.clustersGenerated = new ArrayList<>();
         this.defaultDatabase = database;
+        printed = false;
+        
     }
+    
 
     /**
      * <pre>
@@ -102,11 +106,6 @@ public class PatternGenerator implements Generator {
         return GeneratorUtils.getDifferentFromLastCluster(clusterIds, frequentClusterIds);
     }
 
-    @Override
-    public ArrayList<ArrayList<Integer>> generate() {
-        return null;
-    }
-
     /**
      */
     protected void run(Database database, ArrayList<ArrayList<Integer>> lvl2ClusterId,
@@ -159,7 +158,10 @@ public class PatternGenerator implements Generator {
                 }
             }
         }
-        printItemsets(database, itemsets, lvl2ClusterId, lvl2TimeId, detectors);
+        if(!printed){
+        	printItemsets(database, itemsets, lvl2ClusterId, lvl2TimeId, detectors);
+        	printed = true;
+        }
     }
 
     private void printItemsets(Database tempDb, ArrayList<Integer> itemsets,
@@ -190,4 +192,11 @@ public class PatternGenerator implements Generator {
             }
         }
     }
+
+
+	@Override
+	public ClusterGeneratorResult generate() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

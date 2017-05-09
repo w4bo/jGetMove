@@ -4,5 +4,5 @@ import java.util.ArrayList;
 
 public interface Generator {
 
-    public ArrayList<ArrayList<Integer>> generate();
+    public ClusterGeneratorResult generate();
 }
