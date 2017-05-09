@@ -162,7 +162,14 @@ public class ClusterGenerator implements Generator {
 		numClusters[0] = 0;
 
 		run(database, transactions, itemsets, database.getTransactionIds(), freqItemset, numClusters);
-		ClusterGeneratorResult result = new ClusterGeneratorResult(database, config, clustersGenerated, lvl2TimeIds,
+		Debug.println("Transactions : " + transactions);
+		
+		Database database2 = new Database();
+		for(int i=0;i<transactions.size();i++){
+			transactions.get(i).setId(i);
+			database2.add(transactions.get(i));
+		}
+		ClusterGeneratorResult result = new ClusterGeneratorResult(database2, config, clustersGenerated, lvl2TimeIds,
 				lvl2ClusterIds);
 		return result;
 	}
@@ -222,8 +229,7 @@ public class ClusterGenerator implements Generator {
 
 			Debug.println("Core_i : " + calcurateCoreI);
 
-			SortedSet<Integer> lowerBounds = GeneratorUtils.lower_bound(defaultDatabase.getClusterIds(),
-					calcurateCoreI);
+			SortedSet<Integer> lowerBounds = GeneratorUtils.lower_bound(defaultDatabase.getClusterIds(),calcurateCoreI);
 
 			// freq_i
 			ArrayList<Integer> freqClusterIds = new ArrayList<>();

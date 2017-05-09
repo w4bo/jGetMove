@@ -78,7 +78,7 @@ public class Solver {
         HashMap<Detector, ArrayList<Pattern>> motifs = new HashMap<>();
         
         PatternGenerator patternGenerator = new PatternGenerator(database, 1, 0, 1);
-        Debug.println("Database " + result.getDatabase());
+        Debug.println("Database2 " + result.getDatabase());
         Debug.println("Results clusters " + result.getClusters());
         Debug.println("Results lvl2ClusterIds " + result.getLvl2ClusterIds());
         Debug.println("Results lvl2TimeIds " + result.getLvl2TimeIds());

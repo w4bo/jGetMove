@@ -35,7 +35,7 @@ public class Main {
             ClusterGenerator clusterGenerator = new ClusterGenerator(database, config);
             Set<Detector> detectors = new HashSet<>();
             detectors.add(new ConvoyDetector(minTime));
-            detectors.add(new ClosedSwarmDetector(minTime));
+            //detectors.add(new ClosedSwarmDetector(minTime));
 
             Solver solver = new Solver(database, clusterGenerator, detectors);
 

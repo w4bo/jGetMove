@@ -1,9 +1,12 @@
 package fr.jgetmove.jgetmove.detector;
 
 import fr.jgetmove.jgetmove.database.Database;
+import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Set;
 
 public class ClosedSwarmDetector implements Detector {
 
@@ -13,10 +16,17 @@ public class ClosedSwarmDetector implements Detector {
         this.minTime = minTime;
     }
 
-    @Override
+	@Override
+	public ArrayList<Pattern> detect(Database defaultDatabase, Set<Integer> timeBased, Set<Integer> clusterBased,
+			Collection<Transaction> transactions) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+   /* @Override
     public ArrayList<Pattern> detect(Database database, ArrayList<ArrayList<Integer>> clustersGenerated) {
         return null;
-    }
+    }*/
 
 	
 	/*public ArrayList<Pattern> detect(Database database, ArrayList<ArrayList<Integer>> clustersGenerated) {

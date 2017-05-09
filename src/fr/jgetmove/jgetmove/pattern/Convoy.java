@@ -70,7 +70,7 @@ public class Convoy implements Pattern {
 
 
     public String toString() {
-        return "Convoy:\n" + " transactions : [" + transactions;
+        return "Convoy:\n" + " transactions : [" + transactions + "]" + "times : " +  times;
     }
 
 }

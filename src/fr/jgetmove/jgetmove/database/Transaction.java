@@ -59,6 +59,14 @@ public class Transaction {
     public int getId() {
         return id;
     }
+    
+    /**
+     * Setter on id
+     * @param id
+     */
+    public void setId(int id){
+    	this.id=id;
+    }
 
     /**
      * @return l'ensemble des clusters de la transaction

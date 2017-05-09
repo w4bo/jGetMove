@@ -130,7 +130,7 @@ public class PatternGenerator implements Generator {
 
         for (int clusterId : lowerBounds) {
 
-            if (database.getCluster(clusterId).getTransactions().size() >= minSupport &&
+            if (defaultDatabase.getCluster(clusterId).getTransactions().size() >= minSupport &&
                     !itemsets.contains(clusterId)) {
                 freqClusterIds.add(clusterId);
             }
@@ -159,7 +159,8 @@ public class PatternGenerator implements Generator {
             }
         }
         if(!printed){
-        	printItemsets(database, itemsets, lvl2ClusterId, lvl2TimeId, detectors);
+        	Debug.errln("Print Itemsets");
+        	printItemsets(defaultDatabase, itemsets, lvl2ClusterId, lvl2TimeId, detectors);
         	printed = true;
         }
     }
@@ -167,7 +168,9 @@ public class PatternGenerator implements Generator {
     private void printItemsets(Database tempDb, ArrayList<Integer> itemsets,
                                ArrayList<ArrayList<Integer>> lvl2ClusterId, ArrayList<ArrayList<Integer>> lvl2TimeId,
                                Set<Detector> detectors) {
-
+    	
+    	Debug.println("lvl2TimeId : " + lvl2TimeId);
+    	Debug.println("lvl2ClusterId : " + lvl2ClusterId);
         if (itemsets.size() > 0) {
 
             for (int i = 0; i < tempDb.getClusters().size(); i++) {
@@ -176,7 +179,7 @@ public class PatternGenerator implements Generator {
                 Set<Integer> clusterBased = new TreeSet<>();
 
                 Collection<Transaction> transactions = tempDb.getCluster(i).getTransactions().values();
-
+                
                 for (int j = 1; j < lvl2TimeId.get(i).size(); j++) {
                     timeBased.add(lvl2TimeId.get(i).get(j));
                 }
@@ -184,10 +187,12 @@ public class PatternGenerator implements Generator {
                 for (int j = 1; j < lvl2ClusterId.get(i).size(); j++) {
                     clusterBased.add(lvl2ClusterId.get(i).get(j));
                 }
-
-                HashMap<Detector, ArrayList<Pattern>> motifs = new HashMap<>();
-                for (Detector detector : detectors) {
-                    // motifs.put(detector, detector.detect(defaultDatabase, timeBased, clusterBased, transactions));
+                
+                if (timeBased.size() > minTime){
+                	 HashMap<Detector, ArrayList<Pattern>> motifs = new HashMap<>();
+                     for (Detector detector : detectors) {
+                     	motifs.put(detector, detector.detect(defaultDatabase, timeBased, clusterBased, transactions));
+                     }
                 }
             }
         }
