@@ -108,7 +108,7 @@ public class PatternGenerator implements Generator {
 
     /**
      */
-    protected void run(Database database, ArrayList<ArrayList<Integer>> lvl2ClusterId,
+    protected void run(Database database, Database database2, ArrayList<ArrayList<Integer>> lvl2ClusterId,
                        ArrayList<ArrayList<Integer>> lvl2TimeId, Set<Detector> detectors) {
     	
     	
@@ -117,37 +117,47 @@ public class PatternGenerator implements Generator {
         Debug.println("Database : " + database);
         Debug.println("Run Lvl2TimeId  " +lvl2TimeId);
         Debug.println("Run Lvl2ClusterId  " +lvl2ClusterId);
-        run(database, itemsets, database.getTransactionIds(), freqList, lvl2ClusterId, lvl2TimeId, detectors);
+        run(database, database2, itemsets, database.getTransactionIds(), freqList, lvl2ClusterId, lvl2TimeId, detectors);
 
     }
 
-    private void run(Database database, ArrayList<Integer> itemsets, Set<Integer> transactionIds,
+    private void run(Database database, Database database2, ArrayList<Integer> itemsets, Set<Integer> transactionIds,
                      ArrayList<Integer> freqList, ArrayList<ArrayList<Integer>> lvl2ClusterId,
                      ArrayList<ArrayList<Integer>> lvl2TimeId, Set<Detector> detectors) {
+    	Debug.println("RUN");
+    	Debug.println("");
 
         int calcurateCoreI = CalcurateCoreI(itemsets, freqList);
         System.err.println("CORE I : " + calcurateCoreI);
-        SortedSet<Integer> lowerBounds = GeneratorUtils.lower_bound(defaultDatabase.getClusterIds(), calcurateCoreI);
-
+        SortedSet<Integer> lowerBounds = GeneratorUtils.lower_bound(database.getClusterIds(), calcurateCoreI);
+        
+        //Blocks
+        ArrayList<Integer> blocks = new ArrayList<>();
+        for(int i=0;i<itemsets.size();i++){
+        	blocks.add(lvl2TimeId.get(itemsets.get(i)).get(0));
+        }
         // freq_i
         ArrayList<Integer> freqClusterIds = new ArrayList<>();
         Debug.println("lower bounds : " + lowerBounds.size());
 
         for (int clusterId : lowerBounds) {
 
-            if (defaultDatabase.getCluster(clusterId).getTransactions().size() >= minSupport &&
+            if (database.getCluster(clusterId).getTransactions().size() >= minSupport &&
                     !itemsets.contains(clusterId)) {
                 freqClusterIds.add(clusterId);
             }
         }
+        Debug.println("freq_i : " + freqClusterIds);
 
         ArrayList<Integer> qSets = new ArrayList<>();
         ArrayList<Integer> newFreqList = new ArrayList<>();
 
         for (int freqClusterId : freqClusterIds) {
             Set<Integer> newTransactionIds = new TreeSet<>();
-
-            if (PPCTest(database, itemsets, database.getClusterIds(), freqClusterId, newTransactionIds)) {
+            
+            int blockOfItem = lvl2TimeId.get(freqClusterId).get(0);
+            if (PPCTest(database, itemsets, transactionIds, freqClusterId, newTransactionIds) &&
+            		!blocks.contains(blockOfItem)) {
                 qSets.clear();
                 MakeClosure(database, newTransactionIds, qSets, itemsets, freqClusterId);
 
@@ -159,32 +169,33 @@ public class PatternGenerator implements Generator {
                     newFreqList.clear();
                     newFreqList = GeneratorUtils
                             .updateFreqList(database, database.getTransactionIds(), qSets, freqList, freqClusterId);
-                    run(database, qSets, iterTransactionIds, newFreqList, lvl2ClusterId, lvl2TimeId, detectors);
+                    run(database, database2, qSets, iterTransactionIds, newFreqList, lvl2ClusterId, lvl2TimeId, detectors);
                 }
             }
         }
         if(!printed){
-        	Debug.errln("Print Itemsets");
-        	printItemsets(defaultDatabase, itemsets, lvl2ClusterId, lvl2TimeId, detectors);
+        	printItemsets(database, database2,itemsets, lvl2ClusterId, lvl2TimeId, detectors);
         	printed = true;
         }
     }
 
-    private void printItemsets(Database tempDb, ArrayList<Integer> itemsets,
+    private void printItemsets(Database tempDb, Database database2, ArrayList<Integer> itemsets,
                                ArrayList<ArrayList<Integer>> lvl2ClusterId, ArrayList<ArrayList<Integer>> lvl2TimeId,
                                Set<Detector> detectors) {
+    	Debug.errln("Print Itemsets");
+    	Debug.println("Database2" + database2);
     	Debug.println("itemsets : " + itemsets);
     	Debug.println("lvl2TimeId : " + lvl2TimeId);
     	Debug.println("lvl2ClusterId : " + lvl2ClusterId);
         if (itemsets.size() > 0) {
 
-            for (int i = 0; i < tempDb.getClusters().size(); i++) {
+            for (int i = 0; i < database2.getClusters().size(); i++) {
 
                 Set<Integer> timeBased = new TreeSet<>();
                 Set<Integer> clusterBased = new TreeSet<>();
 
                 Collection<Transaction> transactions = tempDb.getCluster(i).getTransactions().values();
-                
+                Debug.errln("TEST : " +transactions);
                 for (int j = 1; j < lvl2TimeId.get(i).size(); j++) {
                     timeBased.add(lvl2TimeId.get(i).get(j));
                 }

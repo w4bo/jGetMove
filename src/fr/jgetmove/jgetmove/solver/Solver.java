@@ -82,7 +82,7 @@ public class Solver {
         Debug.println("Results clusters " + result.getClusters());
         Debug.println("Results lvl2ClusterIds " + result.getLvl2ClusterIds());
         Debug.println("Results lvl2TimeIds " + result.getLvl2TimeIds());
-        patternGenerator.run(result.getDatabase(),result.getLvl2ClusterIds() , result.getLvl2TimeIds(), detectors);
+        patternGenerator.run(result.getDatabase(),result.getDatabase(),result.getLvl2ClusterIds() , result.getLvl2TimeIds(), detectors);
         /*for (Detector detector : detectors) {
             motifs.put(detector, detector.detect(database, clusterGenerator.getClustersGenerated()));
         }*/
