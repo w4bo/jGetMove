@@ -41,4 +41,12 @@ public class ClusterGeneratorResult {
     public ArrayList<ArrayList<Integer>> getLvl2ClusterIds() {
         return lvl2ClusterIds;
     }
+
+    @Override
+    public String toString() {
+        return "Database : " + database + "\n"
+                + "Clusters : " + clusters + "\n"
+                + "Lvl2Clusters" + lvl2ClusterIds + "\n"
+                + "Lvl2Times" + lvl2TimeIds;
+    }
 }

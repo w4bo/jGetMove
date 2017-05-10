@@ -17,86 +17,80 @@ import java.util.Set;
  */
 public class ConvoyDetector implements Detector {
 
-	private static ConvoyDetector convoyDetector;
-	private int minTime;
+    private static ConvoyDetector convoyDetector;
+    private int minTime;
 
-	/**
-	 * Empty Constructor
-	 */
-	public ConvoyDetector(int minTime) {
-		this.minTime = minTime;
-	}
+    /**
+     * Empty Constructor
+     */
+    public ConvoyDetector(int minTime) {
+        this.minTime = minTime;
+    }
 
-	/**
-	 * Cree une instance de ConvoyDetector ou retourne celle deja presente
-	 *
-	 * @return une nouvelle instance de convoyDetector si elle n'a pas été deja
-	 *         crée
-	 */
-	public static ConvoyDetector getInstance(int minTime) {
-		if (convoyDetector == null) {
-			convoyDetector = new ConvoyDetector(minTime);
-			return convoyDetector;
-		}
-		return convoyDetector;
-	}
+    /**
+     * Cree une instance de ConvoyDetector ou retourne celle deja presente
+     *
+     * @return une nouvelle instance de convoyDetector si elle n'a pas été deja
+     * crée
+     */
+    public static ConvoyDetector getInstance(int minTime) {
+        if (convoyDetector == null) {
+            convoyDetector = new ConvoyDetector(minTime);
+            return convoyDetector;
+        }
+        return convoyDetector;
+    }
 
 
-	public ArrayList<Pattern> detect(Database defaultDatabase, Set<Integer> timeBased, Set<Integer> clusterBased,
-			Collection<Transaction> transactions) {
-		
-		ArrayList<Pattern> convoys = new ArrayList<>();
-		
-        
+    public ArrayList<Pattern> detect(Database defaultDatabase, Set<Integer> timeBased, Set<Integer> clusterBased,
+                                     Collection<Transaction> transactions) {
+
+        ArrayList<Pattern> convoys = new ArrayList<>();
+
+
         ArrayList<Integer> clusters = new ArrayList<>(clusterBased);
         ArrayList<Integer> times = new ArrayList<>(timeBased);
-        
-        int lastTime = -1;
-        int firstTime = -1;
-        int currentTime = -1;
-        int currentIndex = -1;
-        int lastIndex = -1;
-        int firstIndex = -1;
 
+        int firstTime = times.get(0);
+        int lastTime = firstTime;
+        int currentTime;
+        int currentIndex;
+        int firstIndex = 0;
+        int lastIndex = firstIndex;
 
-        firstTime = times.get(0);
-        firstIndex = 0;
-        lastTime = firstTime;
-        lastIndex = firstIndex;
-        
         //CurrentTransactionSet
-        ArrayList<Integer> currentTransactions = new ArrayList<>(defaultDatabase.getClusterTransactions(clusters.get(0)).keySet());
+        ArrayList<Integer> currentTransactions;
         // correctTransactionSet
-        ArrayList<Integer> goodTransactions = new ArrayList<>(defaultDatabase.getClusterTransactions(clusters.get(0)).keySet());
-        
+        ArrayList<Integer> goodTransactions = new ArrayList<>(
+                defaultDatabase.getClusterTransactions(clusters.get(0)).keySet());
+
         //Pour tout les clusters
-        for(int i=0;i<times.size();i++){
-        	// currentTransactionSet
+        for (int i = 0; i < times.size(); i++) {
+            // currentTransactionSet
             currentTransactions = new ArrayList<>(defaultDatabase.getClusterTransactions(clusters.get(i)).keySet());
-            
+
             currentTime = times.get(i);
             currentIndex = i;
-            
-            if(currentTime == lastTime +1){
-            	ArrayList<Integer> objectTemp = new ArrayList<>();
-            	for(int j=0;j<goodTransactions.size();j++){
-            		if(currentTransactions.contains(goodTransactions.get(j))) objectTemp.add(goodTransactions.get(j));
-            	}
-            	
-            	goodTransactions = objectTemp;
-            	lastTime = currentTime;
-            	lastIndex = currentIndex;
-            	
-            }
-            else {
-            	
-            	if(currentTime > (lastTime+1)){
-            		int temp1 = goodTransactions.size();
-            		int temp2 = transactions.size();
-            		
-            		
-            		if( (lastTime-firstTime) >= minTime && (temp1 == temp2)  ){
-            			 //Init new Convoy
+
+            if (currentTime == lastTime + 1) {
+                ArrayList<Integer> objectTemp = new ArrayList<>();
+                for (int goodTransaction : goodTransactions) {
+                    if (currentTransactions.contains(goodTransaction)) objectTemp.add(goodTransaction);
+                }
+
+                goodTransactions = objectTemp;
+                lastTime = currentTime;
+                lastIndex = currentIndex;
+
+            } else {
+
+                if (currentTime > (lastTime + 1)) {
+                    int temp1 = goodTransactions.size();
+                    int temp2 = transactions.size();
+
+
+                    if ((lastTime - firstTime) >= minTime && (temp1 == temp2)) {
+                        //Init new Convoy
                         // timesOfItemset
                         Set<Time> timesOfCluster = new HashSet<>();
                         Set<Transaction> transactionsOfCluster = new HashSet<>();
@@ -104,30 +98,25 @@ public class ConvoyDetector implements Detector {
                         for (int transactionId : goodTransactions) {
                             transactionsOfCluster.add(defaultDatabase.getTransaction(transactionId));
                         }
-                        for(int j=firstIndex;j<=lastIndex;j++){
-                        	timesOfCluster.add(defaultDatabase.getTime(times.get(j)));
+                        for (int j = firstIndex; j <= lastIndex; j++) {
+                            timesOfCluster.add(defaultDatabase.getTime(times.get(j)));
                         }
-                        
+
                         convoys.add(new Convoy(transactionsOfCluster, timesOfCluster));
-                        
-                        firstTime = currentTime;
-                        firstIndex = currentIndex;
-                        lastTime = currentTime;
-                        lastIndex = currentIndex;
-            		}
-            		else {
-                        firstTime = currentTime;
-                        firstIndex = currentIndex;
-                        lastTime = currentTime;
-                        lastIndex = currentIndex;
+                    } else {
+
                         goodTransactions = currentTransactions;
-            		}
-            	}
-            } 
+                    }
+                    firstTime = currentTime;
+                    firstIndex = currentIndex;
+                    lastTime = currentTime;
+                    lastIndex = currentIndex;
+                }
+            }
         }
-        
-        if( (lastTime - firstTime) >= minTime){
-        	//Init new Convoy
+
+        if ((lastTime - firstTime) >= minTime) {
+            //Init new Convoy
             // timesOfItemset
             Set<Time> timesOfCluster = new HashSet<>();
             Set<Transaction> transactionsOfCluster = new HashSet<>();
@@ -135,14 +124,15 @@ public class ConvoyDetector implements Detector {
             for (int transactionId : goodTransactions) {
                 transactionsOfCluster.add(defaultDatabase.getTransaction(transactionId));
             }
-            for(int j=firstIndex;j<=lastIndex;j++){
-            	timesOfCluster.add(defaultDatabase.getTime(times.get(j)));
+            for (int j = firstIndex; j <= lastIndex; j++) {
+                timesOfCluster.add(defaultDatabase.getTime(times.get(j)));
             }
             convoys.add(new Convoy(transactionsOfCluster, timesOfCluster));
         }
-        
-        Debug.println("Il y a : " + convoys.size() + "Convoy");
 
-    	return convoys;
-	}
+        Debug.println("Il y a : " + convoys.size() + "Convoy");
+        Debug.println("Convoys", convoys);
+
+        return convoys;
+    }
 }

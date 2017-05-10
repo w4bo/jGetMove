@@ -79,7 +79,7 @@ public class Debug {
     }
 
     private static String concatAll(String name, Object o) {
-        return path.concat(content).concat(name).concat(VARNAME_SEPARATOR).concat(o.toString());
+        return path.concat(content).concat(name).concat(VARNAME_SEPARATOR).concat(multiline(o));
     }
 
     /**
@@ -344,6 +344,17 @@ public class Debug {
     }
 
     private static String concatAll(Object o) {
-        return path.concat(content).concat(o.toString());
+        return path.concat(content).concat(multiline(o));
+    }
+
+    private static String multiline(Object o) {
+        String replacement = "$1";
+
+        if (content.length() > 0) {
+            replacement = replacement.concat(path).concat(" ").concat(pathLine(sizeDirection, DEFAULT_SEPARATOR))
+                                     .concat(" ");
+        }
+
+        return o.toString().replaceAll("(\\r?\\n)", replacement);
     }
 }

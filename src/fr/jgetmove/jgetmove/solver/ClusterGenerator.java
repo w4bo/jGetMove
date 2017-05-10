@@ -145,10 +145,9 @@ public class ClusterGenerator implements Generator {
         Debug.println("Transactions : " + transactions);
 
         Database database2 = new Database(transactions);
-      
-        ClusterGeneratorResult result = new ClusterGeneratorResult(database2, config, clustersGenerated, lvl2TimeIds,
-                                                                   lvl2ClusterIds);
-        return result;
+
+        return new ClusterGeneratorResult(database2, config, clustersGenerated, lvl2TimeIds,
+                                          lvl2ClusterIds);
     }
 
     /**
@@ -344,15 +343,14 @@ public class ClusterGenerator implements Generator {
             return generatedArrayOfClusters;
         }
 
-        Set<Integer> times = new HashSet<>(); // listOfDates
         boolean isMonoCluster = true; // numberSameTime
 
         int lastTime = 0;
         // liste des temps qui n'ont qu'un seul cluster
         for (int i = 0; i < clusterIds.size(); ++i) {
             int clusterId = clusterIds.get(i);
-            times.add(defaultDatabase.getClusterTimeId(clusterId));
             lastTime = defaultDatabase.getClusterTimeId(clusterId);
+
             if (i != clusterIds.size() - 1) {
                 int nextClusterId = clusterIds.get(i + 1);
                 if (defaultDatabase.getClusterTimeId(clusterId)
@@ -404,7 +402,7 @@ public class ClusterGenerator implements Generator {
             ArrayList<Integer> singleton = new ArrayList<>(1);
             singleton.add(clusterId);
             tempArrayOfClusters.add(singleton);
-            Debug.println("Add Singleton : " + singleton);
+            Debug.println("Add Singleton", singleton);
         }
         /*
          * For each time [1+], get the clusters associated

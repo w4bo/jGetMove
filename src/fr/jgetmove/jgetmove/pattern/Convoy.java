@@ -2,7 +2,6 @@ package fr.jgetmove.jgetmove.pattern;
 
 import fr.jgetmove.jgetmove.database.Time;
 import fr.jgetmove.jgetmove.database.Transaction;
-import fr.jgetmove.jgetmove.debug.Debug;
 
 import java.util.Set;
 
@@ -23,13 +22,12 @@ public class Convoy implements Pattern {
     /**
      * Constructeur
      *
-     * @param clusters Liste de transactions present dans le convoy
-     * @param times    La liste des temps associées
+     * @param transactions Liste de transactions present dans le convoy
+     * @param times        La liste des temps associées
      */
     public Convoy(Set<Transaction> transactions, Set<Time> times) {
         this.transactions = transactions;
         this.times = times;
-        Debug.println(this);
     }
 
     /**
@@ -70,7 +68,7 @@ public class Convoy implements Pattern {
 
 
     public String toString() {
-        return "Convoy:\n" + " transactions : [" + transactions + "]" + "times : " +  times;
+        return "Convoy:\n" + " transactions : [" + transactions + "]" + "times : " + times;
     }
 
 }

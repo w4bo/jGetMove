@@ -15,7 +15,7 @@ public class PatternGenerator implements Generator {
     private final Database defaultDatabase;
     private ArrayList<ArrayList<Integer>> clustersGenerated;
     private int minSupport, maxPattern, minTime;
-	private boolean printed;
+    private boolean printed;
 
     /**
      * Initialise le solveur.
@@ -25,16 +25,16 @@ public class PatternGenerator implements Generator {
      * @param maxPattern nombre maximal de pattern a trouvé
      * @param minTime    temps minimal
      */
-    public PatternGenerator(Database database,int minSupport, int maxPattern, int minTime) {
+    public PatternGenerator(Database database, int minSupport, int maxPattern, int minTime) {
         this.minSupport = minSupport;
         this.maxPattern = maxPattern;
         this.minTime = minTime;
         this.clustersGenerated = new ArrayList<>();
         this.defaultDatabase = database;
         printed = false;
-        
+
     }
-    
+
 
     /**
      * <pre>
@@ -110,13 +110,13 @@ public class PatternGenerator implements Generator {
      */
     protected void run(Database database, ArrayList<ArrayList<Integer>> lvl2ClusterId,
                        ArrayList<ArrayList<Integer>> lvl2TimeId, Set<Detector> detectors) {
-    	
-    	
+
+
         ArrayList<Integer> itemsets = new ArrayList<>();
         ArrayList<Integer> freqList = new ArrayList<>();
         Debug.println("Database : " + database);
-        Debug.println("Run Lvl2TimeId  " +lvl2TimeId);
-        Debug.println("Run Lvl2ClusterId  " +lvl2ClusterId);
+        Debug.println("Run Lvl2TimeId  " + lvl2TimeId);
+        Debug.println("Run Lvl2ClusterId  " + lvl2ClusterId);
         run(database, itemsets, database.getTransactionIds(), freqList, lvl2ClusterId, lvl2TimeId, detectors);
 
     }
@@ -124,17 +124,17 @@ public class PatternGenerator implements Generator {
     private void run(Database database, ArrayList<Integer> itemsets, Set<Integer> transactionIds,
                      ArrayList<Integer> freqList, ArrayList<ArrayList<Integer>> lvl2ClusterId,
                      ArrayList<ArrayList<Integer>> lvl2TimeId, Set<Detector> detectors) {
-    	Debug.println("RUN");
-    	Debug.println("");
+        Debug.println("RUN");
+        Debug.println("");
 
         int calcurateCoreI = CalcurateCoreI(itemsets, freqList);
         System.err.println("CORE I : " + calcurateCoreI);
         SortedSet<Integer> lowerBounds = GeneratorUtils.lower_bound(database.getClusterIds(), calcurateCoreI);
-        
+
         //Blocks
         ArrayList<Integer> blocks = new ArrayList<>();
-        for(int i=0;i<itemsets.size();i++){
-        	blocks.add(lvl2TimeId.get(itemsets.get(i)).get(0));
+        for (Integer itemset : itemsets) {
+            blocks.add(lvl2TimeId.get(itemset).get(0));
         }
         // freq_i
         ArrayList<Integer> freqClusterIds = new ArrayList<>();
@@ -154,10 +154,10 @@ public class PatternGenerator implements Generator {
 
         for (int freqClusterId : freqClusterIds) {
             Set<Integer> newTransactionIds = new TreeSet<>();
-            
+
             int blockOfItem = lvl2TimeId.get(freqClusterId).get(0);
             if (PPCTest(database, itemsets, transactionIds, freqClusterId, newTransactionIds) &&
-            		!blocks.contains(blockOfItem)) {
+                    !blocks.contains(blockOfItem)) {
                 qSets.clear();
                 MakeClosure(database, newTransactionIds, qSets, itemsets, freqClusterId);
 
@@ -173,29 +173,29 @@ public class PatternGenerator implements Generator {
                 }
             }
         }
-        if(!printed){
-        	printItemsets(defaultDatabase,database,itemsets, lvl2ClusterId, lvl2TimeId, detectors);
-        	printed = true;
+        if (!printed) {
+            printItemsets(database, itemsets, lvl2ClusterId, lvl2TimeId, detectors);
+            printed = true;
         }
     }
 
-    private void printItemsets(Database tempDb, Database database2, ArrayList<Integer> itemsets,
+    private void printItemsets(Database database, ArrayList<Integer> itemsets,
                                ArrayList<ArrayList<Integer>> lvl2ClusterId, ArrayList<ArrayList<Integer>> lvl2TimeId,
                                Set<Detector> detectors) {
-    	Debug.errln("Print Itemsets");
-    	Debug.println("Database2" + database2);
-    	Debug.println("itemsets : " + itemsets);
-    	Debug.println("lvl2TimeId : " + lvl2TimeId);
-    	Debug.println("lvl2ClusterId : " + lvl2ClusterId);
+        Debug.errln("Print Itemsets");
+        Debug.println("Database2" + database);
+        Debug.println("itemsets : " + itemsets);
+        Debug.println("lvl2TimeId : " + lvl2TimeId);
+        Debug.println("lvl2ClusterId : " + lvl2ClusterId);
         if (itemsets.size() > 0) {
 
-            for (int i = 0; i < database2.getClusters().size(); i++) {
+            for (int i = 0; i < database.getClusters().size(); i++) {
 
                 Set<Integer> timeBased = new TreeSet<>();
                 Set<Integer> clusterBased = new TreeSet<>();
-                
-                Collection<Transaction> transactions = database2.getCluster(i).getTransactions().values();
-                Debug.errln("TEST : " +transactions);
+
+                Collection<Transaction> transactions = database.getCluster(i).getTransactions().values();
+                Debug.errln("TEST : " + transactions);
                 for (int j = 1; j < lvl2TimeId.get(i).size(); j++) {
                     timeBased.add(lvl2TimeId.get(i).get(j));
                 }
@@ -203,21 +203,21 @@ public class PatternGenerator implements Generator {
                 for (int j = 1; j < lvl2ClusterId.get(i).size(); j++) {
                     clusterBased.add(lvl2ClusterId.get(i).get(j));
                 }
-                
-                if (timeBased.size() > minTime){
-                	 HashMap<Detector, ArrayList<Pattern>> motifs = new HashMap<>();
-                     for (Detector detector : detectors) {
-                     	motifs.put(detector, detector.detect(defaultDatabase, timeBased, clusterBased, transactions));
-                     }
+
+                if (timeBased.size() > minTime) {
+                    HashMap<Detector, ArrayList<Pattern>> motifs = new HashMap<>();
+                    for (Detector detector : detectors) {
+                        motifs.put(detector, detector.detect(defaultDatabase, timeBased, clusterBased, transactions));
+                    }
                 }
             }
         }
     }
 
 
-	@Override
-	public ClusterGeneratorResult generate() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public ClusterGeneratorResult generate() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

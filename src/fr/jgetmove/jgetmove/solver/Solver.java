@@ -29,7 +29,7 @@ public class Solver {
      * The database
      */
     private Database database;
-    
+
     /**
      * The result of the ClusterGenerator
      */
@@ -66,9 +66,10 @@ public class Solver {
      * @return the list of clusters (Itemsets) generated from clusterGenerator
      */
     public ClusterGeneratorResult generateClusters() {
-    	result = clusterGenerator.generate();
+        result = clusterGenerator.generate();
         return result;
     }
+
     /**
      * Detect patterns
      *
@@ -76,13 +77,10 @@ public class Solver {
      */
     public HashMap<Detector, ArrayList<Pattern>> detectPatterns() {
         HashMap<Detector, ArrayList<Pattern>> motifs = new HashMap<>();
-        
+
         PatternGenerator patternGenerator = new PatternGenerator(database, 1, 0, 1);
-        Debug.println("Database2 " + result.getDatabase());
-        Debug.println("Results clusters " + result.getClusters());
-        Debug.println("Results lvl2ClusterIds " + result.getLvl2ClusterIds());
-        Debug.println("Results lvl2TimeIds " + result.getLvl2TimeIds());
-        patternGenerator.run(result.getDatabase(),result.getLvl2ClusterIds() , result.getLvl2TimeIds(), detectors);
+        Debug.println(result);
+        patternGenerator.run(result.getDatabase(), result.getLvl2ClusterIds(), result.getLvl2TimeIds(), detectors);
         /*for (Detector detector : detectors) {
             motifs.put(detector, detector.detect(database, clusterGenerator.getClustersGenerated()));
         }*/
