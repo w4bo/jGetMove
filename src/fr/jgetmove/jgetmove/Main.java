@@ -20,7 +20,7 @@ public class Main {
         Debug.enable();
 
         try {
-            int minTime = 1;
+            int minTime = 0;
 
             Input inputObj = new Input("assets/test.dat");
             Input inputTime = new Input("assets/testtimeindex.dat");

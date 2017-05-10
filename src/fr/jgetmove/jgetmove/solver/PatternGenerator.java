@@ -108,7 +108,7 @@ public class PatternGenerator implements Generator {
 
     /**
      */
-    protected void run(Database database, Database database2, ArrayList<ArrayList<Integer>> lvl2ClusterId,
+    protected void run(Database database, ArrayList<ArrayList<Integer>> lvl2ClusterId,
                        ArrayList<ArrayList<Integer>> lvl2TimeId, Set<Detector> detectors) {
     	
     	
@@ -117,11 +117,11 @@ public class PatternGenerator implements Generator {
         Debug.println("Database : " + database);
         Debug.println("Run Lvl2TimeId  " +lvl2TimeId);
         Debug.println("Run Lvl2ClusterId  " +lvl2ClusterId);
-        run(database, database2, itemsets, database.getTransactionIds(), freqList, lvl2ClusterId, lvl2TimeId, detectors);
+        run(database, itemsets, database.getTransactionIds(), freqList, lvl2ClusterId, lvl2TimeId, detectors);
 
     }
 
-    private void run(Database database, Database database2, ArrayList<Integer> itemsets, Set<Integer> transactionIds,
+    private void run(Database database, ArrayList<Integer> itemsets, Set<Integer> transactionIds,
                      ArrayList<Integer> freqList, ArrayList<ArrayList<Integer>> lvl2ClusterId,
                      ArrayList<ArrayList<Integer>> lvl2TimeId, Set<Detector> detectors) {
     	Debug.println("RUN");
@@ -169,12 +169,12 @@ public class PatternGenerator implements Generator {
                     newFreqList.clear();
                     newFreqList = GeneratorUtils
                             .updateFreqList(database, database.getTransactionIds(), qSets, freqList, freqClusterId);
-                    run(database, database2, qSets, iterTransactionIds, newFreqList, lvl2ClusterId, lvl2TimeId, detectors);
+                    run(database, qSets, iterTransactionIds, newFreqList, lvl2ClusterId, lvl2TimeId, detectors);
                 }
             }
         }
         if(!printed){
-        	printItemsets(database, database2,itemsets, lvl2ClusterId, lvl2TimeId, detectors);
+        	printItemsets(defaultDatabase,database,itemsets, lvl2ClusterId, lvl2TimeId, detectors);
         	printed = true;
         }
     }
@@ -193,8 +193,8 @@ public class PatternGenerator implements Generator {
 
                 Set<Integer> timeBased = new TreeSet<>();
                 Set<Integer> clusterBased = new TreeSet<>();
-
-                Collection<Transaction> transactions = tempDb.getCluster(i).getTransactions().values();
+                
+                Collection<Transaction> transactions = database2.getCluster(i).getTransactions().values();
                 Debug.errln("TEST : " +transactions);
                 for (int j = 1; j < lvl2TimeId.get(i).size(); j++) {
                     timeBased.add(lvl2TimeId.get(i).get(j));
