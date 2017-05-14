@@ -8,10 +8,7 @@ import fr.jgetmove.jgetmove.pattern.Pattern;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Manager that handles a clusterGenerator and detectors
@@ -112,7 +109,7 @@ public class Solver {
     public String toJSON(HashMap<Detector, ArrayList<Pattern>> motifs, JsonObjectBuilder databaseJson) {
         JsonArrayBuilder patternArray = Json.createArrayBuilder();
         JsonObjectBuilder linkObject = Json.createObjectBuilder();
-        for (Entry<Detector, ArrayList<Pattern>> oktamer : motifs.entrySet()) {
+        for (Map.Entry<Detector, ArrayList<Pattern>> oktamer : motifs.entrySet()) {
             ArrayList<Pattern> patterns = oktamer.getValue();
 
             JsonArrayBuilder patternEntryArray = Json.createArrayBuilder();

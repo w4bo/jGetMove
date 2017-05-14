@@ -5,6 +5,7 @@ import fr.jgetmove.jgetmove.database.Transaction;
 
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
+import java.util.ArrayList;
 import java.util.Set;
 
 /**

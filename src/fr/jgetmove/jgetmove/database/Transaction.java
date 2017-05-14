@@ -59,14 +59,6 @@ public class Transaction {
     public int getId() {
         return id;
     }
-    
-    /**
-     * Setter on id
-     * @param id
-     */
-    public void setId(int id){
-    	this.id=id;
-    }
 
     /**
      * Setter on id

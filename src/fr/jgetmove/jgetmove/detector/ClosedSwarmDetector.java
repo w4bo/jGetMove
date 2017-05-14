@@ -16,12 +16,12 @@ public class ClosedSwarmDetector implements Detector {
         this.minTime = minTime;
     }
 
-	@Override
-	public ArrayList<Pattern> detect(Database defaultDatabase, Set<Integer> timeBased, Set<Integer> clusterBased,
-			Collection<Transaction> transactions) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public ArrayList<Pattern> detect(Database defaultDatabase, Set<Integer> timeBased, Set<Integer> clusterBased,
+                                     Collection<Transaction> transactions) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
    /* @Override
     public ArrayList<Pattern> detect(Database database, ArrayList<ArrayList<Integer>> clustersGenerated) {

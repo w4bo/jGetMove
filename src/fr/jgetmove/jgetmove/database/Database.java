@@ -7,11 +7,6 @@ import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.*;
 
 /**
@@ -366,18 +361,18 @@ public class Database {
         System.out.println(this.getClusters().size() - 1);
         JsonArrayBuilder linksArray = Json.createArrayBuilder();
         for (Transaction transaction : this.getTransactions().values()) {
+            ArrayList<Integer> clustersIds = new ArrayList<>(transaction.getClusterIds());
+
             for (int i = 0; i < transaction.getClusters().size() - 1; i++) {
                 linksArray.add(Json.createObjectBuilder()
                         .add("id", i + index)
-                        .add("source", transaction.getCluster(i).getId())
-                        .add("target", transaction.getCluster(i + 1).getId())
+                        .add("source", clustersIds.get(i))
+                        .add("target", clustersIds.get(i + 1))
                         .add("value", 1)
                         .add("label", transaction.getId()));
             }
             index += transaction.getClusters().size();
         }
-        JsonObjectBuilder links = Json.createObjectBuilder()
-                .add("links", linksArray);
 
         JsonArrayBuilder nodesArray = Json.createArrayBuilder();
         for (int i = 0; i < this.getClusters().size(); i++) {
@@ -387,8 +382,10 @@ public class Database {
                     .add("time", this.getClusterTimeId(i)));
         }
         //JsonObjectBuilder nodes = Json.createObjectBuilder();
-        JsonObjectBuilder finalDatabaseJson = links.add("nodes", nodesArray);
-        return finalDatabaseJson;
+        JsonObjectBuilder links = Json.createObjectBuilder();
+        links.add("links", linksArray)
+                .add("nodes", nodesArray);
+        return links;
     }
 
     public String stringToJson(JsonObjectBuilder finalJson) {
