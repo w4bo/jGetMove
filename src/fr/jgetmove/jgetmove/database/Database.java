@@ -363,7 +363,7 @@ public class Database {
         for (Transaction transaction : this.getTransactions().values()) {
             ArrayList<Integer> clustersIds = new ArrayList<>(transaction.getClusterIds());
 
-            for (int i = 0; i < transaction.getClusters().size() - 1; i++) {
+            for (int i = 0; i < clustersIds.size() - 1; i++) {
                 linksArray.add(Json.createObjectBuilder()
                         .add("id", i + index)
                         .add("source", clustersIds.get(i))
