@@ -147,7 +147,7 @@ public class ClusterGenerator implements Generator {
         Database database2 = new Database(transactions);
 
         return new ClusterGeneratorResult(database2, config, clustersGenerated, lvl2TimeIds,
-                                          lvl2ClusterIds);
+                lvl2ClusterIds);
     }
 
     /**
@@ -232,7 +232,7 @@ public class ClusterGenerator implements Generator {
                         // newFreqList
                         ArrayList<Integer> updatedFreqList = GeneratorUtils
                                 .updateFreqList(defaultDatabase, transactionIds, qSets, frequentClusterIds,
-                                                freqClusterId);
+                                        freqClusterId);
 
                         updateOccurenceDeriver(database, updatedTransactionIds);
 
@@ -297,7 +297,7 @@ public class ClusterGenerator implements Generator {
             lvl2TimeIds.add(timeIds);
 
             Set<Integer> transactionOfLast = database.getClusterTransactions(clusterIds.get(clusterIds.size() - 1))
-                                                     .keySet();
+                    .keySet();
 
             //Pour chaque transaction, on ajoute le cluster qui a l'id numItem
             for (Integer transactionId : transactionOfLast) {
@@ -351,13 +351,17 @@ public class ClusterGenerator implements Generator {
             int clusterId = clusterIds.get(i);
             lastTime = defaultDatabase.getClusterTimeId(clusterId);
 
-            if (i != clusterIds.size() - 1) {
+            if (defaultDatabase.getClusterTime(clusterId).getClusters().size() > 1) {
+                isMonoCluster = false;
+            }
+
+            /*if (i != clusterIds.size() - 1) {
                 int nextClusterId = clusterIds.get(i + 1);
                 if (defaultDatabase.getClusterTimeId(clusterId)
                         == defaultDatabase.getClusterTimeId(nextClusterId)) {
                     isMonoCluster = false;
                 }
-            }
+            }*/
         }
 
         if (isMonoCluster) {
