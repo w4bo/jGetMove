@@ -2,10 +2,12 @@ package fr.jgetmove.jgetmove.database;
 
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
-import javax.json.*;
+
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObjectBuilder;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Contient toutes les structures de données
@@ -46,6 +48,121 @@ public class Database {
         initClusterAndTransaction();
         //Initialisation des temps
         initTimeAndCluster();
+    }
+
+    public Database(Database database) {
+        this.inputObj = null;
+        this.inputTime = null;
+
+        clusters = new HashMap<>();
+        transactions = new HashMap<>();
+        times = new HashMap<>();
+
+        clusterIdsTree = new TreeSet<>();
+        transactionIdsTree = new TreeSet<>();
+        timeIdsTree = new TreeSet<>();
+
+        for (Transaction originalTransaction : database.getTransactions().values()) {
+            Transaction transaction = getOrCreateTransaction(originalTransaction.getId());
+
+            for (Cluster originalCluster : originalTransaction.getClusters().values()) {
+                Cluster cluster = getOrCreateCluster(originalCluster.getId());
+
+                transaction.add(cluster);
+                cluster.add(transaction);
+            }
+        }
+
+        for (Cluster originalCluster : database.getClusters().values()) {
+            Cluster cluster = getOrCreateCluster(originalCluster.getId());
+
+            for (Transaction originalTransaction : originalCluster.getTransactions().values()) {
+                Transaction transaction = getOrCreateTransaction(originalTransaction.getId());
+
+                transaction.add(cluster);
+                cluster.add(transaction);
+            }
+        }
+
+        for (Cluster originalCluster : database.getClusters().values()) {
+            Cluster cluster = this.getCluster(originalCluster.getId());
+            Time time = this.getTime(originalCluster.getTimeId());
+
+            if (time == null) {
+                time = new Time(originalCluster.getTimeId());
+                this.add(time);
+            }
+
+            time.add(cluster);
+            cluster.setTime(time);
+        }
+    }
+
+    public Database(Collection<Transaction> transactions) {
+        this.inputObj = null;
+        this.inputTime = null;
+
+        clusters = new HashMap<>();
+        this.transactions = new HashMap<>();
+        times = new HashMap<>();
+
+        clusterIdsTree = new TreeSet<>();
+        transactionIdsTree = new TreeSet<>();
+        timeIdsTree = new TreeSet<>();
+
+        for (Transaction oldTransaction : transactions) {
+            Transaction transaction = new Transaction(oldTransaction.getId());
+            add(transaction);
+            for (Cluster oldCluster : oldTransaction.getClusters().values()) {
+                Cluster cluster = this.getCluster(oldCluster.getId());
+
+                if (cluster == null) {
+                    cluster = new Cluster(oldCluster.getId());
+                    add(cluster);
+                }
+
+                cluster.add(transaction);
+                transaction.add(cluster);
+            }
+        }
+    }
+
+    public Database() {
+        this.inputObj = null;
+        this.inputTime = null;
+
+        clusters = new HashMap<>();
+        transactions = new HashMap<>();
+        times = new HashMap<>();
+
+        clusterIdsTree = new TreeSet<>();
+        transactionIdsTree = new TreeSet<>();
+        timeIdsTree = new TreeSet<>();
+    }
+
+    /**
+     * @param transactionId l'id de la transaction à récuperer
+     * @return La transaction crée ou récuperée
+     */
+    private Transaction getOrCreateTransaction(int transactionId) {
+        Transaction transaction = this.getTransaction(transactionId);
+
+        if (transaction == null) {
+            transaction = new Transaction(transactionId);
+            this.add(transaction);
+        }
+        return transaction;
+    }
+
+    private Cluster getOrCreateCluster(int clusterId) {
+        Cluster cluster = this.getCluster(clusterId);
+
+        if (cluster == null) {
+            cluster = new Cluster(clusterId);
+            this.add(cluster);
+        }
+
+        return cluster;
     }
 
     /**
@@ -127,7 +244,7 @@ public class Database {
     /**
      * @param cluster le cluster à ajouter à la base
      */
-    private void add(Cluster cluster) {
+    public void add(Cluster cluster) {
         clusters.put(cluster.getId(), cluster);
         clusterIdsTree.add(cluster.getId());
     }
@@ -135,15 +252,15 @@ public class Database {
     /**
      * @param transaction la transaction à ajouter à la base
      */
-    private void add(Transaction transaction) {
+    public void add(Transaction transaction) {
         transactions.put(transaction.getId(), transaction);
         transactionIdsTree.add(transaction.getId());
     }
 
     /**
-     * @param time le temps � ajouter � la base
+     * @param time le temps à ajouter à la base
      */
-    private void add(Time time) {
+    public void add(Time time) {
         times.put(time.getId(), time);
         timeIdsTree.add(time.getId());
     }
@@ -179,10 +296,8 @@ public class Database {
     }
 
     /**
-     * Renvoie le Time du cluster
-     *
      * @param clusterId l'identifiant du cluster
-     * @return
+     * @return le Time du cluster
      */
     public Time getClusterTime(int clusterId) {
         return clusters.get(clusterId).getTime();
@@ -224,55 +339,55 @@ public class Database {
     public Time getTime(int timeId) {
         return times.get(timeId);
     }
-    
+
     /**
      * @param index = id du cluster
      * @return L'ensemble des transaction d'un cluster sous forme d'une chaine de caractère pour toJSON()
      */
-    public String printGetClusterTransactions(int index){
-    	String s = "";
-    	for(Transaction transaction : this.getClusterTransactions(index).values()) {
-    		s += transaction.getId() + ",";
-    	}
-    	s = s.substring(0, s.length()-1); //retire la dernière virgule
-    	return s;
+    public String printGetClusterTransactions(int index) {
+        String s = "";
+        for (Transaction transaction : this.getClusterTransactions(index).values()) {
+            s += transaction.getId() + ",";
+        }
+        s = s.substring(0, s.length() - 1); //retire la dernière virgule
+        return s;
     }
-    
+
     /**
      * @return la database en format json
      */
     public JsonObjectBuilder toJSON() {
-    	int index = 0;
-    	System.out.println(this.getClusters().size() - 1);
-    	JsonArrayBuilder linksArray = Json.createArrayBuilder();
-    	for(Transaction transaction : this.getTransactions().values()){
-    		for(int i = 0; i < transaction.getClusters().size() - 1; i++){
-    			linksArray.add(Json.createObjectBuilder()
-    					.add("id",i + index)
-    					.add("source", transaction.getCluster(i).getId())
-    					.add("target", transaction.getCluster(i+1).getId())
-    					.add("value", 1)
-    					.add("label", transaction.getId()));
-    		}
-    		index += transaction.getClusters().size();
-    	}
-    	JsonObjectBuilder links = Json.createObjectBuilder()
-      			 .add("links",linksArray);
-    	
-    	JsonArrayBuilder nodesArray = Json.createArrayBuilder();
-    	for(int i = 0; i < this.getClusters().size() ; i++){
-    		nodesArray.add(Json.createObjectBuilder()
-    				.add("id",i)
-    				.add("label", this.printGetClusterTransactions(i))
-    				.add("time", this.getClusterTimeId(i)));
-    	}
-    	//JsonObjectBuilder nodes = Json.createObjectBuilder();
-    	JsonObjectBuilder finalDatabaseJson = links.add("nodes",nodesArray);
-    	return finalDatabaseJson;
+        int index = 0;
+        System.out.println(this.getClusters().size() - 1);
+        JsonArrayBuilder linksArray = Json.createArrayBuilder();
+        for (Transaction transaction : this.getTransactions().values()) {
+            for (int i = 0; i < transaction.getClusters().size() - 1; i++) {
+                linksArray.add(Json.createObjectBuilder()
+                        .add("id", i + index)
+                        .add("source", transaction.getCluster(i).getId())
+                        .add("target", transaction.getCluster(i + 1).getId())
+                        .add("value", 1)
+                        .add("label", transaction.getId()));
+            }
+            index += transaction.getClusters().size();
+        }
+        JsonObjectBuilder links = Json.createObjectBuilder()
+                .add("links", linksArray);
+
+        JsonArrayBuilder nodesArray = Json.createArrayBuilder();
+        for (int i = 0; i < this.getClusters().size(); i++) {
+            nodesArray.add(Json.createObjectBuilder()
+                    .add("id", i)
+                    .add("label", this.printGetClusterTransactions(i))
+                    .add("time", this.getClusterTimeId(i)));
+        }
+        //JsonObjectBuilder nodes = Json.createObjectBuilder();
+        JsonObjectBuilder finalDatabaseJson = links.add("nodes", nodesArray);
+        return finalDatabaseJson;
     }
-    
+
     public String stringToJson(JsonObjectBuilder finalJson) {
-    	return finalJson.build().toString();
+        return finalJson.build().toString();
     }
 
     @Override
@@ -282,5 +397,110 @@ public class Database {
         str += "Transactions :" + transactions.values() + "\n";
         str += "Temps :" + times.values() + "\n";
         return str;
+    }
+
+    /**
+     * Supprime les associations {@link Cluster} <=> {@link Transaction}
+     */
+    public void cleanClusterTransactionBinding() {
+        this.inputObj = null;
+        this.inputTime = null;
+
+        for (Cluster cluster : clusters.values()) {
+            cluster.clear();
+        }
+
+        for (Transaction transaction : transactions.values()) {
+            transaction.clear();
+        }
+    }
+
+    /**
+     * Supprime et recrée les associations {@link Cluster} <=> {@link Transaction} en fonction des transactions à prendre en compte
+     * <p>
+     * <pre>
+     * Lcm::UpdateOccurenceDeriver(const Database &database, const vector<int> &transactionList, OccurenceDeriver &occurence)
+     * </pre>
+     * this (occurence)
+     *
+     * @param defaultDatabase (database) base de données originale
+     * @param transactionIds  (transactionList) transactions à prendre en compte
+     */
+    public void rebindRelations(Database defaultDatabase, Set<Integer> transactionIds) {
+        this.cleanClusterTransactionBinding();
+
+        for (int transactionId : transactionIds) {
+            Transaction newtransaction = this.getTransaction(transactionId);
+            Transaction transaction = defaultDatabase.getTransaction(transactionId);
+            Set<Integer> clusterIds = transaction.getClusterIds();
+
+            if (newtransaction == null) {
+                newtransaction = new Transaction(transactionId);
+                this.add(newtransaction);
+            }
+
+            for (int clusterId : clusterIds) {
+                Cluster cluster = this.getCluster(clusterId);
+
+                if (cluster == null) {
+                    cluster = new Cluster(clusterId);
+                    this.add(cluster);
+
+                    Time time = this.getTime(defaultDatabase.getClusterTimeId(clusterId));
+                    if (time == null) {
+                        time = new Time(defaultDatabase.getClusterTimeId(clusterId));
+                        add(time);
+                    }
+
+                    cluster.setTime(time);
+                    time.add(cluster);
+                }
+
+                cluster.add(newtransaction);
+                newtransaction.add(cluster);
+            }
+        }
+    }
+
+    /**
+     * Verifie si le cluster est inclus dans toute la liste des transactions
+     * <p>
+     * Dans GetMove :
+     * <pre>
+     * Lcm::CheckItemInclusion(Database,transactionList,item)
+     * </pre>
+     *
+     * @param transactionIds (transactionList) la liste des transactions
+     * @param clusterId      (item) le cluster à trouver
+     * @return vrai si le cluster est présent dans toute les transactions de la liste
+     */
+    public boolean isClusterInTransactions(Set<Integer> transactionIds, int clusterId) {
+        for (int transactionId : transactionIds) {
+            if (!this.getTransaction(transactionId).getClusterIds().contains(clusterId)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Retourne une liste de transactions qui contienent le cluster défini par clusterId, seules les transactions contenues dans transactionIds seront itérés
+     *
+     * @param transactionIds liste de transactions à filter
+     * @param clusterId      le cluster qui doit être contenu par la transaction
+     * @return liste des transactionIds contenant le cluster
+     */
+    public Set<Integer> getFilteredTransactionIdsIfHaveCluster(Set<Integer> transactionIds, int clusterId) {
+        Set<Integer> filteredTransactionIds = new HashSet<>();
+
+        for (int transactionId : transactionIds) {
+            Transaction transaction = this.getTransaction(transactionId);
+
+            if (transaction.getClusterIds().contains(clusterId)) {
+                filteredTransactionIds.add(transactionId);
+            }
+        }
+
+        return filteredTransactionIds;
     }
 }

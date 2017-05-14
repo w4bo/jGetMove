@@ -65,10 +65,11 @@ public class Time {
     void setClusters(HashMap<Integer, Cluster> clusters) {
         this.clusters = clusters;
     }
-    
+
     public Set<Integer> getClusterIds() {
         return getClusters().keySet();
     }
+
 
     @Override
     public String toString() {

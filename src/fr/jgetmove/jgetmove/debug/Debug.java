@@ -15,6 +15,7 @@ public class Debug {
     private final static String METHOD_PREFIX = "--:";
     private final static String METHOD_SUFFIX = " :--";
     private final static String METHOD_FULL_DISPLAY_SEPARATOR = "·";
+    private final static String VARNAME_SEPARATOR = ": ";
 
     private static boolean displayDebug = false;
     private static String path = "";
@@ -52,6 +53,33 @@ public class Debug {
             updateDebugString();
             System.out.println(concatAll(o));
         }
+    }
+
+    /**
+     * Affiche l'objet, alias de
+     * <pre>
+     *     System.out.println(name + Object)
+     * </pre>
+     *
+     * @param name le nom de la variable
+     * @param o    l'objet a afficher
+     */
+    public static void println(String name, Object o) {
+        if (displayDebug) {
+            updateDebugString();
+            System.out.println(concatAll(name, o));
+        }
+    }
+
+    public static void printTitle(String title) {
+        if (displayDebug) {
+            updateDebugString();
+            System.out.println(concatAll(createTitle(title)));
+        }
+    }
+
+    private static String concatAll(String name, Object o) {
+        return path.concat(content).concat(name).concat(VARNAME_SEPARATOR).concat(multiline(o));
     }
 
     /**
@@ -234,7 +262,8 @@ public class Debug {
                 if (i == padding && traceMethod.displayTitleIfLast()) {
                     // dernier element du path et on souhaite afficher le nom de la methode
                     // on ajoute le separateur
-                    str.append(METHOD_FULL_DISPLAY_SEPARATOR).append(getAvaliableMethodName(stackTrace[i], traceMethod));
+                    str.append(METHOD_FULL_DISPLAY_SEPARATOR)
+                            .append(getAvaliableMethodName(stackTrace[i], traceMethod));
                 } else {
                     // si ce n'est pas le dernier element, ou si celui-ci n'est pas affiché en entier
                     str.append(getMethodSymbol(stackTrace[i], traceMethod));
@@ -315,6 +344,17 @@ public class Debug {
     }
 
     private static String concatAll(Object o) {
-        return path.concat(content).concat(o.toString());
+        return path.concat(content).concat(multiline(o));
+    }
+
+    private static String multiline(Object o) {
+        String replacement = "$1";
+
+        if (content.length() > 0) {
+            replacement = replacement.concat(path).concat(" ").concat(pathLine(sizeDirection, DEFAULT_SEPARATOR))
+                    .concat(" ");
+        }
+
+        return o.toString().replaceAll("(\\r?\\n)", replacement);
     }
 }

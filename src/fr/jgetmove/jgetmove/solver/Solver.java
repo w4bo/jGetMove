@@ -1,16 +1,17 @@
 package fr.jgetmove.jgetmove.solver;
 
 import fr.jgetmove.jgetmove.database.Database;
-import fr.jgetmove.jgetmove.database.Transaction;
+import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.detector.Detector;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
-import java.util.Map.Entry;
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObjectBuilder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import javax.json.*;
 
 /**
  * Manager that handles a clusterGenerator and detectors
@@ -31,6 +32,11 @@ public class Solver {
      * The database
      */
     private Database database;
+
+    /**
+     * The result of the ClusterGenerator
+     */
+    private ClusterGeneratorResult result;
 
     /**
      * Constructor
@@ -62,8 +68,9 @@ public class Solver {
      *
      * @return the list of clusters (Itemsets) generated from clusterGenerator
      */
-    public ArrayList<ArrayList<Integer>> generateClusters() {
-        return clusterGenerator.generate(database);
+    public ClusterGeneratorResult generateClusters() {
+        result = clusterGenerator.generate();
+        return result;
     }
 
     /**
@@ -74,9 +81,12 @@ public class Solver {
     public HashMap<Detector, ArrayList<Pattern>> detectPatterns() {
         HashMap<Detector, ArrayList<Pattern>> motifs = new HashMap<>();
 
-        for (Detector detector : detectors) {
+        PatternGenerator patternGenerator = new PatternGenerator(database, 1, 0, 1);
+        Debug.println(result);
+        patternGenerator.run(result.getDatabase(), result.getLvl2ClusterIds(), result.getLvl2TimeIds(), detectors);
+        /*for (Detector detector : detectors) {
             motifs.put(detector, detector.detect(database, clusterGenerator.getClustersGenerated()));
-        }
+        }*/
 
         return motifs;
     }
@@ -98,25 +108,25 @@ public class Solver {
     private void removeDetector(Detector detector) {
         detectors.remove(detector);
     }
-    
-    public String toJSON (HashMap<Detector, ArrayList<Pattern>> motifs, JsonObjectBuilder databaseJson){
-    	JsonArrayBuilder patternArray = Json.createArrayBuilder();
-    	JsonObjectBuilder linkObject = Json.createObjectBuilder();
-    	for(Entry<Detector, ArrayList<Pattern>> oktamer : motifs.entrySet()){
-    		ArrayList<Pattern> patterns = oktamer.getValue();
-    		
-    		JsonArrayBuilder patternEntryArray = Json.createArrayBuilder();
-    		for(int i = 0; i < patterns.size(); i++){
-    			patterns.get(i).getLinksToJson(i,patternEntryArray);
-    			linkObject.add("name", patterns.get(i).getClass().getSimpleName()).add("links",patternEntryArray);
-    			
-    		}
-    		patternArray.add(linkObject); 
-    	}
-    	
-    	JsonObjectBuilder patterns = databaseJson.add("patterns",patternArray);
-    	return patterns.build().toString();
+
+    public String toJSON(HashMap<Detector, ArrayList<Pattern>> motifs, JsonObjectBuilder databaseJson) {
+        JsonArrayBuilder patternArray = Json.createArrayBuilder();
+        JsonObjectBuilder linkObject = Json.createObjectBuilder();
+        for (Entry<Detector, ArrayList<Pattern>> oktamer : motifs.entrySet()) {
+            ArrayList<Pattern> patterns = oktamer.getValue();
+
+            JsonArrayBuilder patternEntryArray = Json.createArrayBuilder();
+            for (int i = 0; i < patterns.size(); i++) {
+                patterns.get(i).getLinksToJson(i, patternEntryArray);
+                linkObject.add("name", patterns.get(i).getClass().getSimpleName()).add("links", patternEntryArray);
+
+            }
+            patternArray.add(linkObject);
+        }
+
+        JsonObjectBuilder patterns = databaseJson.add("patterns", patternArray);
+        return patterns.build().toString();
     }
-    
-    
+
+
 }
