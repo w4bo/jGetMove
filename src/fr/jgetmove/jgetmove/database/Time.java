@@ -1,6 +1,7 @@
 package fr.jgetmove.jgetmove.database;
 
 import java.util.HashMap;
+import java.util.Set;
 
 /**
  * Objet Time contenant la liste des clusters pour un temps donné
@@ -63,6 +64,10 @@ public class Time {
      */
     void setClusters(HashMap<Integer, Cluster> clusters) {
         this.clusters = clusters;
+    }
+
+    public Set<Integer> getClusterIds() {
+        return getClusters().keySet();
     }
 
 

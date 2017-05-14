@@ -471,7 +471,7 @@ public class ClusterGenerator implements Generator {
     /**
      * Getter sur la liste des itemsets
      *
-     * @return la liste des itemsets gen�r�es
+     * @return la liste des itemsets genérées
      */
     public ArrayList<ArrayList<Integer>> getClustersGenerated() {
         return clustersGenerated;

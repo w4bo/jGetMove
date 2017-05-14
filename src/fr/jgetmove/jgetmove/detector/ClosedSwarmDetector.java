@@ -28,20 +28,20 @@ public class ClosedSwarmDetector implements Detector {
         return null;
     }*/
 
-	
+
 	/*public ArrayList<Pattern> detect(Database database, ArrayList<ArrayList<Integer>> clustersGenerated) {
 
 		ArrayList<Pattern> closedSwarm = new ArrayList<>();
-		
+
 		for (ArrayList<Integer> itemset : clustersGenerated) {
             ArrayList<Integer> timeSet = new ArrayList<>();
             for (int clusterId : itemset) {
                 timeSet.add(database.getClusterTimeId(clusterId));
             }
-            
+
             Set<Integer> correctTransactionSet = new HashSet<>(database.getClusterTransactions(itemset.get(0)).keySet());
             if(timeSet.get(timeSet.size()-1) - timeSet.get(0) >= minTime){
-            	
+
             	//Init new ClosedSwarm
             	Set<Time> timesOfItemset = new HashSet<>();
                 Set<Transaction> transactionOfItemset = new HashSet<>();
@@ -55,9 +55,9 @@ public class ClosedSwarmDetector implements Detector {
             	}
             	closedSwarm.add(new ClosedSwarm(transactionOfItemset, timesOfItemset));
             }
-		} 
+		}
 		//Debug.println("Il y a : " + closedSwarm.size() + "closed swarm");
-		
+
 		return closedSwarm;
 	}*/
 

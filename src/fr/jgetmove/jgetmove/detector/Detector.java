@@ -12,8 +12,8 @@ import java.util.Set;
  * Interface related to the detection of patterns
  */
 public interface Detector {
-	
-	ArrayList<Pattern> detect(Database defaultDatabase, Set<Integer> timeBased, Set<Integer> clusterBased,
-			Collection<Transaction> transactions);
+
+    ArrayList<Pattern> detect(Database defaultDatabase, Set<Integer> timeBased, Set<Integer> clusterBased,
+                              Collection<Transaction> transactions);
 
 }

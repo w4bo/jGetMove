@@ -69,6 +69,15 @@ public class Transaction {
     }
 
     /**
+     * Setter on id
+     *
+     * @param id
+     */
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    /**
      * @return l'ensemble des clusters de la transaction
      */
     public HashMap<Integer, Cluster> getClusters() {

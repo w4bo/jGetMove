@@ -3,12 +3,16 @@ package fr.jgetmove.jgetmove.database;
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
 
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObjectBuilder;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Contient toutes les structures de données
@@ -98,34 +102,34 @@ public class Database {
             cluster.setTime(time);
         }
     }
-    
-    public Database(Collection<Transaction> transactions){
-    	 this.inputObj = null;
-         this.inputTime = null;
 
-         clusters = new HashMap<>();
-         this.transactions = new HashMap<>();
-         times = new HashMap<>();
+    public Database(Collection<Transaction> transactions) {
+        this.inputObj = null;
+        this.inputTime = null;
 
-         clusterIdsTree = new TreeSet<>();
-         transactionIdsTree = new TreeSet<>();
-         timeIdsTree = new TreeSet<>();
-         
-    	for(Transaction oldTransaction : transactions){
-    		Transaction transaction = new Transaction(oldTransaction.getId());
-    		add(transaction);
-    		for(Cluster oldCluster : oldTransaction.getClusters().values()){
-    			Cluster cluster = this.getCluster(oldCluster.getId());
-    			
-    			if(cluster == null){
-    				cluster = new Cluster(oldCluster.getId());
-    				add(cluster);
-    			}
-    			
-    			cluster.add(transaction);
-    			transaction.add(cluster);
-    		}
-    	}
+        clusters = new HashMap<>();
+        this.transactions = new HashMap<>();
+        times = new HashMap<>();
+
+        clusterIdsTree = new TreeSet<>();
+        transactionIdsTree = new TreeSet<>();
+        timeIdsTree = new TreeSet<>();
+
+        for (Transaction oldTransaction : transactions) {
+            Transaction transaction = new Transaction(oldTransaction.getId());
+            add(transaction);
+            for (Cluster oldCluster : oldTransaction.getClusters().values()) {
+                Cluster cluster = this.getCluster(oldCluster.getId());
+
+                if (cluster == null) {
+                    cluster = new Cluster(oldCluster.getId());
+                    add(cluster);
+                }
+
+                cluster.add(transaction);
+                transaction.add(cluster);
+            }
+        }
     }
 
     public Database() {
@@ -341,6 +345,56 @@ public class Database {
         return times.get(timeId);
     }
 
+    /**
+     * @param index = id du cluster
+     * @return L'ensemble des transaction d'un cluster sous forme d'une chaine de caractère pour toJSON()
+     */
+    public String printGetClusterTransactions(int index) {
+        String s = "";
+        for (Transaction transaction : this.getClusterTransactions(index).values()) {
+            s += transaction.getId() + ",";
+        }
+        s = s.substring(0, s.length() - 1); //retire la dernière virgule
+        return s;
+    }
+
+    /**
+     * @return la database en format json
+     */
+    public JsonObjectBuilder toJSON() {
+        int index = 0;
+        System.out.println(this.getClusters().size() - 1);
+        JsonArrayBuilder linksArray = Json.createArrayBuilder();
+        for (Transaction transaction : this.getTransactions().values()) {
+            for (int i = 0; i < transaction.getClusters().size() - 1; i++) {
+                linksArray.add(Json.createObjectBuilder()
+                        .add("id", i + index)
+                        .add("source", transaction.getCluster(i).getId())
+                        .add("target", transaction.getCluster(i + 1).getId())
+                        .add("value", 1)
+                        .add("label", transaction.getId()));
+            }
+            index += transaction.getClusters().size();
+        }
+        JsonObjectBuilder links = Json.createObjectBuilder()
+                .add("links", linksArray);
+
+        JsonArrayBuilder nodesArray = Json.createArrayBuilder();
+        for (int i = 0; i < this.getClusters().size(); i++) {
+            nodesArray.add(Json.createObjectBuilder()
+                    .add("id", i)
+                    .add("label", this.printGetClusterTransactions(i))
+                    .add("time", this.getClusterTimeId(i)));
+        }
+        //JsonObjectBuilder nodes = Json.createObjectBuilder();
+        JsonObjectBuilder finalDatabaseJson = links.add("nodes", nodesArray);
+        return finalDatabaseJson;
+    }
+
+    public String stringToJson(JsonObjectBuilder finalJson) {
+        return finalJson.build().toString();
+    }
+
     @Override
     public String toString() {
         String str = "Fichiers :" + inputObj + "; " + inputTime + "\n";
@@ -396,13 +450,13 @@ public class Database {
                 if (cluster == null) {
                     cluster = new Cluster(clusterId);
                     this.add(cluster);
-                    
+
                     Time time = this.getTime(defaultDatabase.getClusterTimeId(clusterId));
-                    if(time == null){
-                    	time = new Time(defaultDatabase.getClusterTimeId(clusterId));
-                    	add(time);
+                    if (time == null) {
+                        time = new Time(defaultDatabase.getClusterTimeId(clusterId));
+                        add(time);
                     }
-                    
+
                     cluster.setTime(time);
                     time.add(cluster);
                 }

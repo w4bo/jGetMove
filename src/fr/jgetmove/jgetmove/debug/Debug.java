@@ -263,7 +263,7 @@ public class Debug {
                     // dernier element du path et on souhaite afficher le nom de la methode
                     // on ajoute le separateur
                     str.append(METHOD_FULL_DISPLAY_SEPARATOR)
-                       .append(getAvaliableMethodName(stackTrace[i], traceMethod));
+                            .append(getAvaliableMethodName(stackTrace[i], traceMethod));
                 } else {
                     // si ce n'est pas le dernier element, ou si celui-ci n'est pas affiché en entier
                     str.append(getMethodSymbol(stackTrace[i], traceMethod));
@@ -338,9 +338,9 @@ public class Debug {
      */
     private static String createTitle(String title) {
         return " ".concat(pathLine(sizeDirection, METHOD_SEPARATOR)).concat(METHOD_PREFIX).concat(" ")
-                  .concat(title)
-                  .concat(METHOD_SUFFIX).concat(pathLine(sizeDirection, METHOD_SEPARATOR))
-                  .concat(System.getProperty("line.separator"));
+                .concat(title)
+                .concat(METHOD_SUFFIX).concat(pathLine(sizeDirection, METHOD_SEPARATOR))
+                .concat(System.getProperty("line.separator"));
     }
 
     private static String concatAll(Object o) {
@@ -352,7 +352,7 @@ public class Debug {
 
         if (content.length() > 0) {
             replacement = replacement.concat(path).concat(" ").concat(pathLine(sizeDirection, DEFAULT_SEPARATOR))
-                                     .concat(" ");
+                    .concat(" ");
         }
 
         return o.toString().replaceAll("(\\r?\\n)", replacement);

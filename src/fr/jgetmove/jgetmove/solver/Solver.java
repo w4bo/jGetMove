@@ -5,6 +5,9 @@ import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.detector.Detector;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObjectBuilder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -105,4 +108,25 @@ public class Solver {
     private void removeDetector(Detector detector) {
         detectors.remove(detector);
     }
+
+    public String toJSON(HashMap<Detector, ArrayList<Pattern>> motifs, JsonObjectBuilder databaseJson) {
+        JsonArrayBuilder patternArray = Json.createArrayBuilder();
+        JsonObjectBuilder linkObject = Json.createObjectBuilder();
+        for (Entry<Detector, ArrayList<Pattern>> oktamer : motifs.entrySet()) {
+            ArrayList<Pattern> patterns = oktamer.getValue();
+
+            JsonArrayBuilder patternEntryArray = Json.createArrayBuilder();
+            for (int i = 0; i < patterns.size(); i++) {
+                patterns.get(i).getLinksToJson(i, patternEntryArray);
+                linkObject.add("name", patterns.get(i).getClass().getSimpleName()).add("links", patternEntryArray);
+
+            }
+            patternArray.add(linkObject);
+        }
+
+        JsonObjectBuilder patterns = databaseJson.add("patterns", patternArray);
+        return patterns.build().toString();
+    }
+
+
 }

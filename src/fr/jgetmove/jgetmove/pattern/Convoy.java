@@ -3,6 +3,8 @@ package fr.jgetmove.jgetmove.pattern;
 import fr.jgetmove.jgetmove.database.Time;
 import fr.jgetmove.jgetmove.database.Transaction;
 
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
 import java.util.Set;
 
 /**
@@ -71,4 +73,45 @@ public class Convoy implements Pattern {
         return "Convoy:\n" + " transactions : [" + transactions + "]" + "times : " + times;
     }
 
+    public String printGetTransactions() {
+        String s = "";
+        for (Transaction transaction : this.getTransactions()) {
+            s += transaction.getId() + ",";
+        }
+        s = s.substring(0, s.length() - 1); //retire la dernière virgule
+        return s;
+    }
+
+    public JsonArrayBuilder getLinksToJson(int index, JsonArrayBuilder patternEntryArray) {
+        ArrayList<Time> timeArray = new ArrayList<>(times);
+        ArrayList<Transaction> transactionArray = new ArrayList<>(transactions);
+        int source = -1,
+                target = -1;
+        for (int timeIndex = 0; timeIndex < timeArray.size() - 1; timeIndex++) {
+            for (int transactionClusterId : transactionArray.get(0).getClusterIds()) {
+                if (source == -1) {
+                    for (int clusterId : timeArray.get(timeIndex).getClusterIds()) {
+                        if (clusterId == transactionClusterId) {
+                            source = clusterId;
+                        }
+                    }
+                }
+
+                if (target == -1) {
+                    for (int clusterId : timeArray.get(timeIndex + 1).getClusterIds()) {
+                        if (clusterId == transactionClusterId) {
+                            target = clusterId;
+                        }
+                    }
+                }
+            }
+        }
+        patternEntryArray.add(Json.createObjectBuilder()
+                .add("id", index)
+                .add("source", source)
+                .add("target", target)
+                .add("value", this.getTransactions().size())
+                .add("label", this.printGetTransactions()));
+        return patternEntryArray;
+    }
 }

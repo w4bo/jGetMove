@@ -7,9 +7,11 @@ import fr.jgetmove.jgetmove.detector.ConvoyDetector;
 import fr.jgetmove.jgetmove.detector.Detector;
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
+import fr.jgetmove.jgetmove.io.Output;
 import fr.jgetmove.jgetmove.solver.ClusterGenerator;
 import fr.jgetmove.jgetmove.solver.Solver;
 
+import javax.json.JsonObjectBuilder;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,7 +27,9 @@ public class Main {
             Input inputTime = new Input("assets/testtimeindex.dat");
 
             Database database = new Database(inputObj, inputTime);
+            JsonObjectBuilder databaseJson = database.toJSON();
             Debug.println(database);
+            //Output outputDatabse = new Output(database.stringToJson(databaseJson));
 
             /*
              * Init ClusterGenerator and detectors
@@ -40,7 +44,8 @@ public class Main {
 
             solver.generateClusters();
             //Debug.println(generatedClusters);
-            solver.detectPatterns();
+            //solver.toJSON(solver.detectPatterns(),databaseJson);
+            Output outputSolver = new Output(solver.toJSON(solver.detectPatterns(), databaseJson));
 
         } catch (IOException | ClusterNotExistException e) {
             e.printStackTrace();
