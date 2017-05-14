@@ -1,12 +1,13 @@
 package fr.jgetmove.jgetmove;
 
+import fr.jgetmove.jgetmove.config.DefaultConfig;
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.detector.ConvoyDetector;
-import fr.jgetmove.jgetmove.detector.DetectionManager;
 import fr.jgetmove.jgetmove.detector.Detector;
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
+import fr.jgetmove.jgetmove.solver.ClusterGenerator;
 import fr.jgetmove.jgetmove.solver.Solver;
 
 import java.io.IOException;
@@ -18,23 +19,29 @@ public class Main {
         Debug.enable();
 
         try {
+            int minTime = 0;
+
             Input inputObj = new Input("assets/test.dat");
             Input inputTime = new Input("assets/testtimeindex.dat");
 
             Database database = new Database(inputObj, inputTime);
             Debug.println(database);
 
-            Solver solver = new Solver(1, 0, 0);
-            solver.init(database);
-
             /*
-             * Init Detectors
+             * Init ClusterGenerator and detectors
              */
+            DefaultConfig config = new DefaultConfig(1, 0, minTime);
+            ClusterGenerator clusterGenerator = new ClusterGenerator(database, config);
             Set<Detector> detectors = new HashSet<>();
-            detectors.add(ConvoyDetector.getInstance());
+            detectors.add(new ConvoyDetector(minTime));
+            //detectors.add(new ClosedSwarmDetector(minTime));
 
-            DetectionManager detectionManager = new DetectionManager(database, detectors, solver.getClustersGenerated());
-            detectionManager.run();
+            Solver solver = new Solver(database, clusterGenerator, detectors);
+
+            solver.generateClusters();
+            //Debug.println(generatedClusters);
+            solver.detectPatterns();
+
         } catch (IOException | ClusterNotExistException e) {
             e.printStackTrace();
         }

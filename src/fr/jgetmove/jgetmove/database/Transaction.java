@@ -20,7 +20,7 @@ public class Transaction {
     /**
      * @param id identifiant de la transaction
      */
-    Transaction(int id) {
+    public Transaction(int id) {
         this.id = id;
         this.clusters = new HashMap<>();
     }
@@ -29,7 +29,7 @@ public class Transaction {
      * @param id       identifiant de la transaction
      * @param clusters ensemble des clusters de la transaction
      */
-    Transaction(int id, Cluster[] clusters) {
+    public Transaction(int id, Cluster[] clusters) {
         this.id = id;
 
         for (Cluster cluster : clusters) {
@@ -41,7 +41,7 @@ public class Transaction {
      * @param id       identifiant de la transaction
      * @param clusters ensemble des clusters de la transaction
      */
-    Transaction(int id, HashMap<Integer, Cluster> clusters) {
+    public Transaction(int id, HashMap<Integer, Cluster> clusters) {
         this.id = id;
         this.clusters = clusters;
     }
@@ -58,6 +58,14 @@ public class Transaction {
      */
     public int getId() {
         return id;
+    }
+    
+    /**
+     * Setter on id
+     * @param id
+     */
+    public void setId(int id){
+    	this.id=id;
     }
 
     /**
@@ -77,6 +85,10 @@ public class Transaction {
 
     @Override
     public String toString() {
-        return String.valueOf(clusters.keySet());
+        return "{" + id + "=" + String.valueOf(clusters.keySet()) + "}";
+    }
+
+    public void clear() {
+        clusters.clear();
     }
 }

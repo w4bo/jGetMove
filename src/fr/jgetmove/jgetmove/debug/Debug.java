@@ -8,14 +8,14 @@ import java.util.Objects;
  * Utilisée afin d'afficher les erreurs
  */
 public class Debug {
-    private final static String SEPARATOR = " | ";
-    private final static String SEPARATOR_MORE = " \\ ";
-    private final static String SEPARATOR_LESS = " / ";
-    private final static String METHOD_PREFIX = " +-- ";
-    private final static String METHOD_PREFIX_MORE = " \\-- ";
-    private final static String METHOD_PREFIX_LESS = " /-- ";
-    private final static String METHOD_SUFFIX = " --" + System.getProperty("line.separator");
-    private final static String METHOD_SEPARATOR = "·";
+    private final static String DEFAULT_SEPARATOR = "|";
+    private final static String MORE = "\\";
+    private final static String LESS = "/";
+    private final static String METHOD_SEPARATOR = "+";
+    private final static String METHOD_PREFIX = "--:";
+    private final static String METHOD_SUFFIX = " :--";
+    private final static String METHOD_FULL_DISPLAY_SEPARATOR = "·";
+    private final static String VARNAME_SEPARATOR = ": ";
 
     private static boolean displayDebug = false;
     private static String path = "";
@@ -53,6 +53,33 @@ public class Debug {
             updateDebugString();
             System.out.println(concatAll(o));
         }
+    }
+
+    /**
+     * Affiche l'objet, alias de
+     * <pre>
+     *     System.out.println(name + Object)
+     * </pre>
+     *
+     * @param name le nom de la variable
+     * @param o    l'objet a afficher
+     */
+    public static void println(String name, Object o) {
+        if (displayDebug) {
+            updateDebugString();
+            System.out.println(concatAll(name, o));
+        }
+    }
+
+    public static void printTitle(String title) {
+        if (displayDebug) {
+            updateDebugString();
+            System.out.println(concatAll(createTitle(title)));
+        }
+    }
+
+    private static String concatAll(String name, Object o) {
+        return path.concat(content).concat(name).concat(VARNAME_SEPARATOR).concat(multiline(o));
     }
 
     /**
@@ -191,10 +218,9 @@ public class Debug {
 
         if (path.length() > 0) {
             if (content.length() > 0) {
-                content = content.concat(path).concat(pathSeparatorDirection(sizeDirection, SEPARATOR, SEPARATOR_MORE, SEPARATOR_LESS));
-            } else {
-                content = pathSeparatorDirection(sizeDirection, SEPARATOR, SEPARATOR_MORE, SEPARATOR_LESS);
+                content = content.concat(path);
             }
+            content = content.concat(" ").concat(pathLine(sizeDirection, DEFAULT_SEPARATOR)).concat(" ");
         }
 
     }
@@ -216,13 +242,13 @@ public class Debug {
         }
     }
 
-    private static String pathSeparatorDirection(int sizeDirection, String equal, String more, String less) {
+    private static String pathLine(int sizeDirection, String defaultSeparator) {
         if (sizeDirection == 0) {
-            return equal;
+            return defaultSeparator;
         } else if (sizeDirection < 0) {
-            return more;
+            return MORE;
         } else {
-            return less;
+            return LESS;
         }
     }
 
@@ -236,7 +262,8 @@ public class Debug {
                 if (i == padding && traceMethod.displayTitleIfLast()) {
                     // dernier element du path et on souhaite afficher le nom de la methode
                     // on ajoute le separateur
-                    str.append(METHOD_SEPARATOR).append(getAvaliableMethodName(stackTrace[i], traceMethod));
+                    str.append(METHOD_FULL_DISPLAY_SEPARATOR)
+                       .append(getAvaliableMethodName(stackTrace[i], traceMethod));
                 } else {
                     // si ce n'est pas le dernier element, ou si celui-ci n'est pas affiché en entier
                     str.append(getMethodSymbol(stackTrace[i], traceMethod));
@@ -310,10 +337,24 @@ public class Debug {
      * @return le titre sera prefixé et suffixé par {@link #METHOD_PREFIX} et {@link #METHOD_SUFFIX}
      */
     private static String createTitle(String title) {
-        return pathSeparatorDirection(sizeDirection, METHOD_PREFIX, METHOD_PREFIX_MORE, METHOD_PREFIX_LESS).concat(title).concat(METHOD_SUFFIX);
+        return " ".concat(pathLine(sizeDirection, METHOD_SEPARATOR)).concat(METHOD_PREFIX).concat(" ")
+                  .concat(title)
+                  .concat(METHOD_SUFFIX).concat(pathLine(sizeDirection, METHOD_SEPARATOR))
+                  .concat(System.getProperty("line.separator"));
     }
 
     private static String concatAll(Object o) {
-        return path.concat(content).concat(o.toString());
+        return path.concat(content).concat(multiline(o));
+    }
+
+    private static String multiline(Object o) {
+        String replacement = "$1";
+
+        if (content.length() > 0) {
+            replacement = replacement.concat(path).concat(" ").concat(pathLine(sizeDirection, DEFAULT_SEPARATOR))
+                                     .concat(" ");
+        }
+
+        return o.toString().replaceAll("(\\r?\\n)", replacement);
     }
 }
