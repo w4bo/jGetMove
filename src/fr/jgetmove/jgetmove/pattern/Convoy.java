@@ -88,6 +88,7 @@ public class Convoy implements Pattern {
         ArrayList<Transaction> transactionArray = new ArrayList<>(transactions);
         int source = -1,
                 target = -1;
+        
         for (int timeIndex = 0; timeIndex < timeArray.size() - 1; timeIndex++) {
             for (int transactionClusterId : transactionArray.get(0).getClusterIds()) {
                 if (source == -1) {

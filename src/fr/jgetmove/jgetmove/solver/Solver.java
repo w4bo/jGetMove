@@ -81,6 +81,7 @@ public class Solver {
         PatternGenerator patternGenerator = new PatternGenerator(database, 1, 0, 1);
         Debug.println(result);
         patternGenerator.run(result.getDatabase(), result.getLvl2ClusterIds(), result.getLvl2TimeIds(), detectors);
+        motifs = patternGenerator.getResults();
         /*for (Detector detector : detectors) {
             motifs.put(detector, detector.detect(database, clusterGenerator.getClustersGenerated()));
         }*/
@@ -111,7 +112,6 @@ public class Solver {
         JsonObjectBuilder linkObject = Json.createObjectBuilder();
         for (Map.Entry<Detector, ArrayList<Pattern>> oktamer : motifs.entrySet()) {
             ArrayList<Pattern> patterns = oktamer.getValue();
-
             JsonArrayBuilder patternEntryArray = Json.createArrayBuilder();
             for (int i = 0; i < patterns.size(); i++) {
                 patterns.get(i).getLinksToJson(i, patternEntryArray);
@@ -120,7 +120,6 @@ public class Solver {
             }
             patternArray.add(linkObject);
         }
-
         JsonObjectBuilder patterns = databaseJson.add("patterns", patternArray);
         return patterns.build().toString();
     }

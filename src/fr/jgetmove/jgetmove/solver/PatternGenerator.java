@@ -16,6 +16,7 @@ public class PatternGenerator implements Generator {
     private ArrayList<ArrayList<Integer>> clustersGenerated;
     private int minSupport, maxPattern, minTime;
     private boolean printed;
+    private HashMap<Detector, ArrayList<Pattern>> motifs;
 
     /**
      * Initialise le solveur.
@@ -31,6 +32,7 @@ public class PatternGenerator implements Generator {
         this.minTime = minTime;
         this.clustersGenerated = new ArrayList<>();
         this.defaultDatabase = database;
+        motifs = new HashMap<>();
         printed = false;
 
     }
@@ -204,16 +206,34 @@ public class PatternGenerator implements Generator {
                     clusterBased.add(lvl2ClusterId.get(i).get(j));
                 }
 
-                if (timeBased.size() > minTime) {
-                    HashMap<Detector, ArrayList<Pattern>> motifs = new HashMap<>();
+                /*if (timeBased.size() > minTime) {
                     for (Detector detector : detectors) {
                         motifs.put(detector, detector.detect(defaultDatabase, timeBased, clusterBased, transactions));
                     }
-                }
+                }*/
+                
+                if (timeBased.size() > minTime){
+                    for (Detector detector : detectors) {
+                       if(motifs.get(detector) == null){
+                           ArrayList<Pattern> patterns = new ArrayList<>();
+                           patterns = detector.detect(defaultDatabase, timeBased, clusterBased, transactions);
+                           motifs.put(detector, patterns);
+                       }
+                       else {
+                         motifs.get(detector).addAll(detector.detect(defaultDatabase, timeBased, clusterBased, transactions));
+                       }
+                    }
+               }
             }
         }
     }
-
+    
+    /**
+     * 
+     */
+    public HashMap<Detector, ArrayList<Pattern>> getResults(){
+    	return motifs;
+    }
 
     @Override
     public ClusterGeneratorResult generate() {
