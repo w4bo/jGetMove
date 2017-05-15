@@ -1,12 +1,12 @@
 package fr.jgetmove.jgetmove.pattern;
 
 import javax.json.JsonObject;
-import java.util.ArrayList;
+import java.util.List;
 
 public class FuzzySwarm extends Swarm {
 
     @Override
-    public ArrayList<JsonObject> getLinksToJson(int index) {
+    public List<JsonObject> getLinksToJson(int index) {
         return null;
     }
 }

@@ -4,7 +4,7 @@ import fr.jgetmove.jgetmove.database.Time;
 import fr.jgetmove.jgetmove.database.Transaction;
 
 import javax.json.JsonObject;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -52,7 +52,7 @@ public class ClosedSwarm extends Swarm {
     }
 
     @Override
-    public ArrayList<JsonObject> getLinksToJson(int index) {
+    public List<JsonObject> getLinksToJson(int index) {
         return null;
     }
 }

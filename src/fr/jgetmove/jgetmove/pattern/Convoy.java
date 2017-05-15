@@ -6,6 +6,7 @@ import fr.jgetmove.jgetmove.database.Transaction;
 import javax.json.Json;
 import javax.json.JsonObject;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -83,7 +84,7 @@ public class Convoy implements Pattern {
         return s.substring(0, s.length() - 1);
     }
 
-    public ArrayList<JsonObject> getLinksToJson(int index) {
+    public List<JsonObject> getLinksToJson(int index) {
         ArrayList<Time> timeArrayList = new ArrayList<>(times);
         timeArrayList.sort(null);
         ArrayList<Transaction> transactionArrayList = new ArrayList<>(transactions);
@@ -116,8 +117,8 @@ public class Convoy implements Pattern {
                     .add("id", index)
                     .add("source", source)
                     .add("target", target)
-                    .add("value", this.getTransactions().size())
-                    .add("label", this.printGetTransactions())
+                    .add("value", getTransactions().size())
+                    .add("label", printGetTransactions())
                     .build());
         }
 

@@ -6,7 +6,7 @@ import java.util.Set;
 /**
  * Object contenant l'ensemble des clusters dans lequel il est présent.
  */
-public class Transaction {
+public class Transaction implements Comparable<Transaction> {
     /**
      * id de la transaction
      */
@@ -91,5 +91,10 @@ public class Transaction {
 
     public void clear() {
         clusters.clear();
+    }
+
+    @Override
+    public int compareTo(Transaction transaction) {
+        return id - transaction.id;
     }
 }
