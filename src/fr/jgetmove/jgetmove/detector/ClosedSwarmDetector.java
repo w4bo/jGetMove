@@ -19,25 +19,24 @@ public class ClosedSwarmDetector implements Detector {
         this.minTime = minTime;
     }
 
-	@Override
-	public ArrayList<Pattern> detect(Database defaultDatabase, Set<Integer> timeBased, Set<Integer> clusterBased,
-			Collection<Transaction> transactions) {
-		// TODO Auto-generated method stub
-	    
-	    ArrayList<Pattern> closedSwarm = new ArrayList<Pattern>();
+    @Override
+    public ArrayList<Pattern> detect(Database defaultDatabase, Set<Integer> timeBased, Set<Integer> clusterBased,
+                                     Collection<Transaction> transactions) {
+        ArrayList<Pattern> closedSwarm = new ArrayList<>();
 
         ArrayList<Integer> times = new ArrayList<>(timeBased);
-	    
-	    if(times.get(times.size()-1) - times.get(0) >= minTime){
-	       Set<Time> timesOfPattern = new HashSet<>();
-	       Set<Transaction> transactionsOfPattern = new HashSet<>(transactions);
-	       for(Integer time : timeBased){
-	           timesOfPattern.add(defaultDatabase.getTime(time));
-	       }
-	       
-	       closedSwarm.add(new ClosedSwarm(transactionsOfPattern,timesOfPattern));
-	       System.out.println(closedSwarm);
-	    } 
-	    return closedSwarm;
-	}
+
+        if (times.get(times.size() - 1) - times.get(0) >= minTime) {
+            Set<Time> timesOfPattern = new HashSet<>();
+            Set<Transaction> transactionsOfPattern = new HashSet<>(transactions);
+
+            for (Integer time : timeBased) {
+                timesOfPattern.add(defaultDatabase.getTime(time));
+            }
+
+            closedSwarm.add(new ClosedSwarm(transactionsOfPattern, timesOfPattern));
+            System.out.println(closedSwarm);
+        }
+        return closedSwarm;
+    }
 }

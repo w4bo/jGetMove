@@ -48,7 +48,7 @@
           "source": 0,
           "target": 1,
           "value": 2,
-          "label": "1,0"
+          "label": "0,1"
         },
         {
           "id": 1,
@@ -61,6 +61,32 @@
           "id": 1,
           "source": 1,
           "target": 2,
+          "value": 1,
+          "label": "0"
+        }
+      ]
+    },
+    {
+      "name": "ClosedSwarm",
+      "links": [
+        {
+          "id": 0,
+          "source": 0,
+          "target": 1,
+          "value": 2,
+          "label": "0,1"
+        },
+        {
+          "id": 1,
+          "source": 0,
+          "target": 1,
+          "value": 1,
+          "label": "0"
+        },
+        {
+          "id": 1,
+          "source": 1,
+          "target": -1,
           "value": 1,
           "label": "0"
         }

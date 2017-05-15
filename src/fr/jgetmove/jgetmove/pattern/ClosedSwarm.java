@@ -1,38 +1,34 @@
 package fr.jgetmove.jgetmove.pattern;
 
+import fr.jgetmove.jgetmove.database.Time;
+import fr.jgetmove.jgetmove.database.Transaction;
+
+import javax.json.Json;
+import javax.json.JsonObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-
-import fr.jgetmove.jgetmove.database.Time;
-import fr.jgetmove.jgetmove.database.Transaction;
-
 /**
  * Class that represent a closed swarm pattern
- *
  */
 public class ClosedSwarm extends Swarm {
-	
+
     /**
      * List of transactions in the closed swarm
      */
-    Set<Transaction> transactions;
+    private Set<Transaction> transactions;
 
     /**
      * List of times in the closed swarm
      */
-    Set<Time> times;
+    private Set<Time> times;
 
     /**
      * Constructor
-     * 
-     * @param transactionOfItemset
-     *            list of all transactions in the swarm
-     * @param timesOfItemset
-     *            list of all times in the swarm
+     *
+     * @param transactionOfItemset list of all transactions in the swarm
+     * @param timesOfItemset       list of all times in the swarm
      */
     public ClosedSwarm(Set<Transaction> transactionOfItemset, Set<Time> timesOfItemset) {
         transactions = transactionOfItemset;
@@ -41,7 +37,7 @@ public class ClosedSwarm extends Swarm {
 
     /**
      * Getter on transactions
-     * 
+     *
      * @return the list of transactions in the closed Swarm
      */
     public Set<Transaction> getTransactions() {
@@ -50,7 +46,7 @@ public class ClosedSwarm extends Swarm {
 
     /**
      * Getter on times
-     * 
+     *
      * @return the list of times in the closed Swarm
      */
     public Set<Time> getTimes() {
@@ -81,26 +77,38 @@ public class ClosedSwarm extends Swarm {
             int source = -1;
             int target = -1;
 
-            for (int transactionClusterId : transactionArrayList.get(0).getClusterIds()) {
-                if (source == -1) {
-                    for (int clusterId : timeArrayList.get(timeIndex).getClusterIds()) {
-                        if (clusterId == transactionClusterId) {
-                            source = clusterId;
+            breakpoint:
+            for (Transaction transaction : transactionArrayList) {
+                for (int transactionClusterId : transaction.getClusterIds()) {
+                    if (source == -1) {
+                        for (int clusterId : timeArrayList.get(timeIndex).getClusterIds()) {
+                            if (clusterId == transactionClusterId) {
+                                source = clusterId;
+                            }
                         }
                     }
-                }
 
-                if (target == -1) {
-                    for (int clusterId : timeArrayList.get(timeIndex + 1).getClusterIds()) {
-                        if (clusterId == transactionClusterId) {
-                            target = clusterId;
+                    if (target == -1) {
+                        for (int clusterId : timeArrayList.get(timeIndex + 1).getClusterIds()) {
+                            if (clusterId == transactionClusterId) {
+                                target = clusterId;
+                            }
                         }
+                    }
+
+                    if (source != -1 && target != -1) {
+                        break breakpoint;
                     }
                 }
             }
 
-            jsonLinks.add(Json.createObjectBuilder().add("id", index).add("source", source).add("target", target)
-                    .add("value", getTransactions().size()).add("label", printGetTransactions()).build());
+            jsonLinks.add(Json.createObjectBuilder()
+                    .add("id", index)
+                    .add("source", source)
+                    .add("target", target)
+                    .add("value", getTransactions().size())
+                    .add("label", printGetTransactions())
+                    .build());
         }
 
         return jsonLinks;
