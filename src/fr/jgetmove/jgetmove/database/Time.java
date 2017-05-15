@@ -6,7 +6,7 @@ import java.util.Set;
 /**
  * Objet Time contenant la liste des clusters pour un temps donné
  */
-public class Time {
+public class Time implements Comparable<Time> {
     private int id;
 
     private Bloc bloc;
@@ -74,5 +74,15 @@ public class Time {
     @Override
     public String toString() {
         return "{" + id + "=" + String.valueOf(clusters.keySet()) + "}";
+    }
+
+    public int compareTo(Time time) {
+
+        //ascending order
+        return id - time.id;
+
+        //descending order
+        //return compareQuantity - this.quantity;
+
     }
 }

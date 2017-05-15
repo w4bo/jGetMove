@@ -7,6 +7,7 @@ import fr.jgetmove.jgetmove.pattern.Pattern;
 
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import java.util.*;
 
@@ -76,17 +77,14 @@ public class Solver {
      * @return a HashMap Detector -> ArrayList< Motif>
      */
     public HashMap<Detector, ArrayList<Pattern>> detectPatterns() {
-        HashMap<Detector, ArrayList<Pattern>> motifs = new HashMap<>();
-
         PatternGenerator patternGenerator = new PatternGenerator(database, 1, 0, 1);
         Debug.println(result);
         patternGenerator.run(result.getDatabase(), result.getLvl2ClusterIds(), result.getLvl2TimeIds(), detectors);
-        motifs = patternGenerator.getResults();
         /*for (Detector detector : detectors) {
             motifs.put(detector, detector.detect(database, clusterGenerator.getClustersGenerated()));
         }*/
 
-        return motifs;
+        return patternGenerator.getResults();
     }
 
     /**
@@ -107,21 +105,32 @@ public class Solver {
         detectors.remove(detector);
     }
 
-    public String toJSON(HashMap<Detector, ArrayList<Pattern>> motifs, JsonObjectBuilder databaseJson) {
-        JsonArrayBuilder patternArray = Json.createArrayBuilder();
-        JsonObjectBuilder linkObject = Json.createObjectBuilder();
-        for (Map.Entry<Detector, ArrayList<Pattern>> oktamer : motifs.entrySet()) {
-            ArrayList<Pattern> patterns = oktamer.getValue();
-            JsonArrayBuilder patternEntryArray = Json.createArrayBuilder();
-            for (int i = 0; i < patterns.size(); i++) {
-                patterns.get(i).getLinksToJson(i, patternEntryArray);
-                linkObject.add("name", patterns.get(i).getClass().getSimpleName()).add("links", patternEntryArray);
+    public String toJSON(HashMap<Detector, ArrayList<Pattern>> detectors, JsonObjectBuilder databaseJson) {
+        JsonArrayBuilder jsonPatterns = Json.createArrayBuilder();
 
+        for (Map.Entry<Detector, ArrayList<Pattern>> detector : detectors.entrySet()) {
+            JsonObjectBuilder jsonPattern = Json.createObjectBuilder();
+
+            jsonPattern.add("name", detector.getKey().getClass().getSimpleName());
+
+            ArrayList<Pattern> patterns = detector.getValue();
+
+            JsonArrayBuilder jsonLinks = Json.createArrayBuilder();
+
+            int i = 0;
+            for (Pattern pattern : patterns) {
+                jsonPattern.add("name", pattern.getClass().getSimpleName());
+                for (JsonObject jsonLink : pattern.getLinksToJson(i)) {
+                    jsonLinks.add(jsonLink);
+                }
+                i++;
             }
-            patternArray.add(linkObject);
+
+            jsonPattern.add("links", jsonLinks);
+            jsonPatterns.add(jsonPattern);
         }
-        JsonObjectBuilder patterns = databaseJson.add("patterns", patternArray);
-        return patterns.build().toString();
+        databaseJson.add("patterns", jsonPatterns);
+        return databaseJson.build().toString();
     }
 
 

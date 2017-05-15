@@ -211,28 +211,27 @@ public class PatternGenerator implements Generator {
                         motifs.put(detector, detector.detect(defaultDatabase, timeBased, clusterBased, transactions));
                     }
                 }*/
-                
-                if (timeBased.size() > minTime){
+
+                if (timeBased.size() > minTime) {
                     for (Detector detector : detectors) {
-                       if(motifs.get(detector) == null){
-                           ArrayList<Pattern> patterns = new ArrayList<>();
-                           patterns = detector.detect(defaultDatabase, timeBased, clusterBased, transactions);
-                           motifs.put(detector, patterns);
-                       }
-                       else {
-                         motifs.get(detector).addAll(detector.detect(defaultDatabase, timeBased, clusterBased, transactions));
-                       }
+                        if (motifs.get(detector) == null) {
+                            ArrayList<Pattern> patterns = new ArrayList<>();
+                            patterns = detector.detect(defaultDatabase, timeBased, clusterBased, transactions);
+                            motifs.put(detector, patterns);
+                        } else {
+                            motifs.get(detector).addAll(detector.detect(defaultDatabase, timeBased, clusterBased, transactions));
+                        }
                     }
-               }
+                }
             }
         }
     }
-    
+
     /**
-     * 
+     *
      */
-    public HashMap<Detector, ArrayList<Pattern>> getResults(){
-    	return motifs;
+    public HashMap<Detector, ArrayList<Pattern>> getResults() {
+        return motifs;
     }
 
     @Override

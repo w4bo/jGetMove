@@ -1,7 +1,8 @@
 package fr.jgetmove.jgetmove.pattern;
 
-import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
+import java.util.ArrayList;
 
 public interface Pattern {
-    public JsonArrayBuilder getLinksToJson(int index, JsonArrayBuilder patternEntryArray);
+    ArrayList<JsonObject> getLinksToJson(int index);
 }

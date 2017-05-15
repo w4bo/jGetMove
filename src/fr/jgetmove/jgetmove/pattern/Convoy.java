@@ -4,7 +4,7 @@ import fr.jgetmove.jgetmove.database.Time;
 import fr.jgetmove.jgetmove.database.Transaction;
 
 import javax.json.Json;
-import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -45,7 +45,7 @@ public class Convoy implements Pattern {
     /**
      * Setter sur la liste des transactions
      *
-     * @param clusters une nouvelle liste de transactions
+     * @param transactions une nouvelle liste de transactions
      */
     public void setTransactions(Set<Transaction> transactions) {
         this.transactions = transactions;
@@ -75,24 +75,28 @@ public class Convoy implements Pattern {
     }
 
     public String printGetTransactions() {
-        String s = "";
+        StringBuilder s = new StringBuilder();
         for (Transaction transaction : this.getTransactions()) {
-            s += transaction.getId() + ",";
+            s.append(transaction.getId()).append(',');
         }
-        s = s.substring(0, s.length() - 1); //retire la dernière virgule
-        return s;
+        //retire la dernière virgule
+        return s.substring(0, s.length() - 1);
     }
 
-    public JsonArrayBuilder getLinksToJson(int index, JsonArrayBuilder patternEntryArray) {
-        ArrayList<Time> timeArray = new ArrayList<>(times);
-        ArrayList<Transaction> transactionArray = new ArrayList<>(transactions);
-        int source = -1,
-                target = -1;
-        
-        for (int timeIndex = 0; timeIndex < timeArray.size() - 1; timeIndex++) {
-            for (int transactionClusterId : transactionArray.get(0).getClusterIds()) {
+    public ArrayList<JsonObject> getLinksToJson(int index) {
+        ArrayList<Time> timeArrayList = new ArrayList<>(times);
+        timeArrayList.sort(null);
+        ArrayList<Transaction> transactionArrayList = new ArrayList<>(transactions);
+
+        ArrayList<JsonObject> jsonLinks = new ArrayList<>();
+
+        for (int timeIndex = 0; timeIndex < timeArrayList.size() - 1; timeIndex++) {
+            int source = -1;
+            int target = -1;
+
+            for (int transactionClusterId : transactionArrayList.get(0).getClusterIds()) {
                 if (source == -1) {
-                    for (int clusterId : timeArray.get(timeIndex).getClusterIds()) {
+                    for (int clusterId : timeArrayList.get(timeIndex).getClusterIds()) {
                         if (clusterId == transactionClusterId) {
                             source = clusterId;
                         }
@@ -100,20 +104,23 @@ public class Convoy implements Pattern {
                 }
 
                 if (target == -1) {
-                    for (int clusterId : timeArray.get(timeIndex + 1).getClusterIds()) {
+                    for (int clusterId : timeArrayList.get(timeIndex + 1).getClusterIds()) {
                         if (clusterId == transactionClusterId) {
                             target = clusterId;
                         }
                     }
                 }
             }
+
+            jsonLinks.add(Json.createObjectBuilder()
+                    .add("id", index)
+                    .add("source", source)
+                    .add("target", target)
+                    .add("value", this.getTransactions().size())
+                    .add("label", this.printGetTransactions())
+                    .build());
         }
-        patternEntryArray.add(Json.createObjectBuilder()
-                .add("id", index)
-                .add("source", source)
-                .add("target", target)
-                .add("value", this.getTransactions().size())
-                .add("label", this.printGetTransactions()));
-        return patternEntryArray;
+
+        return jsonLinks;
     }
 }

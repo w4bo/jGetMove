@@ -3,7 +3,8 @@ package fr.jgetmove.jgetmove.pattern;
 import fr.jgetmove.jgetmove.database.Time;
 import fr.jgetmove.jgetmove.database.Transaction;
 
-import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
+import java.util.ArrayList;
 import java.util.Set;
 
 /**
@@ -51,7 +52,7 @@ public class ClosedSwarm extends Swarm {
     }
 
     @Override
-    public JsonArrayBuilder getLinksToJson(int index, JsonArrayBuilder patternEntryArray) {
+    public ArrayList<JsonObject> getLinksToJson(int index) {
         return null;
     }
 }
