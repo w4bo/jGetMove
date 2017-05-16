@@ -3,6 +3,7 @@ package fr.jgetmove.jgetmove.detector;
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.database.Time;
 import fr.jgetmove.jgetmove.database.Transaction;
+import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.pattern.ClosedSwarm;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
@@ -25,10 +26,13 @@ public class ClosedSwarmDetector implements Detector {
         ArrayList<Pattern> closedSwarm = new ArrayList<>();
 
         ArrayList<Integer> times = new ArrayList<>(timeBased);
-
         if (times.get(times.size() - 1) - times.get(0) >= minTime) {
             Set<Time> timesOfPattern = new HashSet<>();
-            Set<Transaction> transactionsOfPattern = new HashSet<>(transactions);
+            Set<Transaction> transactionsOfPattern = new HashSet<>();
+            
+            for(Transaction transaction : transactions){
+                transactionsOfPattern.add(defaultDatabase.getTransaction(transaction.getId()));
+            }
 
             for (Integer time : timeBased) {
                 timesOfPattern.add(defaultDatabase.getTime(time));

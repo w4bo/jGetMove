@@ -5,11 +5,13 @@ public class DefaultConfig extends Config {
     private int minSupport;
     private int maxPattern;
     private int minTime;
+    private double commonObjectPercentage; //min_w
 
-    public DefaultConfig(int minSupport, int maxPattern, int minTime) {
+    public DefaultConfig(int minSupport, int maxPattern, int minTime, double commonObjectPercentage) {
         this.minSupport = minSupport;
         this.maxPattern = maxPattern;
         this.minTime = minTime;
+        this.commonObjectPercentage = commonObjectPercentage;
     }
 
     public int getMinSupport() {
@@ -22,5 +24,9 @@ public class DefaultConfig extends Config {
 
     public int getMinTime() {
         return minTime;
+    }
+    
+    public double getCommonObjectPercentage(){
+        return commonObjectPercentage;
     }
 }

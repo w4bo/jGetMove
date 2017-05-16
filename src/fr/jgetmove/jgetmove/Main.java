@@ -6,6 +6,7 @@ import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.detector.ClosedSwarmDetector;
 import fr.jgetmove.jgetmove.detector.ConvoyDetector;
 import fr.jgetmove.jgetmove.detector.Detector;
+import fr.jgetmove.jgetmove.detector.GroupPatternDetector;
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
 import fr.jgetmove.jgetmove.io.Output;
@@ -35,11 +36,12 @@ public class Main {
             /*
              * Init ClusterGenerator and detectors
              */
-            DefaultConfig config = new DefaultConfig(1, 0, minTime);
+            DefaultConfig config = new DefaultConfig(1, 0, minTime,0);
             ClusterGenerator clusterGenerator = new ClusterGenerator(database, config);
             Set<Detector> detectors = new HashSet<>();
             detectors.add(new ConvoyDetector(minTime));
             detectors.add(new ClosedSwarmDetector(minTime));
+            detectors.add(new GroupPatternDetector(config.getMinTime(),config.getCommonObjectPercentage()));
 
             Solver solver = new Solver(database, clusterGenerator, detectors);
 
