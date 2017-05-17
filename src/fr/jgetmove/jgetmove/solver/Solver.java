@@ -129,7 +129,7 @@ public class Solver {
             jsonPattern.add("links", jsonLinks);
             jsonPatterns.add(jsonPattern);
         }
-        databaseJson.add("patterns", jsonPatterns);
+        databaseJson.add("pattern", jsonPatterns);
         return databaseJson.build().toString();
     }
 

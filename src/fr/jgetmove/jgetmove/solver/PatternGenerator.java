@@ -211,7 +211,9 @@ public class PatternGenerator implements Generator {
                         motifs.put(detector, detector.detect(defaultDatabase, timeBased, clusterBased, transactions));
                     }
                 }*/
-
+                
+                
+                
                 if (timeBased.size() > minTime) {
                     for (Detector detector : detectors) {
                         if (motifs.get(detector) == null) {
