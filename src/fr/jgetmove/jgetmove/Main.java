@@ -11,6 +11,7 @@ import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.io.Input;
 import fr.jgetmove.jgetmove.io.Output;
 import fr.jgetmove.jgetmove.solver.ClusterGenerator;
+import fr.jgetmove.jgetmove.solver.PatternGenerator;
 import fr.jgetmove.jgetmove.solver.Solver;
 
 import javax.json.JsonObjectBuilder;
@@ -38,12 +39,13 @@ public class Main {
              */
             DefaultConfig config = new DefaultConfig(1, 0, minTime,0);
             ClusterGenerator clusterGenerator = new ClusterGenerator(database, config);
+            PatternGenerator patternGenerator = new PatternGenerator(database, config);
             Set<Detector> detectors = new HashSet<>();
             detectors.add(new ConvoyDetector(minTime));
             detectors.add(new ClosedSwarmDetector(minTime));
             detectors.add(new GroupPatternDetector(config.getMinTime(),config.getCommonObjectPercentage()));
 
-            Solver solver = new Solver(database, clusterGenerator, detectors);
+            Solver solver = new Solver(clusterGenerator, patternGenerator, detectors);
 
             solver.generateClusters();
             //Debug.println(generatedClusters);

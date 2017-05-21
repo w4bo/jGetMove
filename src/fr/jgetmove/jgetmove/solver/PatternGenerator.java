@@ -1,5 +1,7 @@
 package fr.jgetmove.jgetmove.solver;
 
+import fr.jgetmove.jgetmove.config.Config;
+import fr.jgetmove.jgetmove.config.DefaultConfig;
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
@@ -30,6 +32,24 @@ public class PatternGenerator implements Generator {
         this.minSupport = minSupport;
         this.maxPattern = maxPattern;
         this.minTime = minTime;
+        this.clustersGenerated = new ArrayList<>();
+        this.defaultDatabase = database;
+        motifs = new HashMap<>();
+        printed = false;
+
+    }
+
+
+    /**
+     * Initialise le solveur.
+     *
+     * @param database   database par defaut
+     *
+     */
+    public PatternGenerator(Database database, DefaultConfig config) {
+        this.minSupport = config.getMinSupport();
+        this.maxPattern = config.getMaxPattern();
+        this.minTime = config.getMinTime();
         this.clustersGenerated = new ArrayList<>();
         this.defaultDatabase = database;
         motifs = new HashMap<>();
@@ -217,8 +237,7 @@ public class PatternGenerator implements Generator {
                 if (timeBased.size() > minTime) {
                     for (Detector detector : detectors) {
                         if (motifs.get(detector) == null) {
-                            ArrayList<Pattern> patterns = new ArrayList<>();
-                            patterns = detector.detect(defaultDatabase, timeBased, clusterBased, transactions);
+                            ArrayList<Pattern> patterns = detector.detect(defaultDatabase, timeBased, clusterBased, transactions);
                             motifs.put(detector, patterns);
                         } else {
                             motifs.get(detector).addAll(detector.detect(defaultDatabase, timeBased, clusterBased, transactions));

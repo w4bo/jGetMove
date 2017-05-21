@@ -1,6 +1,5 @@
 package fr.jgetmove.jgetmove.solver;
 
-import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.detector.Detector;
 import fr.jgetmove.jgetmove.pattern.Pattern;
@@ -20,16 +19,12 @@ public class Solver {
      * ClusterGenerator that will handle the creation of itemsets
      */
     private ClusterGenerator clusterGenerator;
+    private PatternGenerator patternGenerator;
 
     /**
      * Detectors of patterns
      */
     private Set<Detector> detectors;
-
-    /**
-     * The database
-     */
-    private Database database;
 
     /**
      * The result of the ClusterGenerator
@@ -39,25 +34,24 @@ public class Solver {
     /**
      * Constructor
      *
-     * @param database         database from files
      * @param clusterGenerator ClusterGenerator that will handle the creation of itemsets
      * @param detectors        list of detectors
      */
-    public Solver(Database database, ClusterGenerator clusterGenerator, Set<Detector> detectors) {
-        this.database = database;
+    public Solver(ClusterGenerator clusterGenerator, PatternGenerator patternGenerator,
+                  Set<Detector> detectors) {
         this.clusterGenerator = clusterGenerator;
+        this.patternGenerator = patternGenerator;
         this.detectors = detectors;
     }
 
     /**
      * Constructor
      *
-     * @param database         database from files
      * @param clusterGenerator ClusterGenerator that will handle the creation of itemsets
      */
-    public Solver(Database database, ClusterGenerator clusterGenerator) {
-        this.database = database;
+    public Solver(ClusterGenerator clusterGenerator, PatternGenerator patternGenerator) {
         this.clusterGenerator = clusterGenerator;
+        this.patternGenerator = patternGenerator;
         detectors = new HashSet<>();
     }
 
@@ -77,7 +71,6 @@ public class Solver {
      * @return a HashMap Detector -> ArrayList< Motif>
      */
     public HashMap<Detector, ArrayList<Pattern>> detectPatterns() {
-        PatternGenerator patternGenerator = new PatternGenerator(database, 1, 0, 1);
         Debug.println(result);
         patternGenerator.run(result.getDatabase(), result.getLvl2ClusterIds(), result.getLvl2TimeIds(), detectors);
         /*for (Detector detector : detectors) {
