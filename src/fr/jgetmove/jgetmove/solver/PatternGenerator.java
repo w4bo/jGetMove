@@ -150,7 +150,6 @@ public class PatternGenerator implements Generator {
         Debug.println("");
 
         int calcurateCoreI = CalcurateCoreI(itemsets, freqList);
-        System.err.println("CORE I : " + calcurateCoreI);
         SortedSet<Integer> lowerBounds = GeneratorUtils.lower_bound(database.getClusterIds(), calcurateCoreI);
 
         //Blocks
@@ -253,11 +252,5 @@ public class PatternGenerator implements Generator {
      */
     public HashMap<Detector, ArrayList<Pattern>> getResults() {
         return motifs;
-    }
-
-    @Override
-    public ClusterGeneratorResult generate() {
-        // TODO Auto-generated method stub
-        return null;
     }
 }

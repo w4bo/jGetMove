@@ -358,7 +358,6 @@ public class Database {
      */
     public JsonObjectBuilder toJSON() {
         int index = 0;
-        System.out.println(this.getClusters().size() - 1);
         JsonArrayBuilder linksArray = Json.createArrayBuilder();
         for (Transaction transaction : this.getTransactions().values()) {
             ArrayList<Integer> clustersIds = new ArrayList<>(transaction.getClusterIds());
@@ -388,7 +387,7 @@ public class Database {
         return links;
     }
 
-    public String stringToJson(JsonObjectBuilder finalJson) {
+    private String stringToJson(JsonObjectBuilder finalJson) {
         return finalJson.build().toString();
     }
 

@@ -129,9 +129,7 @@ public class ConvoyDetector implements Detector {
             }
             convoys.add(new Convoy(transactionsOfCluster, timesOfCluster));
         }
-
-        Debug.println("Il y a : " + convoys.size() + "Convoy");
-        Debug.println("Convoys", convoys);
+        System.out.println("Convoys : " + convoys);
 
         return convoys;
     }

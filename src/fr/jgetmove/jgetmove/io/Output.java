@@ -1,7 +1,10 @@
 package fr.jgetmove.jgetmove.io;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -10,15 +13,35 @@ import java.io.IOException;
  */
 
 public class Output {
-    private String containJson;
+    private String filePath;
     private BufferedWriter writer;
 
-    public Output(String contain) throws IOException {
-        containJson = contain;
-        File json = new File("assets/test.json");
-        json.createNewFile();
-        writer = new BufferedWriter(new FileWriter(json));
-        writer.write(containJson);
+    /**
+     * @param filePath le chemin vers le fichier à ecrire
+     * @throws IOException 
+     */
+    public Output(String filePath) throws IOException {
+        this.filePath = filePath;
+        writer = new BufferedWriter(new FileWriter(filePath));
+    }
+    
+    
+
+    /**
+     * @throws IOException si il y a une erreur I/O
+     * @see BufferedReader#writeline
+     */
+    public void write(String line) throws IOException {
+        writer.write(line);
+        close();
+    }
+    
+    public void close() throws IOException{
         writer.close();
+    }
+    
+    @Override
+    public String toString() {
+        return filePath;
     }
 }

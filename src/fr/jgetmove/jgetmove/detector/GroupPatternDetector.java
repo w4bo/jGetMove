@@ -114,7 +114,7 @@ public class GroupPatternDetector implements Detector{
             }
 
             patterns.add(new GroupPattern(transactionsOfPattern, timesOfPattern));
-            Debug.println(patterns);
+            System.out.println("GPattern : " + patterns);
         }
         return patterns;
     }

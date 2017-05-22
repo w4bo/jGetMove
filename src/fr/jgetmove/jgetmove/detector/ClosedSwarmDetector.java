@@ -39,7 +39,7 @@ public class ClosedSwarmDetector implements Detector {
             }
 
             closedSwarm.add(new ClosedSwarm(transactionsOfPattern, timesOfPattern));
-            System.out.println(closedSwarm);
+            System.out.println("ClosedSwarm : " + closedSwarm);
         }
         return closedSwarm;
     }
