@@ -11,23 +11,17 @@ public class ClusterGeneratorResult {
     private ArrayList<ArrayList<Integer>> clusters;
     private ArrayList<ArrayList<Integer>> lvl2TimeIds;
     private ArrayList<ArrayList<Integer>> lvl2ClusterIds;
-    private Config config;
 
-    ClusterGeneratorResult(Database database, Config config, ArrayList<ArrayList<Integer>> clusters,
+    ClusterGeneratorResult(Database database, ArrayList<ArrayList<Integer>> clusters,
                            ArrayList<ArrayList<Integer>> lvl2TimeIds, ArrayList<ArrayList<Integer>> lvl2ClusterIds) {
         this.database = database;
         this.clusters = clusters;
         this.lvl2ClusterIds = lvl2ClusterIds;
         this.lvl2TimeIds = lvl2TimeIds;
-        this.config = config;
     }
 
     public Database getDatabase() {
         return database;
-    }
-
-    public Config getConfig() {
-        return config;
     }
 
     public ArrayList<ArrayList<Integer>> getClusters() {

@@ -380,7 +380,6 @@ public class Database {
                     .add("label", this.printGetClusterTransactions(i))
                     .add("time", this.getClusterTimeId(i)));
         }
-        //JsonObjectBuilder nodes = Json.createObjectBuilder();
         JsonObjectBuilder links = Json.createObjectBuilder();
         links.add("links", linksArray)
                 .add("nodes", nodesArray);
