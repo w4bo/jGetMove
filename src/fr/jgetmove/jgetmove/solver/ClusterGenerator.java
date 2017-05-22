@@ -146,7 +146,7 @@ public class ClusterGenerator implements Generator {
 
         Database database2 = new Database(transactions);
 
-        return new ClusterGeneratorResult(database2, config, clustersGenerated, lvl2TimeIds,
+        return new ClusterGeneratorResult(database2, clustersGenerated, lvl2TimeIds,
                 lvl2ClusterIds);
     }
 
