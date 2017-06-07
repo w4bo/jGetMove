@@ -98,7 +98,7 @@ public class Solver {
         detectors.remove(detector);
     }
 
-    public String toJSON(HashMap<Detector, ArrayList<Pattern>> detectors, JsonObjectBuilder databaseJson) {
+    public JsonArrayBuilder toJSON(HashMap<Detector, ArrayList<Pattern>> detectors) {
         JsonArrayBuilder jsonPatterns = Json.createArrayBuilder();
 
         for (Map.Entry<Detector, ArrayList<Pattern>> detector : detectors.entrySet()) {
@@ -122,9 +122,13 @@ public class Solver {
             jsonPattern.add("links", jsonLinks);
             jsonPatterns.add(jsonPattern);
         }
-        databaseJson.add("pattern", jsonPatterns);
-        return databaseJson.build().toString();
+        return jsonPatterns;
     }
 
-
+    @Override
+    public String toString() {
+        return "Solver"
+                + "\n|-- ClusterGenerator :" + clusterGenerator
+                + "\n|-- PatternGenerator :" + patternGenerator;
+    }
 }
