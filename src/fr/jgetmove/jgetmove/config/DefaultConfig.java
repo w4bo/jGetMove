@@ -25,8 +25,8 @@ public class DefaultConfig extends Config {
     public int getMinTime() {
         return minTime;
     }
-    
-    public double getCommonObjectPercentage(){
+
+    public double getCommonObjectPercentage() {
         return commonObjectPercentage;
     }
 }

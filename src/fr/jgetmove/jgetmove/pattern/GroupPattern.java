@@ -1,14 +1,13 @@
 package fr.jgetmove.jgetmove.pattern;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import fr.jgetmove.jgetmove.database.Time;
+import fr.jgetmove.jgetmove.database.Transaction;
 
 import javax.json.Json;
 import javax.json.JsonObject;
-
-import fr.jgetmove.jgetmove.database.Time;
-import fr.jgetmove.jgetmove.database.Transaction;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class GroupPattern implements Pattern {
     /**

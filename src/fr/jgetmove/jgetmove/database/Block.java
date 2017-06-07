@@ -2,7 +2,7 @@ package fr.jgetmove.jgetmove.database;
 
 import java.util.HashMap;
 
-public class Bloc {
+public class Block {
 
     private int id;
 
@@ -12,9 +12,9 @@ public class Bloc {
     private HashMap<Integer, Time> times;
 
     /**
-     * @param id identifiant du cluster
+     * @param id identifiant du bloc
      */
-    Bloc(int id) {
+    Block(int id) {
         this.id = id;
         times = new HashMap<>();
     }
@@ -36,6 +36,7 @@ public class Bloc {
 
     @Override
     public String toString() {
-        return String.valueOf(times.keySet());
+        return "{" + id + "=" + String.valueOf(times.keySet()) + "}";
     }
+
 }

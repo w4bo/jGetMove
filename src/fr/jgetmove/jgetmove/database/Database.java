@@ -1,6 +1,7 @@
 package fr.jgetmove.jgetmove.database;
 
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
+import fr.jgetmove.jgetmove.exception.MalformedTimeIndexException;
 import fr.jgetmove.jgetmove.io.Input;
 
 import javax.json.Json;
@@ -19,10 +20,12 @@ public class Database {
     private HashMap<Integer, Cluster> clusters;
     private HashMap<Integer, Transaction> transactions;
     private HashMap<Integer, Time> times;
+    private HashMap<Integer, Block> blocks;
 
     private TreeSet<Integer> clusterIdsTree;
     private TreeSet<Integer> transactionIdsTree;
     private TreeSet<Integer> timeIdsTree;
+    private TreeSet<Integer> blockIdsTree;
 
     /**
      * Initialise Database en fonction des fichiers de données
@@ -32,14 +35,16 @@ public class Database {
      * @throws IOException              si inputObj ou inputTime est incorrect
      * @throws ClusterNotExistException si le cluster n'existe pas
      */
-    public Database(Input inputObj, Input inputTime) throws IOException, ClusterNotExistException {
+    public Database(Input inputObj, Input inputTime, int blockSize) throws IOException, ClusterNotExistException, MalformedTimeIndexException {
         this.inputObj = inputObj;
         this.inputTime = inputTime;
 
+        blocks = new HashMap<>();
         clusters = new HashMap<>();
         transactions = new HashMap<>();
         times = new HashMap<>();
 
+        blockIdsTree = new TreeSet<>();
         clusterIdsTree = new TreeSet<>();
         transactionIdsTree = new TreeSet<>();
         timeIdsTree = new TreeSet<>();
@@ -47,17 +52,21 @@ public class Database {
         //Initialisation des clusters et transactions
         initClusterAndTransaction();
         //Initialisation des temps
-        initTimeAndCluster();
+        initTimeAndCluster(blockSize);
     }
 
+    @Deprecated
     public Database(Database database) {
+        // TODO : copying database :) with blocks
         this.inputObj = null;
         this.inputTime = null;
 
+        blocks = new HashMap<>();
         clusters = new HashMap<>();
         transactions = new HashMap<>();
         times = new HashMap<>();
 
+        blockIdsTree = new TreeSet<>();
         clusterIdsTree = new TreeSet<>();
         transactionIdsTree = new TreeSet<>();
         timeIdsTree = new TreeSet<>();
@@ -102,10 +111,12 @@ public class Database {
         this.inputObj = null;
         this.inputTime = null;
 
+        blocks = new HashMap<>();
         clusters = new HashMap<>();
         this.transactions = new HashMap<>();
         times = new HashMap<>();
 
+        blockIdsTree = new TreeSet<>();
         clusterIdsTree = new TreeSet<>();
         transactionIdsTree = new TreeSet<>();
         timeIdsTree = new TreeSet<>();
@@ -131,10 +142,12 @@ public class Database {
         this.inputObj = null;
         this.inputTime = null;
 
+        blocks = new HashMap<>();
         clusters = new HashMap<>();
         transactions = new HashMap<>();
         times = new HashMap<>();
 
+        blockIdsTree = new TreeSet<>();
         clusterIdsTree = new TreeSet<>();
         transactionIdsTree = new TreeSet<>();
         timeIdsTree = new TreeSet<>();
@@ -169,25 +182,18 @@ public class Database {
      * Initialise les HashMap de clusters et transactions
      *
      * @throws IOException si le fichier est incorrect
-     * @see Database#Database(Input, Input)
+     * @see Database#Database(Input, Input, int)
      */
     private void initClusterAndTransaction() throws IOException {
         String line;
         int transactionId = 0;
         while ((line = inputObj.readLine()) != null) {
-            String[] lineClusterId = line.split("( |\\t)+");
+            String[] lineClusterId = line.split("[ \\t]+");
             Transaction transaction = new Transaction(transactionId);
 
             for (String strClusterId : lineClusterId) {
                 int clusterId = Integer.parseInt(strClusterId);
-                Cluster cluster;
-
-                if (clusters.get(clusterId) == null) {
-                    cluster = new Cluster(clusterId);
-                    this.add(cluster);
-                } else {
-                    cluster = clusters.get(clusterId);
-                }
+                Cluster cluster = getOrCreateCluster(clusterId);
 
                 cluster.add(transaction);
                 transaction.add(cluster);
@@ -204,41 +210,62 @@ public class Database {
      *
      * @throws IOException              si le fichier inputTime est inccorect
      * @throws ClusterNotExistException si le cluster n'existe pas
-     * @see Database#Database(Input, Input)
+     * @see Database#Database(Input, Input, int)
      */
-    private void initTimeAndCluster() throws IOException, ClusterNotExistException {
+    private void initTimeAndCluster(int blockSize) throws IOException, ClusterNotExistException, MalformedTimeIndexException {
         String line;
         int timeId;
         int clusterId;
+        int counter = 0;
 
+        Block block = new Block(1);
         while ((line = inputTime.readLine()) != null) {
-            String[] splitLine = line.split("( |\\t)+");
+            String[] splitLine = line.split("[ \\t]+");
 
-            if (splitLine.length == 2) { //Check si non malformé
+            if (splitLine.length != 2) {//Check si non malformé
+                throw new MalformedTimeIndexException();
+            }
 
-                timeId = Integer.parseInt(splitLine[0]);
-                clusterId = Integer.parseInt(splitLine[1]);
-                Time time;
-                Cluster cluster;
 
-                //Check si le temps existe
-                if (times.get(timeId) == null) {
-                    time = new Time(timeId);
-                    this.add(time);
-                } else {
-                    time = times.get(timeId);
-                }
+            timeId = Integer.parseInt(splitLine[0]);
+            clusterId = Integer.parseInt(splitLine[1]);
+            Time time;
+            Cluster cluster;
 
-                //Check si le cluster existe
-                if (clusters.get(clusterId) == null) {
-                    throw new ClusterNotExistException();
-                } else {
-                    cluster = clusters.get(clusterId);
-                    cluster.setTime(time);
-                    time.add(cluster);
-                }
+            //Check si le temps existe
+            if (times.get(timeId) == null) {
+                time = new Time(timeId);
+                this.add(time);
+                block.add(time);
+                ++counter;
+            } else {
+                time = times.get(timeId);
+            }
+
+            cluster = clusters.get(clusterId);
+
+            //Check si le cluster existe
+            if (cluster == null) {
+                throw new ClusterNotExistException();
+            }
+
+            cluster.setTime(time);
+            time.add(cluster);
+
+            if (blockSize > 0 && counter == blockSize) {
+                add(block);
+                block = new Block(blocks.size() + 1);
+                counter = 0;
             }
         }
+        if (counter != 0) {
+            add(block);
+        }
+    }
+
+    private void add(Block block) {
+        blocks.put(block.getId(), block);
+        blockIdsTree.add(block.getId());
     }
 
     /**
@@ -345,12 +372,12 @@ public class Database {
      * @return L'ensemble des transaction d'un cluster sous forme d'une chaine de caractère pour toJSON()
      */
     public String printGetClusterTransactions(int index) {
-        String s = "";
+        StringBuilder s = new StringBuilder();
         for (Transaction transaction : this.getClusterTransactions(index).values()) {
-            s += transaction.getId() + ",";
+            s.append(transaction.getId()).append(",");
         }
-        s = s.substring(0, s.length() - 1); //retire la dernière virgule
-        return s;
+        s = new StringBuilder(s.substring(0, s.length() - 1)); //retire la dernière virgule
+        return s.toString();
     }
 
     /**
@@ -392,10 +419,11 @@ public class Database {
 
     @Override
     public String toString() {
-        String str = "Fichiers :" + inputObj + "; " + inputTime + "\n";
-        str += "Clusters :" + clusters.values() + "\n";
-        str += "Transactions :" + transactions.values() + "\n";
-        str += "Temps :" + times.values() + "\n";
+        String str = "\n|-- Fichiers :" + inputObj + "; " + inputTime;
+        str += "\n|-- Blocks :" + blocks.values();
+        str += "\n|-- Clusters :" + clusters.values();
+        str += "\n|-- Transactions :" + transactions.values();
+        str += "\n`-- Temps :" + times.values();
         return str;
     }
 
@@ -419,13 +447,14 @@ public class Database {
      * Supprime et recrée les associations {@link Cluster} <=> {@link Transaction} en fonction des transactions à prendre en compte
      * <p>
      * <pre>
-     * Lcm::UpdateOccurenceDeriver(const Database &database, const vector<int> &transactionList, OccurenceDeriver &occurence)
+     * Lcm::UpdateOccurenceDeriver(const Database &database, const vector<int> &transactionList, ClusterMatrix &occurence)
      * </pre>
      * this (occurence)
      *
      * @param defaultDatabase (database) base de données originale
      * @param transactionIds  (transactionList) transactions à prendre en compte
      */
+    @Deprecated
     public void rebindRelations(Database defaultDatabase, Set<Integer> transactionIds) {
         this.cleanClusterTransactionBinding();
 

@@ -1,7 +1,7 @@
 package fr.jgetmove.jgetmove.solver;
 
-import fr.jgetmove.jgetmove.config.Config;
 import fr.jgetmove.jgetmove.database.Database;
+import fr.jgetmove.jgetmove.debug.Debug;
 
 import java.util.ArrayList;
 
@@ -38,9 +38,9 @@ public class ClusterGeneratorResult {
 
     @Override
     public String toString() {
-        return "Database : " + database + "\n"
-                + "Clusters : " + clusters + "\n"
-                + "Lvl2Clusters" + lvl2ClusterIds + "\n"
-                + "Lvl2Times" + lvl2TimeIds;
+        return "\n|--_Database " + Debug.indent(database.toString())
+                + "\n|-- Clusters : " + clusters
+                + "\n|-- Lvl2Clusters" + lvl2ClusterIds
+                + "\n`-- Lvl2Times" + lvl2TimeIds;
     }
 }

@@ -29,8 +29,8 @@ public class ClosedSwarmDetector implements Detector {
         if (times.get(times.size() - 1) - times.get(0) >= minTime) {
             Set<Time> timesOfPattern = new HashSet<>();
             Set<Transaction> transactionsOfPattern = new HashSet<>();
-            
-            for(Transaction transaction : transactions){
+
+            for (Transaction transaction : transactions) {
                 transactionsOfPattern.add(defaultDatabase.getTransaction(transaction.getId()));
             }
 
@@ -39,7 +39,7 @@ public class ClosedSwarmDetector implements Detector {
             }
 
             closedSwarm.add(new ClosedSwarm(transactionsOfPattern, timesOfPattern));
-            System.out.println("ClosedSwarm : " + closedSwarm);
+            Debug.println("ClosedSwarm", closedSwarm, Debug.INFO);
         }
         return closedSwarm;
     }

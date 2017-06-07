@@ -2,9 +2,6 @@ package fr.jgetmove.jgetmove.io;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -18,14 +15,13 @@ public class Output {
 
     /**
      * @param filePath le chemin vers le fichier à ecrire
-     * @throws IOException 
+     * @throws IOException
      */
     public Output(String filePath) throws IOException {
         this.filePath = filePath;
         writer = new BufferedWriter(new FileWriter(filePath));
     }
-    
-    
+
 
     /**
      * @throws IOException si il y a une erreur I/O
@@ -35,11 +31,11 @@ public class Output {
         writer.write(line);
         close();
     }
-    
-    public void close() throws IOException{
+
+    public void close() throws IOException {
         writer.close();
     }
-    
+
     @Override
     public String toString() {
         return filePath;

@@ -1,6 +1,5 @@
 package fr.jgetmove.jgetmove.solver;
 
-import fr.jgetmove.jgetmove.config.Config;
 import fr.jgetmove.jgetmove.config.DefaultConfig;
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.database.Transaction;
@@ -43,8 +42,7 @@ public class PatternGenerator implements Generator {
     /**
      * Initialise le solveur.
      *
-     * @param database   database par defaut
-     *
+     * @param database database par defaut
      */
     public PatternGenerator(Database database, DefaultConfig config) {
         this.minSupport = config.getMinSupport();
@@ -143,11 +141,11 @@ public class PatternGenerator implements Generator {
 
     }
 
+    @TraceMethod(displayTitle = true)
     private void run(Database database, ArrayList<Integer> itemsets, Set<Integer> transactionIds,
                      ArrayList<Integer> freqList, ArrayList<ArrayList<Integer>> lvl2ClusterId,
                      ArrayList<ArrayList<Integer>> lvl2TimeId, Set<Detector> detectors) {
-        Debug.println("RUN");
-        Debug.println("");
+        Debug.displayTitle();
 
         int calcurateCoreI = CalcurateCoreI(itemsets, freqList);
         SortedSet<Integer> lowerBounds = GeneratorUtils.lower_bound(database.getClusterIds(), calcurateCoreI);
@@ -200,10 +198,10 @@ public class PatternGenerator implements Generator {
         }
     }
 
+    @TraceMethod(displayTitle = true)
     private void printItemsets(Database database, ArrayList<Integer> itemsets,
                                ArrayList<ArrayList<Integer>> lvl2ClusterId, ArrayList<ArrayList<Integer>> lvl2TimeId,
                                Set<Detector> detectors) {
-        Debug.errln("Print Itemsets");
         Debug.println("Database2" + database);
         Debug.println("itemsets : " + itemsets);
         Debug.println("lvl2TimeId : " + lvl2TimeId);
@@ -216,7 +214,7 @@ public class PatternGenerator implements Generator {
                 Set<Integer> clusterBased = new TreeSet<>();
 
                 Collection<Transaction> transactions = database.getCluster(i).getTransactions().values();
-                Debug.errln("TEST : " + transactions);
+                Debug.println("TEST", transactions, Debug.DEBUG);
                 for (int j = 1; j < lvl2TimeId.get(i).size(); j++) {
                     timeBased.add(lvl2TimeId.get(i).get(j));
                 }
@@ -230,9 +228,8 @@ public class PatternGenerator implements Generator {
                         motifs.put(detector, detector.detect(defaultDatabase, timeBased, clusterBased, transactions));
                     }
                 }*/
-                
-                
-                
+
+
                 if (timeBased.size() > minTime) {
                     for (Detector detector : detectors) {
                         if (motifs.get(detector) == null) {

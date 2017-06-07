@@ -9,7 +9,7 @@ import java.util.Set;
 public class Time implements Comparable<Time> {
     private int id;
 
-    private Bloc bloc;
+    private Block bloc;
     /**
      * Hashmap contenant la liste des clusters idCluster=>Cluster
      */
@@ -41,14 +41,14 @@ public class Time implements Comparable<Time> {
     /**
      * @return le bloc associé au Time
      */
-    public Bloc getBloc() {
+    public Block getBloc() {
         return bloc;
     }
 
     /**
      * @param bloc set le bloc associé au time
      */
-    public void setBloc(Bloc bloc) {
+    public void setBloc(Block bloc) {
         this.bloc = bloc;
     }
 
