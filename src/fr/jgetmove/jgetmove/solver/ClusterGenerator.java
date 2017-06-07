@@ -2,6 +2,7 @@ package fr.jgetmove.jgetmove.solver;
 
 import fr.jgetmove.jgetmove.config.DefaultConfig;
 import fr.jgetmove.jgetmove.database.Cluster;
+import fr.jgetmove.jgetmove.database.ClusterMatrix;
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
@@ -9,10 +10,7 @@ import fr.jgetmove.jgetmove.debug.TraceMethod;
 import fr.jgetmove.jgetmove.utils.ArrayUtils;
 import fr.jgetmove.jgetmove.utils.GeneratorUtils;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedSet;
+import java.util.*;
 
 public class ClusterGenerator implements Generator {
 
@@ -124,8 +122,8 @@ public class ClusterGenerator implements Generator {
      */
     @TraceMethod
     public ClusterGeneratorResult generate() {
-        Database database = new Database(defaultDatabase);
-        Debug.println("totalItem", database.getClusterIds(), Debug.DEBUG);
+        ClusterMatrix clusterMatrix = new ClusterMatrix(defaultDatabase);
+        Debug.println("totalItem", defaultDatabase.getClusterIds(), Debug.DEBUG);
 
         ArrayList<Integer> itemsets = new ArrayList<>();
         ArrayList<Integer> freqItemset = new ArrayList<>();
@@ -135,10 +133,13 @@ public class ClusterGenerator implements Generator {
             transactions.add(new Transaction(transaction.getId()));
         }
 
+        TreeSet<Integer> transactionIds = new TreeSet<>(defaultDatabase.getTransactionIds());
+
+
         int[] numClusters = new int[1];
         numClusters[0] = 0;
 
-        run(database, transactions, itemsets, database.getTransactionIds(), freqItemset, numClusters);
+        run(clusterMatrix, transactions, itemsets, transactionIds, freqItemset, numClusters);
         Debug.println("Transactions", transactions, Debug.DEBUG);
 
         Database database2 = new Database(transactions);
@@ -166,7 +167,7 @@ public class ClusterGenerator implements Generator {
      * []timeID, [][]level2ItemID, [][]level2TimeID) {
      * </pre>
      *
-     * @param database           (database, , itemID, timeID) La database &agrave; analyser
+     * @param clusterMatrix      (database, , itemID, timeID) La database &agrave; analyser
      * @param transactions       (transactionsets)
      * @param clusterIds         (itemsets) une liste representant les id
      * @param transactionIds     (transactionList)
@@ -174,9 +175,9 @@ public class ClusterGenerator implements Generator {
      * @param numItems           (numItems)
      */
     @TraceMethod(displayTitle = true)
-    private void run(Database database, ArrayList<Transaction> transactions, ArrayList<Integer> clusterIds,
+    private void run(ClusterMatrix clusterMatrix, ArrayList<Transaction> transactions, ArrayList<Integer> clusterIds,
                      Set<Integer> transactionIds, ArrayList<Integer> frequentClusterIds, int[] numItems) {
-        Debug.println("database", database, Debug.DEBUG);
+        Debug.println("clusterMatrix", clusterMatrix, Debug.DEBUG);
         Debug.println("clustersIds", clusterIds, Debug.DEBUG);
         Debug.println("transactionIds ", transactionIds, Debug.DEBUG);
         Debug.println("frequentClusterIds ", frequentClusterIds, Debug.DEBUG);
@@ -192,7 +193,7 @@ public class ClusterGenerator implements Generator {
         Debug.println("GeneratedItemId", defaultDatabase.getClusterIds(), Debug.DEBUG);
 
         for (ArrayList<Integer> generatedClusters : generatedArrayOfClusters) {
-            PrintItemsetsNew(database, generatedClusters, transactions, numItems);
+            PrintItemsetsNew(clusterMatrix, generatedClusters, transactions, numItems);
 
             int calcurateCoreI = CalcurateCoreI(generatedClusters, frequentClusterIds);
 
@@ -206,11 +207,11 @@ public class ClusterGenerator implements Generator {
             Debug.println("lower bounds", lowerBounds.size(), Debug.DEBUG);
 
             for (int clusterId : lowerBounds) {
-                Debug.print("GeneratedClusters", generatedClusters, Debug.DEBUG);
-                Debug.print(" Cluster", database.getCluster(clusterId), Debug.DEBUG);
+                Debug.println("GeneratedClusters", generatedClusters, Debug.DEBUG);
+                Debug.println(" ClusterId", clusterId, Debug.DEBUG);
                 Debug.println("Min Support", minSupport, Debug.DEBUG);
 
-                if (database.getClusterTransactions(clusterId).size() >= minSupport &&
+                if (clusterMatrix.getClusterTransactionIds(clusterId).size() >= minSupport &&
                         !generatedClusters.contains(clusterId)) {
                     freqClusterIds.add(clusterId);
                 }
@@ -233,12 +234,12 @@ public class ClusterGenerator implements Generator {
                                 .updateFreqList(defaultDatabase, transactionIds, qSets, frequentClusterIds,
                                         freqClusterId);
 
-                        updateOccurenceDeriver(database, updatedTransactionIds);
+                        updateOccurenceDeriver(clusterMatrix, updatedTransactionIds);
 
                         // clusterIds -> qSets
                         // transactionIds -> updatedTransactionIds
                         // frequentClusterIds -> updatedFreqList
-                        run(database, transactions, qSets, updatedTransactionIds, updatedFreqList, numItems);
+                        run(clusterMatrix, transactions, qSets, updatedTransactionIds, updatedFreqList, numItems);
 
                     }
                 }
@@ -253,15 +254,15 @@ public class ClusterGenerator implements Generator {
      * [][]level2TimeID)
      * </pre>
      *
-     * @param database     (occ)
-     * @param clusterIds   (itemsets)
-     * @param transactions (transactionsets)
-     * @param numClusters  (numItems)
-     * @deprecated use {@link #printClustersNew(Database, ArrayList, ArrayList, int[])}
+     * @param clusterMatrix (occ)
+     * @param clusterIds    (itemsets)
+     * @param transactions  (transactionsets)
+     * @param numClusters   (numItems)
+     * @deprecated use {@link #printClustersNew(ClusterMatrix, ArrayList, ArrayList, int[])}
      */
-    private void PrintItemsetsNew(Database database, ArrayList<Integer> clusterIds, ArrayList<Transaction> transactions,
+    private void PrintItemsetsNew(ClusterMatrix clusterMatrix, ArrayList<Integer> clusterIds, ArrayList<Transaction> transactions,
                                   int[] numClusters) {
-        printClustersNew(database, clusterIds, transactions, numClusters);
+        printClustersNew(clusterMatrix, clusterIds, transactions, numClusters);
     }
 
     /**
@@ -271,12 +272,12 @@ public class ClusterGenerator implements Generator {
      * [][]level2TimeID)
      * </pre>
      *
-     * @param database     (occ)
-     * @param clusterIds   (itemsets)
-     * @param transactions (transactionsets)
-     * @param numClusters  (numItems)
+     * @param clusterMatrix (occ)
+     * @param clusterIds    (itemsets)
+     * @param transactions  (transactionsets)
+     * @param numClusters   (numItems)
      */
-    private void printClustersNew(Database database, ArrayList<Integer> clusterIds, ArrayList<Transaction> transactions,
+    private void printClustersNew(ClusterMatrix clusterMatrix, ArrayList<Integer> clusterIds, ArrayList<Transaction> transactions,
                                   int[] numClusters) {
         //TODO
         Debug.println("ItemsetSize : " + clusterIds.size());
@@ -290,13 +291,13 @@ public class ClusterGenerator implements Generator {
 
             for (Integer clusterId : clusterIds) {
                 clusterList.add(clusterId);
-                timeIds.add(database.getClusterTimeId(clusterId));
+                timeIds.add(clusterMatrix.getClusterTimeId(clusterId));
             }
             lvl2ClusterIds.add(clusterList);
             lvl2TimeIds.add(timeIds);
 
-            Set<Integer> transactionOfLast = database.getClusterTransactions(clusterIds.get(clusterIds.size() - 1))
-                    .keySet();
+            Set<Integer> transactionOfLast =
+                    clusterMatrix.getClusterTransactionIds(clusterIds.get(clusterIds.size() - 1));
 
             //Pour chaque transaction, on ajoute le cluster qui a l'id numItem
             for (Integer transactionId : transactionOfLast) {
@@ -318,10 +319,10 @@ public class ClusterGenerator implements Generator {
      *
      * @param database          (occurence)
      * @param newTransactionIds (transactionList)
-     * @deprecated use {@link Database#rebindRelations(Database, Set)}
+     * @deprecated use {@link ClusterMatrix#optimizeMatrix(Database, Set)}
      */
-    private void updateOccurenceDeriver(Database database, Set<Integer> newTransactionIds) {
-        database.rebindRelations(defaultDatabase, newTransactionIds);
+    private void updateOccurenceDeriver(ClusterMatrix database, Set<Integer> newTransactionIds) {
+        database.optimizeMatrix(defaultDatabase, newTransactionIds);
     }
 
     /**

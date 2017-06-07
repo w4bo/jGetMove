@@ -6,8 +6,8 @@ import java.util.TreeSet;
 
 public class ClusterMatrix {
 
-    HashMap<Integer, Integer> clusterTimeMatrix;
-    HashMap<Integer, TreeSet<Integer>> clusterTransactionsMatrix;
+    private HashMap<Integer, Integer> clusterTimeMatrix;
+    private HashMap<Integer, TreeSet<Integer>> clusterTransactionsMatrix;
 
     public ClusterMatrix(Database database) {
         clusterTimeMatrix = new HashMap<>();
@@ -24,14 +24,6 @@ public class ClusterMatrix {
                 clusterTransactionsMatrix.get(clusterId).add(transaction.getId());
             }
         }
-    }
-
-    /**
-     * @param clusterId identifiant du cluster
-     * @return le cluster ayant le clusterId
-     */
-    public TreeSet<Integer> getCluster(int clusterId) {
-        return clusterTransactionsMatrix.get(clusterId);
     }
 
     public int getClusterTimeId(int clusterId) {
@@ -52,14 +44,21 @@ public class ClusterMatrix {
             Set<Integer> clusterIds = transaction.getClusterIds();
 
             for (int clusterId : clusterIds) {
-                TreeSet<Integer> transactions = this.getCluster(clusterId);
-
-                if (transactions == null) {
+                if (!clusterTransactionsMatrix.containsKey(clusterId)) {
                     clusterTransactionsMatrix.put(clusterId, new TreeSet<>());
                     clusterTimeMatrix.put(clusterId, defaultDatabase.getClusterTimeId(clusterId));
                 }
+
                 clusterTransactionsMatrix.get(clusterId).add(transactionId);
             }
         }
     }
+
+    @Override
+    public String toString() {
+        String str = "\n|-- ClusterMatrix :" + clusterTransactionsMatrix;
+        str += "\n`-- TimeMatrix :" + clusterTimeMatrix.values();
+        return str;
+    }
+
 }

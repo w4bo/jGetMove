@@ -55,58 +55,6 @@ public class Database {
         initTimeAndCluster(blockSize);
     }
 
-    @Deprecated
-    public Database(Database database) {
-        // TODO : copying database :) with blocks
-        this.inputObj = null;
-        this.inputTime = null;
-
-        blocks = new HashMap<>();
-        clusters = new HashMap<>();
-        transactions = new HashMap<>();
-        times = new HashMap<>();
-
-        blockIdsTree = new TreeSet<>();
-        clusterIdsTree = new TreeSet<>();
-        transactionIdsTree = new TreeSet<>();
-        timeIdsTree = new TreeSet<>();
-
-        for (Transaction originalTransaction : database.getTransactions().values()) {
-            Transaction transaction = getOrCreateTransaction(originalTransaction.getId());
-
-            for (Cluster originalCluster : originalTransaction.getClusters().values()) {
-                Cluster cluster = getOrCreateCluster(originalCluster.getId());
-
-                transaction.add(cluster);
-                cluster.add(transaction);
-            }
-        }
-
-        for (Cluster originalCluster : database.getClusters().values()) {
-            Cluster cluster = getOrCreateCluster(originalCluster.getId());
-
-            for (Transaction originalTransaction : originalCluster.getTransactions().values()) {
-                Transaction transaction = getOrCreateTransaction(originalTransaction.getId());
-
-                transaction.add(cluster);
-                cluster.add(transaction);
-            }
-        }
-
-        for (Cluster originalCluster : database.getClusters().values()) {
-            Cluster cluster = this.getCluster(originalCluster.getId());
-            Time time = this.getTime(originalCluster.getTimeId());
-
-            if (time == null) {
-                time = new Time(originalCluster.getTimeId());
-                this.add(time);
-            }
-
-            time.add(cluster);
-            cluster.setTime(time);
-        }
-    }
-
     public Database(Collection<Transaction> transactions) {
         this.inputObj = null;
         this.inputTime = null;
@@ -425,70 +373,6 @@ public class Database {
         str += "\n|-- Transactions :" + transactions.values();
         str += "\n`-- Temps :" + times.values();
         return str;
-    }
-
-    /**
-     * Supprime les associations {@link Cluster} <=> {@link Transaction}
-     */
-    public void cleanClusterTransactionBinding() {
-        this.inputObj = null;
-        this.inputTime = null;
-
-        for (Cluster cluster : clusters.values()) {
-            cluster.clear();
-        }
-
-        for (Transaction transaction : transactions.values()) {
-            transaction.clear();
-        }
-    }
-
-    /**
-     * Supprime et recrée les associations {@link Cluster} <=> {@link Transaction} en fonction des transactions à prendre en compte
-     * <p>
-     * <pre>
-     * Lcm::UpdateOccurenceDeriver(const Database &database, const vector<int> &transactionList, ClusterMatrix &occurence)
-     * </pre>
-     * this (occurence)
-     *
-     * @param defaultDatabase (database) base de données originale
-     * @param transactionIds  (transactionList) transactions à prendre en compte
-     */
-    @Deprecated
-    public void rebindRelations(Database defaultDatabase, Set<Integer> transactionIds) {
-        this.cleanClusterTransactionBinding();
-
-        for (int transactionId : transactionIds) {
-            Transaction newtransaction = this.getTransaction(transactionId);
-            Transaction transaction = defaultDatabase.getTransaction(transactionId);
-            Set<Integer> clusterIds = transaction.getClusterIds();
-
-            if (newtransaction == null) {
-                newtransaction = new Transaction(transactionId);
-                this.add(newtransaction);
-            }
-
-            for (int clusterId : clusterIds) {
-                Cluster cluster = this.getCluster(clusterId);
-
-                if (cluster == null) {
-                    cluster = new Cluster(clusterId);
-                    this.add(cluster);
-
-                    Time time = this.getTime(defaultDatabase.getClusterTimeId(clusterId));
-                    if (time == null) {
-                        time = new Time(defaultDatabase.getClusterTimeId(clusterId));
-                        add(time);
-                    }
-
-                    cluster.setTime(time);
-                    time.add(cluster);
-                }
-
-                cluster.add(newtransaction);
-                newtransaction.add(cluster);
-            }
-        }
     }
 
     /**
