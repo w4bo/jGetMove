@@ -1,0 +1,3 @@
+Main-Class: fr.jgetmove.jgetmove.Main
+Class-Path: lib/javax.json-1.0.4.jar lib/jcommander-1.72.jar
+Application-Name: jGetMove
