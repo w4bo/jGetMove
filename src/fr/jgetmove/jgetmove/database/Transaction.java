@@ -2,6 +2,7 @@ package fr.jgetmove.jgetmove.database;
 
 import java.util.HashMap;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Object contenant l'ensemble des clusters dans lequel il est présent.
@@ -16,6 +17,7 @@ public class Transaction implements Comparable<Transaction> {
      * hashmap contenant (idCluster => Cluster)
      */
     private HashMap<Integer, Cluster> clusters;
+    private TreeSet<Integer> clusterIds;
 
     /**
      * @param id identifiant de la transaction
@@ -23,6 +25,7 @@ public class Transaction implements Comparable<Transaction> {
     public Transaction(int id) {
         this.id = id;
         this.clusters = new HashMap<>();
+        this.clusterIds = new TreeSet<>();
     }
 
     /**
@@ -51,6 +54,7 @@ public class Transaction implements Comparable<Transaction> {
      */
     public void add(Cluster cluster) {
         clusters.put(cluster.getId(), cluster);
+        clusterIds.add(cluster.getId());
     }
 
     /**
@@ -81,12 +85,12 @@ public class Transaction implements Comparable<Transaction> {
     }
 
     public Set<Integer> getClusterIds() {
-        return getClusters().keySet();
+        return clusterIds;
     }
 
     @Override
     public String toString() {
-        return "{" + id + "=" + String.valueOf(clusters.keySet()) + "}";
+        return "{" + id + "=" + String.valueOf(clusterIds) + "}";
     }
 
     public void clear() {
