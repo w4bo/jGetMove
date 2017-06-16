@@ -142,7 +142,7 @@ public class ClusterGenerator implements Generator {
         run(clusterMatrix, transactions, itemsets, transactionIds, freqItemset, numClusters);
         Debug.println("Transactions", transactions, Debug.DEBUG);
 
-        Database database2 = new Database(transactions);
+        Database database2 = new Database(transactions);// TODO
 
         return new ClusterGeneratorResult(database2, clustersGenerated, lvl2TimeIds,
                 lvl2ClusterIds);

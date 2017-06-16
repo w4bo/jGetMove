@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * Contient toutes les structures de données
+ * Contains all the objects, has the job of managing data and saving informations
  */
 public class Database {
     private Input inputObj, inputTime;
@@ -28,11 +28,12 @@ public class Database {
     private TreeSet<Integer> blockIdsTree;
 
     /**
-     * Initialise Database en fonction des fichiers de données
+     * Initialises the database following the configurations in the files
      *
-     * @param inputObj  fichier (transactionId [clusterId ...])
-     * @param inputTime fichier (timeId clusterId)
-     * @throws IOException              si inputObj ou inputTime est incorrect
+     * @param inputObj  file (transactionId [clusterId ...])
+     * @param inputTime file (timeId clusterId)
+     * @param blockSize block size
+     * @throws IOException              if inputObj or inputTime is incorrect
      * @throws ClusterNotExistException si le cluster n'existe pas
      */
     public Database(Input inputObj, Input inputTime, int blockSize) throws IOException, ClusterNotExistException, MalformedTimeIndexException {
@@ -55,6 +56,9 @@ public class Database {
         initTimeAndCluster(blockSize);
     }
 
+    /**
+     * @param transactions
+     */
     public Database(Collection<Transaction> transactions) {
         this.inputObj = null;
         this.inputTime = null;
@@ -365,16 +369,6 @@ public class Database {
         return finalJson.build().toString();
     }
 
-    @Override
-    public String toString() {
-        String str = "\n|-- Fichiers :" + inputObj + "; " + inputTime;
-        str += "\n|-- Blocks :" + blocks.values();
-        str += "\n|-- Clusters :" + clusters.values();
-        str += "\n|-- Transactions :" + transactions.values();
-        str += "\n`-- Temps :" + times.values();
-        return str;
-    }
-
     /**
      * Verifie si le cluster est inclus dans toute la liste des transactions
      * <p>
@@ -415,5 +409,15 @@ public class Database {
         }
 
         return filteredTransactionIds;
+    }
+
+    @Override
+    public String toString() {
+        String str = "\n|-- Fichiers :" + inputObj + "; " + inputTime;
+        str += "\n|-- Blocks :" + blocks.values();
+        str += "\n|-- Clusters :" + clusters.values();
+        str += "\n|-- Transactions :" + transactions.values();
+        str += "\n`-- Temps :" + times.values();
+        return str;
     }
 }

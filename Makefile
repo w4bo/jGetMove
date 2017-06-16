@@ -7,7 +7,7 @@ APP_NAME = jGetMove.jar
 MANIFEST = Manifest.mf
 
 jgetmove : jgetmove-class
-	jar cvfm $(APP_NAME) $(MANIFEST) $(MAIN_CP) -C $(OUT_DIR) . $(LIB_DIR)
+	jar cvfm $(APP_NAME) $(MANIFEST) -C $(OUT_DIR) . $(LIB_DIR)
 
 jgetmove-class :
 	mkdir -p $(OUT_DIR)
