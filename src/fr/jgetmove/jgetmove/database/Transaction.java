@@ -1,7 +1,6 @@
 package fr.jgetmove.jgetmove.database;
 
 import java.util.HashMap;
-import java.util.Set;
 import java.util.TreeSet;
 
 /**
@@ -20,7 +19,7 @@ public class Transaction implements Comparable<Transaction> {
     private TreeSet<Integer> clusterIds;
 
     /**
-     * @param id identifiant de la transaction
+     * @param id transaction identifier
      */
     public Transaction(int id) {
         this.id = id;
@@ -29,8 +28,8 @@ public class Transaction implements Comparable<Transaction> {
     }
 
     /**
-     * @param id       identifiant de la transaction
-     * @param clusters ensemble des clusters de la transaction
+     * @param id       transaction identifier
+     * @param clusters array of clusters
      */
     public Transaction(int id, Cluster[] clusters) {
         this.id = id;
@@ -41,8 +40,8 @@ public class Transaction implements Comparable<Transaction> {
     }
 
     /**
-     * @param id       identifiant de la transaction
-     * @param clusters ensemble des clusters de la transaction
+     * @param id       transaction identifier
+     * @param clusters set of cluster to add
      */
     public Transaction(int id, HashMap<Integer, Cluster> clusters) {
         this.id = id;
@@ -58,43 +57,36 @@ public class Transaction implements Comparable<Transaction> {
     }
 
     /**
-     * @return id de la transaction
+     * @return id of the transaction
      */
     public int getId() {
         return id;
     }
 
     /**
-     * Setter on id
-     *
-     * @param id
+     * @param id of the transaction
      */
     public void setId(int id) {
         this.id = id;
     }
 
     /**
-     * @return l'ensemble des clusters de la transaction
+     * @return the Cluster HashMap
      */
     public HashMap<Integer, Cluster> getClusters() {
         return clusters;
     }
 
-    public Cluster getCluster(int clusterId) {
-        return clusters.get(clusterId);
-    }
-
-    public Set<Integer> getClusterIds() {
+    /**
+     * @return the Clusters' id as a TreeSet
+     */
+    public TreeSet<Integer> getClusterIds() {
         return clusterIds;
     }
 
     @Override
     public String toString() {
         return "{" + id + "=" + String.valueOf(clusterIds) + "}";
-    }
-
-    public void clear() {
-        clusters.clear();
     }
 
     @Override

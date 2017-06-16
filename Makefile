@@ -16,3 +16,4 @@ jgetmove-class :
 clean:
 	rm -f $(APP_NAME)
 	rm -rf $(OUT_DIR)
+

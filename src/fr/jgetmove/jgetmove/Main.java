@@ -5,10 +5,7 @@ import com.beust.jcommander.Parameter;
 import fr.jgetmove.jgetmove.config.DefaultConfig;
 import fr.jgetmove.jgetmove.database.Database;
 import fr.jgetmove.jgetmove.debug.Debug;
-import fr.jgetmove.jgetmove.detector.ClosedSwarmDetector;
-import fr.jgetmove.jgetmove.detector.ConvoyDetector;
 import fr.jgetmove.jgetmove.detector.Detector;
-import fr.jgetmove.jgetmove.detector.GroupPatternDetector;
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.exception.MalformedTimeIndexException;
 import fr.jgetmove.jgetmove.io.Input;
@@ -97,9 +94,9 @@ public class Main {
             PatternGenerator patternGenerator = new PatternGenerator(database, config);
 
             Set<Detector> detectors = new HashSet<>();
-            detectors.add(new ConvoyDetector(minTime));
-            detectors.add(new ClosedSwarmDetector(minTime));
-            detectors.add(new GroupPatternDetector(config.getMinTime(), config.getCommonObjectPercentage()));
+            //detectors.add(new ConvoyDetector(minTime));
+            //detectors.add(new ClosedSwarmDetector(minTime));
+            //detectors.add(new GroupPatternDetector(config.getMinTime(), config.getCommonObjectPercentage()));
 
             /*
              * Create solver from clusterGenerator, patternGenerator, detectors and start the generation
