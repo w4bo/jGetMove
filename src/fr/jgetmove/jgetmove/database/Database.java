@@ -332,20 +332,20 @@ public class Database {
      * @return la database en format json
      */
     public JsonObjectBuilder toJSON() {
-        int index = 0;
+        //int index = 0;
         JsonArrayBuilder linksArray = Json.createArrayBuilder();
         for (Transaction transaction : this.getTransactions().values()) {
             ArrayList<Integer> clustersIds = new ArrayList<>(transaction.getClusterIds());
 
             for (int i = 0; i < clustersIds.size() - 1; i++) {
                 linksArray.add(Json.createObjectBuilder()
-                        .add("id", i + index)
+                        .add("id", transaction.getId())
                         .add("source", clustersIds.get(i))
                         .add("target", clustersIds.get(i + 1))
                         .add("value", 1)
                         .add("label", transaction.getId()));
             }
-            index += transaction.getClusters().size();
+            //index += transaction.getClusters().size();
         }
 
         JsonArrayBuilder nodesArray = Json.createArrayBuilder();

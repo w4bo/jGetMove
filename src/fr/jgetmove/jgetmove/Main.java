@@ -43,7 +43,7 @@ public class Main {
     private int maxPattern = 0;
 
     @Parameter(names = {"-t", "--time-min"}, description = "Min time", required = true)
-    private int minTime = 0;
+    private int minTime = 1;
 
     @Parameter(names = {"-b", "--bloc-size"}, description = "taille du block")
     private int blockSize = 0;
