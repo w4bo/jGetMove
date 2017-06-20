@@ -40,8 +40,6 @@ class ClusterMatrixTest {
 
     @Test
     void getClusterTransactionIds() {
-
-
         assertTrue(clusterMatrix.getClusterTransactionIds(0).contains(0));
         assertEquals(1, clusterMatrix.getClusterTransactionIds(0).size());
 
@@ -62,6 +60,7 @@ class ClusterMatrixTest {
 
     @Test
     void optimizeMatrix() {
+        ClusterMatrix clusterMatrix = new ClusterMatrix(database);
 
         TreeSet<Integer> set = new TreeSet<>();
         set.add(1);

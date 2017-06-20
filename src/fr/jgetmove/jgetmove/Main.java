@@ -112,7 +112,7 @@ public class Main {
             /*
              * Create new Output object from results
              */
-            JsonObjectBuilder jsonBuilder = database.toJSON();
+            JsonObjectBuilder jsonBuilder = database.toJson();
             jsonBuilder.add("patterns", solver.toJSON(patterns));
 
             Output outputSolver = new Output(outputFile);

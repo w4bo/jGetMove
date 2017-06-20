@@ -321,7 +321,7 @@ public class Database {
 
     /**
      * @param index = id du cluster
-     * @return L'ensemble des transaction d'un cluster sous forme d'une chaine de caractère pour toJSON()
+     * @return L'ensemble des transaction d'un cluster sous forme d'une chaine de caractère pour toJson()
      */
     public String printGetClusterTransactions(int index) {
         StringBuilder s = new StringBuilder();
@@ -335,7 +335,7 @@ public class Database {
     /**
      * @return la database en format json
      */
-    public JsonObjectBuilder toJSON() {
+    public JsonObjectBuilder toJson() {
         //int index = 0;
         JsonArrayBuilder linksArray = Json.createArrayBuilder();
         for (Transaction transaction : this.getTransactions().values()) {
