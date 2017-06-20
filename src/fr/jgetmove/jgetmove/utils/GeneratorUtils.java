@@ -14,7 +14,7 @@ public class GeneratorUtils {
      * </pre>
      *
      * @param clusterIds         (itemsets)
-     * @param frequentClusterIds (freqList)
+     * @param frequentClusterIds (freqList) !not empty
      * @return le dernier élement different du dernier clusterId de frequentClusterIds, si frequentClusterIds est trop petit, renvoie le premier element de clusterIds, sinon renvoi 0 si clusterIds est vide
      */
     public static int getDifferentFromLastCluster(ArrayList<Integer> clusterIds,
@@ -56,8 +56,8 @@ public class GeneratorUtils {
         Debug.println("freq : " + freq);
         Debug.println("");
 
-        for (int clusterId = 0; clusterId < itemset.size() && itemset.get(clusterId) < freq; clusterId++) {
-            qSets.add(itemset.get(clusterId));
+        for (int clusterIndex = 0; clusterIndex < itemset.size() && itemset.get(clusterIndex) < freq; clusterIndex++) {
+            qSets.add(itemset.get(clusterIndex));
         }
 
         //qSets.addAll(itemset);
@@ -194,16 +194,14 @@ public class GeneratorUtils {
      * Lcm::PpcTest(database, []itemsets, []transactionList, item, []newTransactionList)
      * </pre>
      *
-     * @param clusters          (itemsets)
-     * @param transactionIds    (transactionList)
-     * @param freqClusterId     (item)
-     * @param newTransactionIds (newTransactionList)
+     * @param itemset           (itemsets)
+     * @param maxClusterId     (item)
+     * @param transactionIds (newTransactionList)
      * @return vrai si ppctest est réussi
      */
-    public static boolean ppcTest(Database database, ArrayList<Integer> clusters, Set<Integer> transactionIds,
-                                  int freqClusterId, Set<Integer> newTransactionIds) {
-        for (int clusterId = 0; clusterId < freqClusterId; clusterId++) {
-            if (!clusters.contains(clusterId) && CheckItemInclusion(database, newTransactionIds, clusterId)) {
+    public static boolean ppcTest(Database database, ArrayList<Integer> itemset, int maxClusterId, Set<Integer> transactionIds) {
+        for (int clusterId = 0; clusterId < maxClusterId; clusterId++) {
+            if (!itemset.contains(clusterId) && CheckItemInclusion(database, transactionIds, clusterId)) {
                 return false;
             }
         }

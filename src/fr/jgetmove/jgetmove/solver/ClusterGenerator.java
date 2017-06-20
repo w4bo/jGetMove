@@ -71,7 +71,7 @@ public class ClusterGenerator implements Generator {
      * @deprecated use
      * {@link Database#getFilteredTransactionIdsIfHaveCluster(Set, int)}
      * and
-     * {@link GeneratorUtils#ppcTest(Database, ArrayList, Set, int, Set)}
+     * {@link #ppcTest(Database, ArrayList}
      */
     @TraceMethod(displayTitle = true)
     private static boolean PPCTest(Database database, ArrayList<Integer> clusters, Set<Integer> transactionIds,

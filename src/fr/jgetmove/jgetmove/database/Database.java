@@ -391,23 +391,20 @@ public class Database {
     }
 
     /**
-     * Retourne une liste de transactions qui contienent le cluster défini par clusterId, seules les transactions contenues dans transactionIds seront itérés
+     * Checks and returns a list of transactions from <tt>transactionIds</tt> which are contained in the cluster (<tt>clusterId</tt>)
      *
-     * @param transactionIds liste de transactions à filter
-     * @param clusterId      le cluster qui doit être contenu par la transaction
-     * @return liste des transactionIds contenant le cluster
+     * @param transactionIds list of transactions to check from
+     * @param clusterId      the cluster to filter them
+     * @return a list of transactionIds
      */
     public Set<Integer> getFilteredTransactionIdsIfHaveCluster(Set<Integer> transactionIds, int clusterId) {
         Set<Integer> filteredTransactionIds = new HashSet<>();
 
         for (int transactionId : transactionIds) {
-            Transaction transaction = this.getTransaction(transactionId);
-
-            if (transaction.getClusterIds().contains(clusterId)) {
+            if (this.getCluster(clusterId) != null && this.getClusterTransactions(clusterId).containsKey(transactionId)) {
                 filteredTransactionIds.add(transactionId);
             }
         }
-
         return filteredTransactionIds;
     }
 
