@@ -229,14 +229,17 @@ public class PatternGenerator implements Generator {
                     }
                 }*/
 
-
+                //TODO fix bug defaultDatabase -> database
                 if (timeBased.size() > minTime) {
                     for (Detector detector : detectors) {
                         if (motifs.get(detector) == null) {
                             ArrayList<Pattern> patterns = detector.detect(defaultDatabase, timeBased, clusterBased, transactions);
+                            //ArrayList<Pattern> patterns = detector.detect(database, timeBased, clusterBased, transactions);
                             motifs.put(detector, patterns);
                         } else {
                             motifs.get(detector).addAll(detector.detect(defaultDatabase, timeBased, clusterBased, transactions));
+                            //motifs.get(detector).addAll(detector.detect(database, timeBased, clusterBased, transactions));
+
                         }
                     }
                 }
