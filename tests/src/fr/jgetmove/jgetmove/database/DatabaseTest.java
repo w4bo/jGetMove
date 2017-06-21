@@ -85,7 +85,7 @@ class DatabaseTest {
 
 
     @Test
-    void toJSON() {
+    void toJson() {
         assertEquals("{\"links\":[{\"id\":0,\"source\":0,\"target\":2,\"value\":1,\"label\":0},{\"id\":0,\"source\":2,\"target\":4,\"value\":1,\"label\":0},{\"id\":1,\"source\":1,\"target\":3,\"value\":1,\"label\":1},{\"id\":1,\"source\":3,\"target\":4,\"value\":1,\"label\":1}],\"nodes\":[{\"id\":0,\"label\":\"0\",\"time\":1},{\"id\":1,\"label\":\"1\",\"time\":1},{\"id\":2,\"label\":\"0\",\"time\":2},{\"id\":3,\"label\":\"1\",\"time\":2},{\"id\":4,\"label\":\"0,1\",\"time\":3}]}", database.toJson().build().toString());
 
     }

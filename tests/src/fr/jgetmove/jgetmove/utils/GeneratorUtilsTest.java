@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -97,12 +98,96 @@ class GeneratorUtilsTest {
 
     @Test
     void updateTransactions() {
-        //TODO
+
+        try {
+            Database database = new Database(new Input("tests/assets/itemset_check.dat"), new Input("tests/assets/itemset_check_time_index.dat"), 0);
+            Set<Integer> transactionIds = new TreeSet<>();
+            transactionIds.add(0);
+            transactionIds.add(1);
+
+            ArrayList<Integer> qSets = new ArrayList<>();
+            qSets.add(0);
+            qSets.add(2);
+            qSets.add(4);
+
+            Set<Integer> updated = GeneratorUtils.updateTransactions(database, transactionIds, qSets, 0);
+
+            assertEquals(1, updated.size());
+            assertTrue(updated.contains(0));
+
+
+            qSets.clear();
+            qSets.add(1);
+            qSets.add(3);
+            qSets.add(4);
+
+            updated = GeneratorUtils.updateTransactions(database, transactionIds, qSets, 1);
+
+            assertEquals(1, updated.size());
+            assertTrue(updated.contains(1));
+
+
+            qSets.clear();
+            qSets.add(4);
+
+            updated = GeneratorUtils.updateTransactions(database, transactionIds, qSets, 1);
+
+            assertEquals(2, updated.size());
+            assertTrue(updated.contains(0));
+            assertTrue(updated.contains(1));
+
+        } catch (IOException | ClusterNotExistException | MalformedTimeIndexException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Test
     void updateFreqList() {
-        //TODO
+        Database database = null;
+        try {
+            database = new Database(new Input("tests/assets/itemset_check.dat"), new Input("tests/assets/itemset_check_time_index.dat"), 0);
+        } catch (IOException | ClusterNotExistException | MalformedTimeIndexException e) {
+            e.printStackTrace();
+        }
+        Set<Integer> transactionIds = new TreeSet<>();
+        transactionIds.add(0);
+        transactionIds.add(1);
+
+        ArrayList<Integer> qSets = new ArrayList<>();
+        qSets.add(0);
+        qSets.add(2);
+        qSets.add(4);
+
+        ArrayList<Integer> frequentClusters = new ArrayList<>();
+
+        ArrayList<Integer> updated = GeneratorUtils.updateFreqList(database, transactionIds, qSets, frequentClusters, 0);
+
+        assertEquals(3, updated.size());
+        assertEquals(1, (int) updated.get(0));
+        assertEquals(1, (int) updated.get(1));
+        assertEquals(1, (int) updated.get(2));
+
+
+        qSets.clear();
+        qSets.add(1);
+        qSets.add(3);
+        qSets.add(4);
+
+        updated = GeneratorUtils.updateFreqList(database, transactionIds, qSets, frequentClusters, 1);
+
+        assertEquals(3, updated.size());
+        assertEquals(1, (int) updated.get(0));
+        assertEquals(1, (int) updated.get(1));
+        assertEquals(1, (int) updated.get(2));
+
+        qSets.clear();
+        qSets.add(4);
+        updated = GeneratorUtils.updateFreqList(database, transactionIds, qSets, frequentClusters, 4);
+
+        assertEquals(1, updated.size());
+        assertEquals(2, (int) updated.get(0));
+
     }
 
     @Test

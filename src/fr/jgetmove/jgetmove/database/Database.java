@@ -383,7 +383,7 @@ public class Database {
      */
     public boolean isClusterInTransactions(Set<Integer> transactionIds, int clusterId) {
         for (int transactionId : transactionIds) {
-            if (!this.getTransaction(transactionId).getClusterIds().contains(clusterId)) {
+            if (this.getCluster(clusterId) != null && !this.getClusterTransactions(clusterId).containsKey(transactionId)) {
                 return false;
             }
         }
