@@ -15,10 +15,10 @@ import java.util.*;
 public class ClusterGenerator implements Generator {
 
     private final Database defaultDatabase;
+    ArrayList<ArrayList<Integer>> lvl2ClusterIds;
+    ArrayList<ArrayList<Integer>> lvl2TimeIds;
     private ArrayList<ArrayList<Integer>> clustersGenerated;
     private int minSupport, maxPattern, minTime;
-    private ArrayList<ArrayList<Integer>> lvl2ClusterIds;
-    private ArrayList<ArrayList<Integer>> lvl2TimeIds;
 
     /**
      * Initialise le solveur.
@@ -111,6 +111,26 @@ public class ClusterGenerator implements Generator {
         return GeneratorUtils.getDifferentFromLastCluster(clusterIds, frequentClusterIds);
     }
 
+    private static void addTransactionToItemset(ClusterMatrix clusterMatrix, ArrayList<Integer> path, ArrayList<Transaction> transactions, int[] numItemset) {
+        //TODO : opti ce truc mais en gros ça règle le pb du surplus de transactions par itemsets
+        Set<Integer> transactionOfLast = clusterMatrix.getClusterTransactionIds(path.get(path.size() - 1));
+        //Parmis la liste de clusters d'un itemsets, je cherche le cluster qui a le moins de transaction et ça sera par définition les transactions de mon path
+        // sert à rien, déja limité par clustermatrix
+            /*for (int clusterId : path) {
+                if (clusterMatrix.getClusterTransactionIds(clusterId).size() < transactionOfLast.size()) {
+                    transactionOfLast = clusterMatrix.getClusterTransactionIds(clusterId);
+                }
+            }*/
+
+        //Pour chaque transaction, on ajoute le cluster qui a l'id numItem
+        // TODO :on ajoute pour chaque transaction l'path auquel il appartient :D
+        for (Integer transactionId : transactionOfLast) {
+            transactions.get(transactionId).add(new Cluster(numItemset[0]));
+        }
+
+        numItemset[0]++;
+    }
+
     /**
      * Initialise le solver à partir d'une base de données
      * <p>
@@ -142,7 +162,8 @@ public class ClusterGenerator implements Generator {
         run(clusterMatrix, transactions, itemsets, transactionIds, freqItemset, numClusters);
         Debug.println("Transactions", transactions, Debug.DEBUG);
 
-        Database database2 = new Database(transactions);// TODO
+        // Database 2 devient PathBlock
+        Database database2 = new Database(transactions);
 
         return new ClusterGeneratorResult(database2, clustersGenerated, lvl2TimeIds,
                 lvl2ClusterIds);
@@ -254,45 +275,35 @@ public class ClusterGenerator implements Generator {
      * </pre>
      *
      * @param clusterMatrix (occ)
-     * @param itemset       (itemsets)
+     * @param path          (itemsets)
      * @param transactions  (transactionsets)
-     * @param numClusters   (numItems)
+     * @param numItemset    (numItems)
      */
-    void printItemsetsNew(ClusterMatrix clusterMatrix, ArrayList<Integer> itemset, ArrayList<Transaction> transactions,
-                          int[] numClusters) {
-        //TODO
-        Debug.println("ItemsetSize : ", itemset.size(), Debug.DEBUG);
+    void printItemsetsNew(ClusterMatrix clusterMatrix, ArrayList<Integer> path, ArrayList<Transaction> transactions,
+                          int[] numItemset) {
+        Debug.println("ItemsetSize : ", path.size(), Debug.DEBUG);
         Debug.println("MinTime : ", minTime, Debug.DEBUG);
 
-        if (itemset.size() > minTime) {
-            ArrayList<Integer> timeIds = new ArrayList<>();
-            ArrayList<Integer> clusterList = new ArrayList<>();
-            timeIds.add(0);
-            clusterList.add(0);
-
-            for (Integer clusterId : itemset) {
-                clusterList.add(clusterId);
-                timeIds.add(clusterMatrix.getClusterTimeId(clusterId));
-            }
-            lvl2ClusterIds.add(clusterList);
-            lvl2TimeIds.add(timeIds);
-
-            //TODO : opti ce truc mais en gros ça règle le pb du surplus de transactions par itemsets
-            Set<Integer> transactionOfLast = clusterMatrix.getClusterTransactionIds(itemset.get(0));
-            //Parmis la liste de clusters d'un itemsets, je cherche le cluster qui a le moins de transaction et ça sera par définition les transactions de mon itemset
-            for(int i = 1; i < itemset.size(); i++){
-                if(clusterMatrix.getClusterTransactionIds(itemset.get(i)).size() < transactionOfLast.size()){
-                    transactionOfLast = clusterMatrix.getClusterTransactionIds(itemset.get(i));
-                }
-            }
-
-            //Pour chaque transaction, on ajoute le cluster qui a l'id numItem
-            for (Integer transactionId : transactionOfLast) {
-                transactions.get(transactionId).add(new Cluster(numClusters[0]));
-            }
-
-            numClusters[0]++;
+        //TODO back to minTime for itemsize
+        if (path.size() > 0) { // code c complient
+            //if (path.size() > minTime) {
+            addPathToBlockPath(clusterMatrix, path);
+            addTransactionToItemset(clusterMatrix, path, transactions, numItemset);
         }
+    }
+
+    private void addPathToBlockPath(ClusterMatrix clusterMatrix, ArrayList<Integer> path) {
+        ArrayList<Integer> timeIds = new ArrayList<>();
+        ArrayList<Integer> clusterList = new ArrayList<>();
+        timeIds.add(0);
+        clusterList.add(0);
+
+        for (Integer clusterId : path) {
+            clusterList.add(clusterId);
+            timeIds.add(clusterMatrix.getClusterTimeId(clusterId));
+        }
+        lvl2ClusterIds.add(clusterList);
+        lvl2TimeIds.add(timeIds);
     }
 
     /**
