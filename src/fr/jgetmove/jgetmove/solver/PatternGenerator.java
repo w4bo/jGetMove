@@ -229,7 +229,6 @@ public class PatternGenerator implements Generator {
                     }
                 }*/
 
-                //TODO fix bug defaultDatabase -> database
                 if (timeBased.size() > minTime) {
                     for (Detector detector : detectors) {
                         if (motifs.get(detector) == null) {

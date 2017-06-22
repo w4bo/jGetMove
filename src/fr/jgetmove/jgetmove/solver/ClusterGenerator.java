@@ -277,8 +277,14 @@ public class ClusterGenerator implements Generator {
             lvl2ClusterIds.add(clusterList);
             lvl2TimeIds.add(timeIds);
 
-            Set<Integer> transactionOfLast =
-                    clusterMatrix.getClusterTransactionIds(itemset.get(itemset.size() - 1));
+            //TODO : opti ce truc mais en gros ça règle le pb du surplus de transactions par itemsets
+            Set<Integer> transactionOfLast = clusterMatrix.getClusterTransactionIds(itemset.get(0));
+            //Parmis la liste de clusters d'un itemsets, je cherche le cluster qui a le moins de transaction et ça sera par définition les transactions de mon itemset
+            for(int i = 1; i < itemset.size(); i++){
+                if(clusterMatrix.getClusterTransactionIds(itemset.get(i)).size() < transactionOfLast.size()){
+                    transactionOfLast = clusterMatrix.getClusterTransactionIds(itemset.get(i));
+                }
+            }
 
             //Pour chaque transaction, on ajoute le cluster qui a l'id numItem
             for (Integer transactionId : transactionOfLast) {
