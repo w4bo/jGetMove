@@ -161,7 +161,6 @@ public class ClusterGenerator implements Generator {
         Debug.println("generatedPaths", generatedPaths, Debug.DEBUG);
 
         for (ArrayList<Integer> generatedPath : generatedPaths) {
-            Debug.println("itemsetSize : ", path.size(), Debug.DEBUG);
             Debug.println("minTime : ", minTime, Debug.DEBUG);
 
             // Lcm::printItemsetsNew([]itemsets, occ, []transactionsets, numItems, []timeID, [][]level2ItemID, [][]level2TimeID)
@@ -184,9 +183,8 @@ public class ClusterGenerator implements Generator {
             Debug.println("lower bounds", lowerBounds.size(), Debug.DEBUG);
 
             for (int clusterId : lowerBounds) {
-                Debug.println("GeneratedClusters", generatedPath, Debug.DEBUG);
-                Debug.println(" ClusterId", clusterId, Debug.DEBUG);
-                Debug.println("Min Support", minSupport, Debug.DEBUG);
+                Debug.println("clusterId", clusterId, Debug.DEBUG);
+                Debug.println("min Support", minSupport, Debug.DEBUG);
 
                 if (clusterMatrix.getClusterTransactionIds(clusterId).size() >= minSupport &&
                         !generatedPath.contains(clusterId)) {
