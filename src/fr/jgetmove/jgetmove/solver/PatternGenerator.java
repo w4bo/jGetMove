@@ -88,7 +88,7 @@ public class PatternGenerator implements Generator {
      * @param freqClusterId     (item)
      * @param newTransactionIds (newTransactionList)
      * @return vrai si ppctest est réussi
-     * @deprecated use {@link Database#getFilteredTransactionIdsIfHaveCluster(Set, int)} and {@link GeneratorUtils#ppcTest(Database, ArrayList, Set, int, Set)}
+     * @deprecated use {@link Database#getFilteredTransactionIdsIfHaveCluster(Set, int)} and {@link GeneratorUtils#ppcTest(Database, ArrayList, int, Set)}
      */
     @TraceMethod(displayTitle = true)
     private static boolean PPCTest(Database database, ArrayList<Integer> clusters, Set<Integer> transactionIds,
@@ -229,14 +229,16 @@ public class PatternGenerator implements Generator {
                     }
                 }*/
 
-
                 if (timeBased.size() > minTime) {
                     for (Detector detector : detectors) {
                         if (motifs.get(detector) == null) {
                             ArrayList<Pattern> patterns = detector.detect(defaultDatabase, timeBased, clusterBased, transactions);
+                            //ArrayList<Pattern> patterns = detector.detect(database, timeBased, clusterBased, transactions);
                             motifs.put(detector, patterns);
                         } else {
                             motifs.get(detector).addAll(detector.detect(defaultDatabase, timeBased, clusterBased, transactions));
+                            //motifs.get(detector).addAll(detector.detect(database, timeBased, clusterBased, transactions));
+
                         }
                     }
                 }

@@ -99,7 +99,7 @@ public class Main {
             Set<Detector> detectors = new HashSet<>();
             detectors.add(new ConvoyDetector(minTime));
             detectors.add(new ClosedSwarmDetector(minTime));
-            detectors.add(new GroupPatternDetector(config.getMinTime(), config.getCommonObjectPercentage()));
+            //detectors.add(new GroupPatternDetector(config.getMinTime(), config.getCommonObjectPercentage()));
 
             /*
              * Create solver from clusterGenerator, patternGenerator, detectors and start the generation
@@ -115,7 +115,7 @@ public class Main {
             /*
              * Create new Output object from results
              */
-            JsonObjectBuilder jsonBuilder = database.toJSON();
+            JsonObjectBuilder jsonBuilder = database.toJson();
             jsonBuilder.add("patterns", solver.toJSON(patterns));
 
             Output outputSolver = new Output(outputFile);

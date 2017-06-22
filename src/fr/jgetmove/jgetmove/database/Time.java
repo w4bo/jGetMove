@@ -4,19 +4,25 @@ import java.util.HashMap;
 import java.util.Set;
 
 /**
- * Objet Time contenant la liste des clusters pour un temps donné
+ * Represents a fixed time in the timeline, contains a set of clusters, contained in a block and has a unique identifier
+ * <p>
+ * Time is managed by Database
  */
 public class Time implements Comparable<Time> {
     private int id;
 
+    /**
+     * The block in which the time is, can be null
+     */
     private Block bloc;
     /**
+     * Hashmap containing the list of clusters (idCluster -> Cluster)
      * Hashmap contenant la liste des clusters idCluster=>Cluster
      */
     private HashMap<Integer, Cluster> clusters;
 
     /**
-     * @param id identifiant du temps
+     * @param id identifier
      */
     Time(int id) {
         this.id = id;
@@ -24,14 +30,14 @@ public class Time implements Comparable<Time> {
     }
 
     /**
-     * @param cluster ajoute une cluster à la liste des clusters
+     * @param cluster adds the cluster to the time
      */
     void add(Cluster cluster) {
         this.clusters.put(cluster.getId(), cluster);
     }
 
     /**
-     * @return id du temps
+     * @return id identifier
      */
     public int getId() {
         return id;
@@ -39,33 +45,38 @@ public class Time implements Comparable<Time> {
 
 
     /**
-     * @return le bloc associé au Time
+     * @return the <tt>Block</tt> which contains this <tt>Time</tt>
      */
     public Block getBloc() {
         return bloc;
     }
 
     /**
-     * @param bloc set le bloc associé au time
+     * @param bloc sets the containing <tt>Block</tt>
      */
     public void setBloc(Block bloc) {
         this.bloc = bloc;
     }
 
     /**
-     * @return ensemble des cluster
+     * @return the Hashmap of clusters which are contained in this time
      */
     public HashMap<Integer, Cluster> getClusters() {
         return clusters;
     }
 
     /**
-     * @param clusters assigne un tableau de cluster à la hashmap
+     * Sets and replaces the current clusters by the given one
+     *
+     * @param clusters new clusters of the time
      */
     void setClusters(HashMap<Integer, Cluster> clusters) {
         this.clusters = clusters;
     }
 
+    /**
+     * @return only returns the clusters' id contained in this time
+     */
     public Set<Integer> getClusterIds() {
         return getClusters().keySet();
     }
@@ -76,13 +87,8 @@ public class Time implements Comparable<Time> {
         return "{" + id + "=" + String.valueOf(clusters.keySet()) + "}";
     }
 
+    @Override
     public int compareTo(Time time) {
-
-        //ascending order
         return id - time.id;
-
-        //descending order
-        //return compareQuantity - this.quantity;
-
     }
 }

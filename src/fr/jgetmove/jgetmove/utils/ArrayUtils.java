@@ -10,11 +10,11 @@ import java.util.TreeSet;
 public class ArrayUtils {
 
     /**
-     * Verifie si un ensemble est inclus dans un autre
+     * Checks if <tt>A</tt> is contained in <tt>B</tt>
      *
-     * @param a le premier ensemble qui doit être contenu dans b
-     * @param b le deuxieme ensemble qui doit contenir a
-     * @return vrai si a est inclus dans b
+     * @param a set to be checked for containment
+     * @param b set which is supposed to contain <tt>a</tt>
+     * @return <tt>true</tt> if <tt>a</tt> is contained in <tt>b</tt>
      */
     public static boolean isIncluded(Set<Integer> a, Set<Integer> b) {
         if (a.size() > b.size()) {
@@ -26,22 +26,13 @@ public class ArrayUtils {
     }
 
     /**
-     * Verifie si deux {@link Set} sont egaux
+     * Checks if the set and the list are equal
+     * <p>
+     * The two are converted to treeset and then are checked with {@link TreeSet#equals(Object)}
      *
-     * @param a premier set à comparer
-     * @param b deuxième set à comparer
-     * @return vrai si a et b sont egaux
-     */
-    public static boolean areEqual(Set<Integer> a, Set<Integer> b) {
-        return a.equals(b);
-    }
-
-    /**
-     * Retourne vrai si les deux tableaux sont identiques
-     *
-     * @param set  le Set a comparer
-     * @param list la liste a comparer
-     * @return vrai si les deux sont identiques
+     * @param set  Set to check
+     * @param list List to check
+     * @return <tt>true</tt> if they are the same
      */
     public static boolean isSame(Set<Integer> set, List<Integer> list) {
         // meilleure optimisation possible : http://stackoverflow.com/a/1075817

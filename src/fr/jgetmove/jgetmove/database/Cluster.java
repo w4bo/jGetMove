@@ -3,24 +3,26 @@ package fr.jgetmove.jgetmove.database;
 import java.util.HashMap;
 
 /**
- * Regroupement de transactions à un temps donné
+ * Groups a set of clusters in a specific time
  */
 public class Cluster {
 
     private int id;
 
     /**
-     * HashMap contenant idTransaction => Transaction
+     * HashMap of all the transactions of the cluster idTransaction => {@link Transaction}
      */
     private HashMap<Integer, Transaction> transactions;
 
     /**
-     * Temps associé à un cluster
+     * The {@link Time} where the cluster is
      */
     private Time time;
 
     /**
-     * @param id identifiant du cluster
+     * Initializes the cluster  with it's identifier
+     *
+     * @param id cluster's identifier
      */
     public Cluster(int id) {
         this.id = id;
@@ -28,46 +30,44 @@ public class Cluster {
     }
 
     /**
-     * Ajoute la transaction au HashMap des transactions en fonction de son id
+     * Adds the transaction to the cluster
      *
-     * @param transaction la transaction à ajouter
+     * @param transaction to add to the cluster
      */
     public void add(Transaction transaction) {
         transactions.put(transaction.getId(), transaction);
     }
 
     /**
-     * @return id du cluster courant
+     * @return cluster identifier
      */
     public int getId() {
         return id;
     }
 
     /**
-     * @return le Time associé au cluster
+     * @return returns the {@link Time} of the cluster
      */
     public Time getTime() {
         return time;
     }
 
     /**
-     * @param time le temps à associer au cluster
+     * @param time sets the time of the cluster
      */
     public void setTime(Time time) {
         this.time = time;
     }
 
     /**
-     * @return l'id du temps associé au cluster
+     * @return the cluster identifier
      */
     public int getTimeId() {
         return time.getId();
     }
 
     /**
-     * Retourne le HashMap des transactions
-     *
-     * @return transaction Ensemble des transactions (HashMap [idTransaction => Transaction])
+     * @return transaction transaction in the cluster (HashMap [idTransaction => Transaction])
      */
     public HashMap<Integer, Transaction> getTransactions() {
         return transactions;
@@ -78,7 +78,4 @@ public class Cluster {
         return "{" + id + "=" + String.valueOf(transactions.keySet()) + "}";
     }
 
-    public void clear() {
-        transactions.clear();
-    }
 }

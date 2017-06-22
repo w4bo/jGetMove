@@ -15,10 +15,10 @@ import java.util.*;
 public class ClusterGenerator implements Generator {
 
     private final Database defaultDatabase;
+    ArrayList<ArrayList<Integer>> lvl2ClusterIds;
+    ArrayList<ArrayList<Integer>> lvl2TimeIds;
     private ArrayList<ArrayList<Integer>> clustersGenerated;
     private int minSupport, maxPattern, minTime;
-    private ArrayList<ArrayList<Integer>> lvl2ClusterIds;
-    private ArrayList<ArrayList<Integer>> lvl2TimeIds;
 
     /**
      * Initialise le solveur.
@@ -37,8 +37,8 @@ public class ClusterGenerator implements Generator {
 
     /**
      * <pre>
-     * Lcm::MakeClosure(const Database &database, vector<int> &transactionList,
-     * vector<int> &q_sets, vector<int> &itemsets,
+     * Lcm::MakeClosure(const Database &database, vector&lt;int&gt; &transactionList,
+     * vector&lt;int&gt; &q_sets, vector&lt;int&gt; &itemsets,
      * int item)
      * </pre>
      *
@@ -51,8 +51,8 @@ public class ClusterGenerator implements Generator {
      * {@link GeneratorUtils#makeClosure(Database, Set, ArrayList, ArrayList, int)}
      */
     @TraceMethod(displayTitle = true)
-    private static void MakeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets,
-                                    ArrayList<Integer> itemset, int freq) {
+    static void MakeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets,
+                            ArrayList<Integer> itemset, int freq) {
         GeneratorUtils.makeClosure(database, transactionIds, qSets, itemset, freq);
     }
 
@@ -71,11 +71,11 @@ public class ClusterGenerator implements Generator {
      * @deprecated use
      * {@link Database#getFilteredTransactionIdsIfHaveCluster(Set, int)}
      * and
-     * {@link GeneratorUtils#ppcTest(Database, ArrayList, Set, int, Set)}
+     * {@link GeneratorUtils#ppcTest(Database, ArrayList, int, Set)}
      */
     @TraceMethod(displayTitle = true)
-    private static boolean PPCTest(Database database, ArrayList<Integer> clusters, Set<Integer> transactionIds,
-                                   int freqClusterId, Set<Integer> newTransactionIds) {
+    static boolean PPCTest(Database database, ArrayList<Integer> clusters, Set<Integer> transactionIds,
+                           int freqClusterId, Set<Integer> newTransactionIds) {
         // CalcTransactionList
         for (int transactionId : transactionIds) {
             Transaction transaction = database.getTransaction(transactionId);
@@ -107,8 +107,28 @@ public class ClusterGenerator implements Generator {
      * @deprecated use
      * {@link GeneratorUtils#getDifferentFromLastCluster(ArrayList, ArrayList)}
      */
-    private static int CalcurateCoreI(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
+    static int CalcurateCoreI(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
         return GeneratorUtils.getDifferentFromLastCluster(clusterIds, frequentClusterIds);
+    }
+
+    private static void addTransactionToItemset(ClusterMatrix clusterMatrix, ArrayList<Integer> path, ArrayList<Transaction> transactions, int[] numItemset) {
+        //TODO : opti ce truc mais en gros ça règle le pb du surplus de transactions par itemsets
+        Set<Integer> transactionOfLast = clusterMatrix.getClusterTransactionIds(path.get(path.size() - 1));
+        //Parmis la liste de clusters d'un itemsets, je cherche le cluster qui a le moins de transaction et ça sera par définition les transactions de mon path
+        // sert à rien, déja limité par clustermatrix
+            /*for (int clusterId : path) {
+                if (clusterMatrix.getClusterTransactionIds(clusterId).size() < transactionOfLast.size()) {
+                    transactionOfLast = clusterMatrix.getClusterTransactionIds(clusterId);
+                }
+            }*/
+
+        //Pour chaque transaction, on ajoute le cluster qui a l'id numItem
+        // TODO :on ajoute pour chaque transaction l'path auquel il appartient :D
+        for (Integer transactionId : transactionOfLast) {
+            transactions.get(transactionId).add(new Cluster(numItemset[0]));
+        }
+
+        numItemset[0]++;
     }
 
     /**
@@ -121,7 +141,7 @@ public class ClusterGenerator implements Generator {
      * </pre>
      */
     @TraceMethod
-    public ClusterGeneratorResult generate() {
+    ClusterGeneratorResult generate() {
         ClusterMatrix clusterMatrix = new ClusterMatrix(defaultDatabase);
         Debug.println("totalItem", defaultDatabase.getClusterIds(), Debug.DEBUG);
 
@@ -142,6 +162,7 @@ public class ClusterGenerator implements Generator {
         run(clusterMatrix, transactions, itemsets, transactionIds, freqItemset, numClusters);
         Debug.println("Transactions", transactions, Debug.DEBUG);
 
+        // Database 2 devient PathBlock
         Database database2 = new Database(transactions);
 
         return new ClusterGeneratorResult(database2, clustersGenerated, lvl2TimeIds,
@@ -175,14 +196,14 @@ public class ClusterGenerator implements Generator {
      * @param numItems           (numItems)
      */
     @TraceMethod(displayTitle = true)
-    private void run(ClusterMatrix clusterMatrix, ArrayList<Transaction> transactions, ArrayList<Integer> clusterIds,
-                     Set<Integer> transactionIds, ArrayList<Integer> frequentClusterIds, int[] numItems) {
+    void run(ClusterMatrix clusterMatrix, ArrayList<Transaction> transactions, ArrayList<Integer> clusterIds,
+             Set<Integer> transactionIds, ArrayList<Integer> frequentClusterIds, int[] numItems) {
         Debug.println("clusterMatrix", clusterMatrix, Debug.DEBUG);
         Debug.println("clustersIds", clusterIds, Debug.DEBUG);
         Debug.println("transactionIds ", transactionIds, Debug.DEBUG);
         Debug.println("frequentClusterIds ", frequentClusterIds, Debug.DEBUG);
 
-        ArrayList<ArrayList<Integer>> generatedArrayOfClusters = generateClusters(clusterIds);
+        ArrayList<ArrayList<Integer>> generatedArrayOfClusters = generateItemsets(clusterIds);
 
         if (generatedArrayOfClusters.size() > 0 && generatedArrayOfClusters.get(0).size() > 0) {
             // TODO: ca pourrait être optimisé tout ca :/
@@ -193,7 +214,7 @@ public class ClusterGenerator implements Generator {
         Debug.println("GeneratedItemId", defaultDatabase.getClusterIds(), Debug.DEBUG);
 
         for (ArrayList<Integer> generatedClusters : generatedArrayOfClusters) {
-            PrintItemsetsNew(clusterMatrix, generatedClusters, transactions, numItems);
+            printItemsetsNew(clusterMatrix, generatedClusters, transactions, numItems);
 
             int calcurateCoreI = CalcurateCoreI(generatedClusters, frequentClusterIds);
 
@@ -220,8 +241,9 @@ public class ClusterGenerator implements Generator {
             Debug.println("Frequent : " + freqClusterIds);
 
             for (int freqClusterId : freqClusterIds) {
+                //Set<Integer> newTransactionIds = defaultDatabase.getFilteredTransactionIdsIfHaveCluster(transactionIds, freqClusterId);
                 Set<Integer> newTransactionIds = new HashSet<>(); // newTransactionList
-
+                // if(GeneratorUtils.ppcTest(defaultDatabase, generatedClusters, freqClusterId, newTransactionIds)){
                 if (PPCTest(defaultDatabase, generatedClusters, transactionIds, freqClusterId, newTransactionIds)) {
                     ArrayList<Integer> qSets = new ArrayList<>();
 
@@ -249,63 +271,39 @@ public class ClusterGenerator implements Generator {
 
     /**
      * <pre>
-     * Lcm::PrintItemsetsNew([]itemsets, occ, [Transaction]transactionsets,
-     * numItems, []timeID,[][]level2ItemID,
-     * [][]level2TimeID)
+     * Lcm::printItemsetsNew([]itemsets, occ, []transactionsets, numItems, []timeID, [][]level2ItemID, [][]level2TimeID)
      * </pre>
      *
      * @param clusterMatrix (occ)
-     * @param clusterIds    (itemsets)
+     * @param path          (itemsets)
      * @param transactions  (transactionsets)
-     * @param numClusters   (numItems)
-     * @deprecated use {@link #printClustersNew(ClusterMatrix, ArrayList, ArrayList, int[])}
+     * @param numItemset    (numItems)
      */
-    private void PrintItemsetsNew(ClusterMatrix clusterMatrix, ArrayList<Integer> clusterIds, ArrayList<Transaction> transactions,
-                                  int[] numClusters) {
-        printClustersNew(clusterMatrix, clusterIds, transactions, numClusters);
+    void printItemsetsNew(ClusterMatrix clusterMatrix, ArrayList<Integer> path, ArrayList<Transaction> transactions,
+                          int[] numItemset) {
+        Debug.println("ItemsetSize : ", path.size(), Debug.DEBUG);
+        Debug.println("MinTime : ", minTime, Debug.DEBUG);
+
+        //TODO back to minTime for itemsize
+        if (path.size() > 0) { // code c complient
+            //if (path.size() > minTime) {
+            addPathToBlockPath(clusterMatrix, path);
+            addTransactionToItemset(clusterMatrix, path, transactions, numItemset);
+        }
     }
 
-    /**
-     * <pre>
-     * Lcm::PrintItemsetsNew([]itemsets, occ, [Transaction]transactionsets,
-     * numItems, []timeID,[][]level2ItemID,
-     * [][]level2TimeID)
-     * </pre>
-     *
-     * @param clusterMatrix (occ)
-     * @param clusterIds    (itemsets)
-     * @param transactions  (transactionsets)
-     * @param numClusters   (numItems)
-     */
-    private void printClustersNew(ClusterMatrix clusterMatrix, ArrayList<Integer> clusterIds, ArrayList<Transaction> transactions,
-                                  int[] numClusters) {
-        //TODO
-        Debug.println("ItemsetSize : " + clusterIds.size());
-        Debug.println("MinTime : " + minTime);
+    private void addPathToBlockPath(ClusterMatrix clusterMatrix, ArrayList<Integer> path) {
+        ArrayList<Integer> timeIds = new ArrayList<>();
+        ArrayList<Integer> clusterList = new ArrayList<>();
+        timeIds.add(0);
+        clusterList.add(0);
 
-        if (clusterIds.size() > minTime) {
-            ArrayList<Integer> timeIds = new ArrayList<>();
-            ArrayList<Integer> clusterList = new ArrayList<>();
-            timeIds.add(0);
-            clusterList.add(0);
-
-            for (Integer clusterId : clusterIds) {
-                clusterList.add(clusterId);
-                timeIds.add(clusterMatrix.getClusterTimeId(clusterId));
-            }
-            lvl2ClusterIds.add(clusterList);
-            lvl2TimeIds.add(timeIds);
-
-            Set<Integer> transactionOfLast =
-                    clusterMatrix.getClusterTransactionIds(clusterIds.get(clusterIds.size() - 1));
-
-            //Pour chaque transaction, on ajoute le cluster qui a l'id numItem
-            for (Integer transactionId : transactionOfLast) {
-                transactions.get(transactionId).add(new Cluster(numClusters[0]));
-            }
-
-            numClusters[0]++;
+        for (Integer clusterId : path) {
+            clusterList.add(clusterId);
+            timeIds.add(clusterMatrix.getClusterTimeId(clusterId));
         }
+        lvl2ClusterIds.add(clusterList);
+        lvl2TimeIds.add(timeIds);
     }
 
     /**
@@ -317,12 +315,12 @@ public class ClusterGenerator implements Generator {
      * <p>
      * defaultDatabase (database)
      *
-     * @param database          (occurence)
+     * @param clusterMatrix     (occurence)
      * @param newTransactionIds (transactionList)
      * @deprecated use {@link ClusterMatrix#optimizeMatrix(Database, Set)}
      */
-    private void updateOccurenceDeriver(ClusterMatrix database, Set<Integer> newTransactionIds) {
-        database.optimizeMatrix(defaultDatabase, newTransactionIds);
+    void updateOccurenceDeriver(ClusterMatrix clusterMatrix, Set<Integer> newTransactionIds) {
+        clusterMatrix.optimizeMatrix(defaultDatabase, newTransactionIds);
     }
 
     /**
@@ -330,41 +328,38 @@ public class ClusterGenerator implements Generator {
      * Lcm::GenerateItemset(Database,[]itemsets,[]itemID,[]timeID,[][]generatedItemsets, [][]generatedtimeID,[][]generateditemID,sizeGenerated)
      * </pre>
      *
-     * @param clusterIds (itemsets) une liste representant les clusterId
+     * @param itemset (itemsets) une liste representant les clusterId
      */
-    private ArrayList<ArrayList<Integer>> generateClusters(ArrayList<Integer> clusterIds) {
+    ArrayList<ArrayList<Integer>> generateItemsets(ArrayList<Integer> itemset) {
         // todo aplatir generated* dans cette fonction : raison, non utilisées
+        // todo faire passer Itemset en parametres et non pas un clusterIds représentant l'itemset
 
         ArrayList<ArrayList<Integer>> generatedArrayOfClusters = new ArrayList<>();
 
-        if (clusterIds.size() == 0) {
-            generatedArrayOfClusters.add(clusterIds);
+        if (itemset.size() == 0) {
+            generatedArrayOfClusters.add(itemset);
             return generatedArrayOfClusters;
         }
 
-        boolean isMonoCluster = true; // numberSameTime
+        boolean oneTimePerCluster = true; // numberSameTime
 
         int lastTime = 0;
         // liste des temps qui n'ont qu'un seul cluster
-        for (int i = 0; i < clusterIds.size(); ++i) {
-            int clusterId = clusterIds.get(i);
+        for (int i = 0; i < itemset.size(); ++i) {
+            int clusterId = itemset.get(i);
             lastTime = defaultDatabase.getClusterTimeId(clusterId);
 
-            if (defaultDatabase.getClusterTime(clusterId).getClusters().size() > 1) {
-                isMonoCluster = false;
-            }
-
-            /*if (i != clusterIds.size() - 1) {
-                int nextClusterId = clusterIds.get(i + 1);
+            if (i != itemset.size() - 1) {
+                int nextClusterId = itemset.get(i + 1);
                 if (defaultDatabase.getClusterTimeId(clusterId)
                         == defaultDatabase.getClusterTimeId(nextClusterId)) {
-                    isMonoCluster = false;
+                    oneTimePerCluster = false;
                 }
-            }*/
+            }
         }
 
-        if (isMonoCluster) {
-            generatedArrayOfClusters.add(clusterIds); // why
+        if (oneTimePerCluster) {
+            generatedArrayOfClusters.add(itemset); // why
             //generatedArrayOfTimeIds.add(times); // whyyy
             //generatedArrayOfClusterIds.add(database.getClusterIds()); // but why ???
             return generatedArrayOfClusters;
@@ -377,7 +372,7 @@ public class ClusterGenerator implements Generator {
         for (int i = 1; i <= lastTime; i++) {
             ArrayList<Integer> tempClusterIds = new ArrayList<>();
 
-            for (int clusterId : clusterIds) {
+            for (int clusterId : itemset) {
                 if (defaultDatabase.getClusterTimeId(clusterId) == i) {
                     tempClusterIds.add(clusterId);
                 }

@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * Contient toutes les structures de données
+ * Contains all the objects, has the job of managing data and saving informations
  */
 public class Database {
     private Input inputObj, inputTime;
@@ -28,11 +28,12 @@ public class Database {
     private TreeSet<Integer> blockIdsTree;
 
     /**
-     * Initialise Database en fonction des fichiers de données
+     * Initialises the database following the configurations in the files
      *
-     * @param inputObj  fichier (transactionId [clusterId ...])
-     * @param inputTime fichier (timeId clusterId)
-     * @throws IOException              si inputObj ou inputTime est incorrect
+     * @param inputObj  file (transactionId [clusterId ...])
+     * @param inputTime file (timeId clusterId)
+     * @param blockSize block size
+     * @throws IOException              if inputObj or inputTime is incorrect
      * @throws ClusterNotExistException si le cluster n'existe pas
      */
     public Database(Input inputObj, Input inputTime, int blockSize) throws IOException, ClusterNotExistException, MalformedTimeIndexException {
@@ -55,6 +56,9 @@ public class Database {
         initTimeAndCluster(blockSize);
     }
 
+    /**
+     * @param transactions
+     */
     public Database(Collection<Transaction> transactions) {
         this.inputObj = null;
         this.inputTime = null;
@@ -317,7 +321,7 @@ public class Database {
 
     /**
      * @param index = id du cluster
-     * @return L'ensemble des transaction d'un cluster sous forme d'une chaine de caractère pour toJSON()
+     * @return L'ensemble des transaction d'un cluster sous forme d'une chaine de caractère pour toJson()
      */
     public String printGetClusterTransactions(int index) {
         StringBuilder s = new StringBuilder();
@@ -331,7 +335,7 @@ public class Database {
     /**
      * @return la database en format json
      */
-    public JsonObjectBuilder toJSON() {
+    public JsonObjectBuilder toJson() {
         //int index = 0;
         JsonArrayBuilder linksArray = Json.createArrayBuilder();
         for (Transaction transaction : this.getTransactions().values()) {
@@ -365,16 +369,6 @@ public class Database {
         return finalJson.build().toString();
     }
 
-    @Override
-    public String toString() {
-        String str = "\n|-- Fichiers :" + inputObj + "; " + inputTime;
-        str += "\n|-- Blocks :" + blocks.values();
-        str += "\n|-- Clusters :" + clusters.values();
-        str += "\n|-- Transactions :" + transactions.values();
-        str += "\n`-- Temps :" + times.values();
-        return str;
-    }
-
     /**
      * Verifie si le cluster est inclus dans toute la liste des transactions
      * <p>
@@ -389,7 +383,7 @@ public class Database {
      */
     public boolean isClusterInTransactions(Set<Integer> transactionIds, int clusterId) {
         for (int transactionId : transactionIds) {
-            if (!this.getTransaction(transactionId).getClusterIds().contains(clusterId)) {
+            if (this.getCluster(clusterId) != null && !this.getClusterTransactions(clusterId).containsKey(transactionId)) {
                 return false;
             }
         }
@@ -397,23 +391,30 @@ public class Database {
     }
 
     /**
-     * Retourne une liste de transactions qui contienent le cluster défini par clusterId, seules les transactions contenues dans transactionIds seront itérés
+     * Checks and returns a list of transactions from <tt>transactionIds</tt> which are contained in the cluster (<tt>clusterId</tt>)
      *
-     * @param transactionIds liste de transactions à filter
-     * @param clusterId      le cluster qui doit être contenu par la transaction
-     * @return liste des transactionIds contenant le cluster
+     * @param transactionIds list of transactions to check from
+     * @param clusterId      the cluster to filter them
+     * @return a list of transactionIds
      */
     public Set<Integer> getFilteredTransactionIdsIfHaveCluster(Set<Integer> transactionIds, int clusterId) {
         Set<Integer> filteredTransactionIds = new HashSet<>();
 
         for (int transactionId : transactionIds) {
-            Transaction transaction = this.getTransaction(transactionId);
-
-            if (transaction.getClusterIds().contains(clusterId)) {
+            if (this.getCluster(clusterId) != null && this.getClusterTransactions(clusterId).containsKey(transactionId)) {
                 filteredTransactionIds.add(transactionId);
             }
         }
-
         return filteredTransactionIds;
+    }
+
+    @Override
+    public String toString() {
+        String str = "\n|-- Fichiers :" + inputObj + "; " + inputTime;
+        str += "\n|-- Blocks :" + blocks.values();
+        str += "\n|-- Clusters :" + clusters.values();
+        str += "\n|-- Transactions :" + transactions.values();
+        str += "\n`-- Temps :" + times.values();
+        return str;
     }
 }
