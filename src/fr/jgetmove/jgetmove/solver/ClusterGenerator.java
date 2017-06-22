@@ -17,7 +17,6 @@ public class ClusterGenerator implements Generator {
     private final Database defaultDatabase;
     ArrayList<ArrayList<Integer>> lvl2ClusterIds;
     ArrayList<ArrayList<Integer>> lvl2TimeIds;
-    private ArrayList<ArrayList<Integer>> clustersGenerated;
     private int minSupport, maxPattern, minTime;
 
     /**
@@ -30,7 +29,6 @@ public class ClusterGenerator implements Generator {
         this.maxPattern = config.getMaxPattern();
         this.minTime = config.getMinTime();
         this.defaultDatabase = database;
-        this.clustersGenerated = new ArrayList<>();
         lvl2ClusterIds = new ArrayList<>();
         lvl2TimeIds = new ArrayList<>();
     }
@@ -165,17 +163,8 @@ public class ClusterGenerator implements Generator {
         // Database 2 devient PathBlock
         Database database2 = new Database(transactions);
 
-        return new ClusterGeneratorResult(database2, clustersGenerated, lvl2TimeIds,
+        return new ClusterGeneratorResult(database2, lvl2TimeIds,
                 lvl2ClusterIds);
-    }
-
-    /**
-     * Getter sur la liste des itemsets
-     *
-     * @return la liste des itemsets genérées
-     */
-    public ArrayList<ArrayList<Integer>> getClustersGenerated() {
-        return clustersGenerated;
     }
 
     /**
@@ -204,11 +193,6 @@ public class ClusterGenerator implements Generator {
         Debug.println("frequentClusterIds ", frequentClusterIds, Debug.DEBUG);
 
         ArrayList<ArrayList<Integer>> generatedArrayOfClusters = generateItemsets(clusterIds);
-
-        if (generatedArrayOfClusters.size() > 0 && generatedArrayOfClusters.get(0).size() > 0) {
-            // TODO: ca pourrait être optimisé tout ca :/
-            clustersGenerated.addAll(generatedArrayOfClusters);
-        }
 
         Debug.println("GeneratedItemsets", generatedArrayOfClusters, Debug.DEBUG);
         Debug.println("GeneratedItemId", defaultDatabase.getClusterIds(), Debug.DEBUG);

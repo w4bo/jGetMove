@@ -8,14 +8,12 @@ import java.util.ArrayList;
 public class ClusterGeneratorResult {
 
     private Database database;
-    private ArrayList<ArrayList<Integer>> clusters;
     private ArrayList<ArrayList<Integer>> lvl2TimeIds;
     private ArrayList<ArrayList<Integer>> lvl2ClusterIds;
 
-    ClusterGeneratorResult(Database database, ArrayList<ArrayList<Integer>> clusters,
+    ClusterGeneratorResult(Database database,
                            ArrayList<ArrayList<Integer>> lvl2TimeIds, ArrayList<ArrayList<Integer>> lvl2ClusterIds) {
         this.database = database;
-        this.clusters = clusters;
         this.lvl2ClusterIds = lvl2ClusterIds;
         this.lvl2TimeIds = lvl2TimeIds;
     }
@@ -24,9 +22,6 @@ public class ClusterGeneratorResult {
         return database;
     }
 
-    public ArrayList<ArrayList<Integer>> getClusters() {
-        return clusters;
-    }
 
     public ArrayList<ArrayList<Integer>> getLvl2TimeIds() {
         return lvl2TimeIds;
@@ -39,7 +34,6 @@ public class ClusterGeneratorResult {
     @Override
     public String toString() {
         return "\n|--_Database " + Debug.indent(database.toString())
-                + "\n|-- Clusters : " + clusters
                 + "\n|-- Lvl2Clusters" + lvl2ClusterIds
                 + "\n`-- Lvl2Times" + lvl2TimeIds;
     }
