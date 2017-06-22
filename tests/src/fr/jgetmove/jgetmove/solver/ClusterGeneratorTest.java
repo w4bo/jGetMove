@@ -10,7 +10,6 @@ import fr.jgetmove.jgetmove.exception.MalformedTimeIndexException;
 import fr.jgetmove.jgetmove.io.Input;
 import fr.jgetmove.jgetmove.utils.GeneratorUtils;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -18,8 +17,7 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ClusterGeneratorTest {
 // TODO finish complexDatabase tests
@@ -93,7 +91,55 @@ class ClusterGeneratorTest {
         ClusterGeneratorResult results = clusterGenerator.generate();
 
         assertEquals(3, results.getLvl2ClusterIds().size());
-        assertEquals(3, results.getLvl2TimeIds().size());
+
+        ArrayList<ArrayList<Integer>> lvl2ClusterCheck = new ArrayList<>();
+
+        ArrayList<Integer> path = new ArrayList<>();
+        path.add(0);
+        path.add(0);
+        path.add(2);
+        path.add(4);
+        lvl2ClusterCheck.add(path);
+
+        ArrayList<Integer> path2 = new ArrayList<>();
+        path2.add(0);
+        path2.add(1);
+        path2.add(3);
+        path2.add(4);
+        lvl2ClusterCheck.add(path2);
+
+        ArrayList<Integer> path3 = new ArrayList<>();
+        path3.add(0);
+        path3.add(4);
+        lvl2ClusterCheck.add(path3);
+        assertEquals(3, clusterGenerator.lvl2ClusterIds.size());
+        assertArrayEquals(lvl2ClusterCheck.toArray(), results.getLvl2ClusterIds().toArray());
+
+
+        ArrayList<ArrayList<Integer>> lvl2TimeCheck = new ArrayList<>();
+
+        ArrayList<Integer> pathTimes = new ArrayList<>();
+        pathTimes.add(0);
+        pathTimes.add(1);
+        pathTimes.add(2);
+        pathTimes.add(3);
+        lvl2TimeCheck.add(pathTimes);
+
+        ArrayList<Integer> pathTimes2 = new ArrayList<>();
+        pathTimes2.add(0);
+        pathTimes2.add(1);
+        pathTimes2.add(2);
+        pathTimes2.add(3);
+        lvl2TimeCheck.add(pathTimes2);
+
+        ArrayList<Integer> pathTimes3 = new ArrayList<>();
+        pathTimes3.add(0);
+        pathTimes3.add(3);
+        lvl2TimeCheck.add(pathTimes3);
+
+        assertEquals(3, clusterGenerator.lvl2TimeIds.size());
+        assertArrayEquals(lvl2TimeCheck.toArray(), results.getLvl2TimeIds().toArray());
+
     }
 
     @Test
@@ -103,13 +149,8 @@ class ClusterGeneratorTest {
 
         ClusterGeneratorResult results = clusterGenerator.generate();
 
-        assertEquals(23, results.getLvl2ClusterIds().size());
-        assertEquals(23, results.getLvl2TimeIds().size());
-    }
-
-    @Test
-    void getClustersGenerated() {
-        //TODO
+        assertEquals("[[0, 0], [0, 0, 2, 19], [0, 0, 2, 5, 10, 12, 13, 19, 23], [0, 0, 2, 6, 9, 15, 19, 22], [0, 0, 3, 5, 7, 8, 14, 18, 20, 22], [0, 0, 5], [0, 0, 3, 5, 7, 8, 14, 18, 20, 22], [0, 0, 22], [0, 0, 3, 5, 7, 8, 14, 18, 20, 22], [0, 1], [0, 1, 3, 5, 11, 12, 16, 20, 22], [0, 1, 4, 7], [0, 1, 4, 7, 11, 16, 21, 23], [0, 1, 4, 7, 17], [0, 1, 11, 16], [0, 1, 3, 5, 11, 12, 16, 20, 22], [0, 1, 4, 7, 11, 16, 21, 23], [0, 3, 5, 20, 22], [0, 5], [0, 5, 12], [0, 7], [0, 22], [0, 23]]", results.getLvl2ClusterIds().toString());
+        assertEquals("[[0, 1], [0, 1, 2, 9], [0, 1, 2, 3, 5, 6, 7, 9, 10], [0, 1, 2, 4, 5, 7, 9, 10], [0, 1, 2, 3, 4, 5, 7, 8, 9, 10], [0, 1, 3], [0, 1, 2, 3, 4, 5, 7, 8, 9, 10], [0, 1, 10], [0, 1, 2, 3, 4, 5, 7, 8, 9, 10], [0, 1], [0, 1, 2, 3, 5, 6, 7, 9, 10], [0, 1, 2, 4], [0, 1, 2, 4, 5, 7, 9, 10], [0, 1, 2, 4, 7], [0, 1, 5, 7], [0, 1, 2, 3, 5, 6, 7, 9, 10], [0, 1, 2, 4, 5, 7, 9, 10], [0, 2, 3, 9, 10], [0, 3], [0, 3, 6], [0, 4], [0, 10], [0, 10]]", results.getLvl2TimeIds().toString());
     }
 
     @Test
@@ -118,7 +159,77 @@ class ClusterGeneratorTest {
     }
 
     @Test
-    void printItemsetsNew() {
+    void addPathToBlockPath() {
+        ArrayList<Integer> itemset = new ArrayList<>();
+        itemset.add(0);
+        itemset.add(2);
+        itemset.add(4);
+
+        TreeSet<Integer> transactionIds = new TreeSet<>();
+        transactionIds.add(0);
+
+        ClusterMatrix clusterMatrix = new ClusterMatrix(simpleDatabase);
+
+        ClusterGenerator clusterGenerator = new ClusterGenerator(simpleDatabase, config);
+        clusterMatrix.optimizeMatrix(simpleDatabase, transactionIds);
+
+        clusterGenerator.addPathToPathBlock(clusterMatrix, itemset);
+
+        assertEquals(1, clusterGenerator.lvl2ClusterIds.size());
+        assertEquals(0, clusterGenerator.lvl2ClusterIds.get(0).get(0).intValue());
+        assertEquals(0, clusterGenerator.lvl2ClusterIds.get(0).get(1).intValue());
+        assertEquals(2, clusterGenerator.lvl2ClusterIds.get(0).get(2).intValue());
+        assertEquals(4, clusterGenerator.lvl2ClusterIds.get(0).get(3).intValue());
+        assertEquals(1, clusterGenerator.lvl2TimeIds.size());
+        assertEquals(0, clusterGenerator.lvl2TimeIds.get(0).get(0).intValue());
+        assertEquals(1, clusterGenerator.lvl2TimeIds.get(0).get(1).intValue());
+        assertEquals(2, clusterGenerator.lvl2TimeIds.get(0).get(2).intValue());
+        assertEquals(3, clusterGenerator.lvl2TimeIds.get(0).get(3).intValue());
+
+        // ---
+        itemset.clear();
+        itemset.add(1);
+        itemset.add(3);
+        itemset.add(4);
+
+        transactionIds.clear();
+        transactionIds.add(1);
+
+        clusterMatrix.optimizeMatrix(simpleDatabase, transactionIds);
+        clusterGenerator.addPathToPathBlock(clusterMatrix, itemset);
+
+        assertEquals(2, clusterGenerator.lvl2ClusterIds.size());
+        assertEquals(0, clusterGenerator.lvl2ClusterIds.get(1).get(0).intValue());
+        assertEquals(1, clusterGenerator.lvl2ClusterIds.get(1).get(1).intValue());
+        assertEquals(3, clusterGenerator.lvl2ClusterIds.get(1).get(2).intValue());
+        assertEquals(4, clusterGenerator.lvl2ClusterIds.get(1).get(3).intValue());
+        assertEquals(2, clusterGenerator.lvl2TimeIds.size());
+        assertEquals(0, clusterGenerator.lvl2TimeIds.get(1).get(0).intValue());
+        assertEquals(1, clusterGenerator.lvl2TimeIds.get(1).get(1).intValue());
+        assertEquals(2, clusterGenerator.lvl2TimeIds.get(1).get(2).intValue());
+        assertEquals(3, clusterGenerator.lvl2TimeIds.get(1).get(3).intValue());
+
+        // ---
+        itemset.clear();
+        itemset.add(4);
+
+        transactionIds.clear();
+        transactionIds.add(0);
+        transactionIds.add(1);
+
+        clusterMatrix.optimizeMatrix(simpleDatabase, transactionIds);
+        clusterGenerator.addPathToPathBlock(clusterMatrix, itemset);
+
+        assertEquals(3, clusterGenerator.lvl2ClusterIds.size());
+        assertEquals(0, clusterGenerator.lvl2ClusterIds.get(2).get(0).intValue());
+        assertEquals(4, clusterGenerator.lvl2ClusterIds.get(2).get(1).intValue());
+        assertEquals(3, clusterGenerator.lvl2TimeIds.size());
+        assertEquals(0, clusterGenerator.lvl2TimeIds.get(2).get(0).intValue());
+        assertEquals(3, clusterGenerator.lvl2TimeIds.get(2).get(1).intValue());
+    }
+
+    @Test
+    void addPathToTransaction() {
         //there is 3 iterations for this testcase
         // for the 3 of them only itemset and transaction changes
 
@@ -137,25 +248,13 @@ class ClusterGeneratorTest {
 
         ClusterMatrix clusterMatrix = new ClusterMatrix(simpleDatabase);
 
-        ClusterGenerator clusterGenerator = new ClusterGenerator(simpleDatabase, config);
         clusterMatrix.optimizeMatrix(simpleDatabase, transactionIds);
-
-        clusterGenerator.printItemsetsNew(clusterMatrix, itemset, transactions, numCluster);
+        ClusterGenerator.addPathToTransaction(clusterMatrix, itemset, transactions, numCluster);
 
         assertTrue(transactions.get(0).getClusterIds().contains(0));
         assertEquals(1, numCluster[0]);
 
-        assertEquals(1, clusterGenerator.lvl2ClusterIds.size());
-        assertEquals(0, clusterGenerator.lvl2ClusterIds.get(0).get(0).intValue());
-        assertEquals(0, clusterGenerator.lvl2ClusterIds.get(0).get(1).intValue());
-        assertEquals(2, clusterGenerator.lvl2ClusterIds.get(0).get(2).intValue());
-        assertEquals(4, clusterGenerator.lvl2ClusterIds.get(0).get(3).intValue());
-        assertEquals(1, clusterGenerator.lvl2TimeIds.size());
-        assertEquals(0, clusterGenerator.lvl2TimeIds.get(0).get(0).intValue());
-        assertEquals(1, clusterGenerator.lvl2TimeIds.get(0).get(1).intValue());
-        assertEquals(2, clusterGenerator.lvl2TimeIds.get(0).get(2).intValue());
-        assertEquals(3, clusterGenerator.lvl2TimeIds.get(0).get(3).intValue());
-
+        // ---
         itemset.clear();
         itemset.add(1);
         itemset.add(3);
@@ -165,23 +264,12 @@ class ClusterGeneratorTest {
         transactionIds.add(1);
 
         clusterMatrix.optimizeMatrix(simpleDatabase, transactionIds);
-        clusterGenerator.printItemsetsNew(clusterMatrix, itemset, transactions, numCluster);
+        ClusterGenerator.addPathToTransaction(clusterMatrix, itemset, transactions, numCluster);
 
         assertTrue(transactions.get(1).getClusterIds().contains(1));
         assertEquals(2, numCluster[0]);
 
-        assertEquals(2, clusterGenerator.lvl2ClusterIds.size());
-        assertEquals(0, clusterGenerator.lvl2ClusterIds.get(1).get(0).intValue());
-        assertEquals(1, clusterGenerator.lvl2ClusterIds.get(1).get(1).intValue());
-        assertEquals(3, clusterGenerator.lvl2ClusterIds.get(1).get(2).intValue());
-        assertEquals(4, clusterGenerator.lvl2ClusterIds.get(1).get(3).intValue());
-        assertEquals(2, clusterGenerator.lvl2TimeIds.size());
-        assertEquals(0, clusterGenerator.lvl2TimeIds.get(1).get(0).intValue());
-        assertEquals(1, clusterGenerator.lvl2TimeIds.get(1).get(1).intValue());
-        assertEquals(2, clusterGenerator.lvl2TimeIds.get(1).get(2).intValue());
-        assertEquals(3, clusterGenerator.lvl2TimeIds.get(1).get(3).intValue());
-
-
+        // ---
         itemset.clear();
         itemset.add(4);
 
@@ -190,19 +278,11 @@ class ClusterGeneratorTest {
         transactionIds.add(1);
 
         clusterMatrix.optimizeMatrix(simpleDatabase, transactionIds);
-        clusterGenerator.printItemsetsNew(clusterMatrix, itemset, transactions, numCluster);
-
+        ClusterGenerator.addPathToTransaction(clusterMatrix, itemset, transactions, numCluster);
 
         assertTrue(transactions.get(0).getClusterIds().contains(2));
         assertTrue(transactions.get(1).getClusterIds().contains(2));
         assertEquals(3, numCluster[0]);
-
-        assertEquals(3, clusterGenerator.lvl2ClusterIds.size());
-        assertEquals(0, clusterGenerator.lvl2ClusterIds.get(2).get(0).intValue());
-        assertEquals(4, clusterGenerator.lvl2ClusterIds.get(2).get(1).intValue());
-        assertEquals(3, clusterGenerator.lvl2TimeIds.size());
-        assertEquals(0, clusterGenerator.lvl2TimeIds.get(2).get(0).intValue());
-        assertEquals(3, clusterGenerator.lvl2TimeIds.get(2).get(1).intValue());
     }
 
     @Test
@@ -212,7 +292,7 @@ class ClusterGeneratorTest {
 
         ClusterGenerator clusterGenerator = new ClusterGenerator(simpleDatabase, config);
 
-        ArrayList<ArrayList<Integer>> generatedItemsets = clusterGenerator.generateItemsets(new ArrayList<>());
+        ArrayList<ArrayList<Integer>> generatedItemsets = clusterGenerator.generatePaths(new ArrayList<>());
 
         Debug.println("generatedItemset", generatedItemsets, Debug.DEBUG);
 
@@ -224,7 +304,7 @@ class ClusterGeneratorTest {
         itemset.add(2);
         itemset.add(4);
 
-        generatedItemsets = clusterGenerator.generateItemsets(itemset);
+        generatedItemsets = clusterGenerator.generatePaths(itemset);
 
         assertEquals(1, generatedItemsets.size());
         assertEquals(3, generatedItemsets.get(0).size());
@@ -234,7 +314,7 @@ class ClusterGeneratorTest {
         itemset.add(3);
         itemset.add(4);
 
-        generatedItemsets = clusterGenerator.generateItemsets(itemset);
+        generatedItemsets = clusterGenerator.generatePaths(itemset);
 
         assertEquals(1, generatedItemsets.size());
         assertEquals(3, generatedItemsets.get(0).size());
@@ -242,29 +322,10 @@ class ClusterGeneratorTest {
         itemset.clear();
         itemset.add(4);
 
-        generatedItemsets = clusterGenerator.generateItemsets(itemset);
+        generatedItemsets = clusterGenerator.generatePaths(itemset);
 
         assertEquals(1, generatedItemsets.size());
         assertEquals(1, generatedItemsets.get(0).size());
 
-    }
-
-
-    @Test
-    @Disabled
-    void calcurateCoreI() {
-        // already done in Database.getDifferentFromLastCluster()
-    }
-
-    @Test
-    @Disabled
-    void makeClosure() {
-        // Already done in GenerateUtils.makeClosure
-    }
-
-    @Test
-    @Disabled
-    void updateOccurenceDeriver() {
-        // already done in ClusterMatrix.optimizeMatrix
     }
 }

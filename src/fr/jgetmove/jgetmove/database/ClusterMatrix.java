@@ -54,6 +54,10 @@ public class ClusterMatrix {
     /**
      * Rebinds the cluster-transaction matrix by removing the transactions not present in transactionIds and adding the one which are
      *
+     * <pre>
+     * Lcm::UpdateOccurenceDeriver(const Database &database, const vector<int> &transactionList, ClusterMatrix &occurence)
+     * </pre>
+     *
      * @param database       Reference database to retrieve the bindings
      * @param transactionIds Transactions which need to be present in the matrix
      */

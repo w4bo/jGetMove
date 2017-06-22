@@ -10,7 +10,10 @@ import fr.jgetmove.jgetmove.debug.TraceMethod;
 import fr.jgetmove.jgetmove.utils.ArrayUtils;
 import fr.jgetmove.jgetmove.utils.GeneratorUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class ClusterGenerator implements Generator {
 
@@ -31,27 +34,6 @@ public class ClusterGenerator implements Generator {
         this.defaultDatabase = database;
         lvl2ClusterIds = new ArrayList<>();
         lvl2TimeIds = new ArrayList<>();
-    }
-
-    /**
-     * <pre>
-     * Lcm::MakeClosure(const Database &database, vector&lt;int&gt; &transactionList,
-     * vector&lt;int&gt; &q_sets, vector&lt;int&gt; &itemsets,
-     * int item)
-     * </pre>
-     *
-     * @param database       (database)
-     * @param transactionIds (transactionList)
-     * @param qSets          (q_sets)
-     * @param itemset        (itemsets)
-     * @param freq           (item)
-     * @deprecated use
-     * {@link GeneratorUtils#makeClosure(Database, Set, ArrayList, ArrayList, int)}
-     */
-    @TraceMethod(displayTitle = true)
-    static void MakeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets,
-                            ArrayList<Integer> itemset, int freq) {
-        GeneratorUtils.makeClosure(database, transactionIds, qSets, itemset, freq);
     }
 
     /**
@@ -84,32 +66,14 @@ public class ClusterGenerator implements Generator {
         }
         for (int clusterId = 0; clusterId < freqClusterId; clusterId++) {
             if (!clusters.contains(clusterId)
-                    && GeneratorUtils.CheckItemInclusion(database, newTransactionIds, clusterId)) {
+                    && database.isClusterInTransactions(newTransactionIds, clusterId)) {
                 return false;
             }
         }
         return true;
     }
 
-    /**
-     * <pre>
-     * Lcm::CalcurateCoreI(database, itemsets, freqList)
-     * </pre>
-     *
-     * @param clusterIds         (itemsets)
-     * @param frequentClusterIds (freqList)
-     * @return le dernier élement different du dernier clusterId de
-     * frequentClusterIds, si frequentClusterIds est trop petit, renvoie
-     * le premier element de clusterIds, sinon renvoi 0 si clusterIds
-     * est vide
-     * @deprecated use
-     * {@link GeneratorUtils#getDifferentFromLastCluster(ArrayList, ArrayList)}
-     */
-    static int CalcurateCoreI(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
-        return GeneratorUtils.getDifferentFromLastCluster(clusterIds, frequentClusterIds);
-    }
-
-    private static void addTransactionToItemset(ClusterMatrix clusterMatrix, ArrayList<Integer> path, ArrayList<Transaction> transactions, int[] numItemset) {
+    static void addPathToTransaction(ClusterMatrix clusterMatrix, ArrayList<Integer> path, ArrayList<Transaction> transactions, int[] pathId) {
         //TODO : opti ce truc mais en gros ça règle le pb du surplus de transactions par itemsets
         Set<Integer> transactionOfLast = clusterMatrix.getClusterTransactionIds(path.get(path.size() - 1));
         //Parmis la liste de clusters d'un itemsets, je cherche le cluster qui a le moins de transaction et ça sera par définition les transactions de mon path
@@ -121,12 +85,12 @@ public class ClusterGenerator implements Generator {
             }*/
 
         //Pour chaque transaction, on ajoute le cluster qui a l'id numItem
-        // TODO :on ajoute pour chaque transaction l'path auquel il appartient :D
+        // TODO :on ajoute pour chaque transaction le path auquel il appartient :D
         for (Integer transactionId : transactionOfLast) {
-            transactions.get(transactionId).add(new Cluster(numItemset[0]));
+            transactions.get(transactionId).add(new Cluster(pathId[0]));
         }
 
-        numItemset[0]++;
+        pathId[0]++;
     }
 
     /**
@@ -179,72 +143,75 @@ public class ClusterGenerator implements Generator {
      *
      * @param clusterMatrix      (database, , itemID, timeID) La database &agrave; analyser
      * @param transactions       (transactionsets)
-     * @param clusterIds         (itemsets) une liste representant les id
+     * @param path               (itemsets) une liste representant les id
      * @param transactionIds     (transactionList)
      * @param frequentClusterIds (freqList) une liste representant les clusterIds frequents
      * @param numItems           (numItems)
      */
     @TraceMethod(displayTitle = true)
-    void run(ClusterMatrix clusterMatrix, ArrayList<Transaction> transactions, ArrayList<Integer> clusterIds,
-             Set<Integer> transactionIds, ArrayList<Integer> frequentClusterIds, int[] numItems) {
+    private void run(ClusterMatrix clusterMatrix, ArrayList<Transaction> transactions, ArrayList<Integer> path,
+                     Set<Integer> transactionIds, ArrayList<Integer> frequentClusterIds, int[] numItems) {
         Debug.println("clusterMatrix", clusterMatrix, Debug.DEBUG);
-        Debug.println("clustersIds", clusterIds, Debug.DEBUG);
         Debug.println("transactionIds ", transactionIds, Debug.DEBUG);
         Debug.println("frequentClusterIds ", frequentClusterIds, Debug.DEBUG);
 
-        ArrayList<ArrayList<Integer>> generatedArrayOfClusters = generateItemsets(clusterIds);
+        ArrayList<ArrayList<Integer>> generatedPaths = generatePaths(path);
 
-        Debug.println("GeneratedItemsets", generatedArrayOfClusters, Debug.DEBUG);
-        Debug.println("GeneratedItemId", defaultDatabase.getClusterIds(), Debug.DEBUG);
+        Debug.println("path", path, Debug.DEBUG);
+        Debug.println("generatedPaths", generatedPaths, Debug.DEBUG);
 
-        for (ArrayList<Integer> generatedClusters : generatedArrayOfClusters) {
-            printItemsetsNew(clusterMatrix, generatedClusters, transactions, numItems);
+        for (ArrayList<Integer> generatedPath : generatedPaths) {
+            Debug.println("itemsetSize : ", path.size(), Debug.DEBUG);
+            Debug.println("minTime : ", minTime, Debug.DEBUG);
 
-            int calcurateCoreI = CalcurateCoreI(generatedClusters, frequentClusterIds);
+            // Lcm::printItemsetsNew([]itemsets, occ, []transactionsets, numItems, []timeID, [][]level2ItemID, [][]level2TimeID)
+
+            if (path.size() > 0) { // code c complient
+                //TODO back to minTime for itemsize
+                //if (path.size() > minTime) {
+                addPathToPathBlock(clusterMatrix, generatedPath);
+                addPathToTransaction(clusterMatrix, generatedPath, transactions, numItems);
+            }
+
+            int calcurateCoreI = GeneratorUtils.getDifferentFromLastCluster(generatedPath, frequentClusterIds);
 
             Debug.println("Core_i : " + calcurateCoreI, Debug.DEBUG);
 
-            SortedSet<Integer> lowerBounds = GeneratorUtils
-                    .lower_bound(defaultDatabase.getClusterIds(), calcurateCoreI);
+            SortedSet<Integer> lowerBounds = defaultDatabase.getClusterIds().tailSet(calcurateCoreI);
 
             // freq_i
-            ArrayList<Integer> freqClusterIds = new ArrayList<>();
+            ArrayList<Integer> freqPath = new ArrayList<>();
             Debug.println("lower bounds", lowerBounds.size(), Debug.DEBUG);
 
             for (int clusterId : lowerBounds) {
-                Debug.println("GeneratedClusters", generatedClusters, Debug.DEBUG);
+                Debug.println("GeneratedClusters", generatedPath, Debug.DEBUG);
                 Debug.println(" ClusterId", clusterId, Debug.DEBUG);
                 Debug.println("Min Support", minSupport, Debug.DEBUG);
 
                 if (clusterMatrix.getClusterTransactionIds(clusterId).size() >= minSupport &&
-                        !generatedClusters.contains(clusterId)) {
-                    freqClusterIds.add(clusterId);
+                        !generatedPath.contains(clusterId)) {
+                    freqPath.add(clusterId);
                 }
             }
 
-            Debug.println("Frequent : " + freqClusterIds);
+            Debug.println("Frequent : ", freqPath, Debug.DEBUG);
 
-            for (int freqClusterId : freqClusterIds) {
-                //Set<Integer> newTransactionIds = defaultDatabase.getFilteredTransactionIdsIfHaveCluster(transactionIds, freqClusterId);
-                Set<Integer> newTransactionIds = new HashSet<>(); // newTransactionList
-                // if(GeneratorUtils.ppcTest(defaultDatabase, generatedClusters, freqClusterId, newTransactionIds)){
-                if (PPCTest(defaultDatabase, generatedClusters, transactionIds, freqClusterId, newTransactionIds)) {
+            for (int freqClusterId : freqPath) {
+                Set<Integer> newTransactionIds = defaultDatabase.getFilteredTransactionIdsIfHaveCluster(transactionIds, freqClusterId);
+
+                if (GeneratorUtils.ppcTest(defaultDatabase, generatedPath, freqClusterId, newTransactionIds)) {
                     ArrayList<Integer> qSets = new ArrayList<>();
 
-                    MakeClosure(defaultDatabase, newTransactionIds, qSets, generatedClusters, freqClusterId);
+                    GeneratorUtils.makeClosure(defaultDatabase, newTransactionIds, qSets, generatedPath, freqClusterId);
                     if (maxPattern == 0 || qSets.size() <= maxPattern) {
                         Set<Integer> updatedTransactionIds = GeneratorUtils
                                 .updateTransactions(defaultDatabase, transactionIds, qSets, freqClusterId);
-                        // newFreqList
                         ArrayList<Integer> updatedFreqList = GeneratorUtils
                                 .updateFreqList(defaultDatabase, transactionIds, qSets, frequentClusterIds,
                                         freqClusterId);
 
-                        updateOccurenceDeriver(clusterMatrix, updatedTransactionIds);
+                        clusterMatrix.optimizeMatrix(defaultDatabase, updatedTransactionIds);
 
-                        // clusterIds -> qSets
-                        // transactionIds -> updatedTransactionIds
-                        // frequentClusterIds -> updatedFreqList
                         run(clusterMatrix, transactions, qSets, updatedTransactionIds, updatedFreqList, numItems);
 
                     }
@@ -262,6 +229,7 @@ public class ClusterGenerator implements Generator {
      * @param path          (itemsets)
      * @param transactions  (transactionsets)
      * @param numItemset    (numItems)
+     * @deprecated
      */
     void printItemsetsNew(ClusterMatrix clusterMatrix, ArrayList<Integer> path, ArrayList<Transaction> transactions,
                           int[] numItemset) {
@@ -271,12 +239,12 @@ public class ClusterGenerator implements Generator {
         //TODO back to minTime for itemsize
         if (path.size() > 0) { // code c complient
             //if (path.size() > minTime) {
-            addPathToBlockPath(clusterMatrix, path);
-            addTransactionToItemset(clusterMatrix, path, transactions, numItemset);
+            addPathToPathBlock(clusterMatrix, path);
+            addPathToTransaction(clusterMatrix, path, transactions, numItemset);
         }
     }
 
-    private void addPathToBlockPath(ClusterMatrix clusterMatrix, ArrayList<Integer> path) {
+    void addPathToPathBlock(ClusterMatrix clusterMatrix, ArrayList<Integer> path) {
         ArrayList<Integer> timeIds = new ArrayList<>();
         ArrayList<Integer> clusterList = new ArrayList<>();
         timeIds.add(0);
@@ -291,50 +259,32 @@ public class ClusterGenerator implements Generator {
     }
 
     /**
-     * Supprime et recrée les associations {@link Cluster} <=> {@link Transaction} en fonction des transactions à prendre en compte
-     * <p>
-     * <pre>
-     * Lcm::UpdateOccurenceDeriver(const Database &database, const vector<int> &transactionList, ClusterMatrix &occurence)
-     * </pre>
-     * <p>
-     * defaultDatabase (database)
-     *
-     * @param clusterMatrix     (occurence)
-     * @param newTransactionIds (transactionList)
-     * @deprecated use {@link ClusterMatrix#optimizeMatrix(Database, Set)}
-     */
-    void updateOccurenceDeriver(ClusterMatrix clusterMatrix, Set<Integer> newTransactionIds) {
-        clusterMatrix.optimizeMatrix(defaultDatabase, newTransactionIds);
-    }
-
-    /**
      * <pre>
      * Lcm::GenerateItemset(Database,[]itemsets,[]itemID,[]timeID,[][]generatedItemsets, [][]generatedtimeID,[][]generateditemID,sizeGenerated)
      * </pre>
      *
-     * @param itemset (itemsets) une liste representant les clusterId
+     * @param path (itemsets) une liste representant les clusterId
      */
-    ArrayList<ArrayList<Integer>> generateItemsets(ArrayList<Integer> itemset) {
-        // todo aplatir generated* dans cette fonction : raison, non utilisées
-        // todo faire passer Itemset en parametres et non pas un clusterIds représentant l'itemset
+    ArrayList<ArrayList<Integer>> generatePaths(ArrayList<Integer> path) {
+        // todo faire passer Itemset en parametres et non pas un clusterIds représentant l'path
 
-        ArrayList<ArrayList<Integer>> generatedArrayOfClusters = new ArrayList<>();
 
-        if (itemset.size() == 0) {
-            generatedArrayOfClusters.add(itemset);
-            return generatedArrayOfClusters;
+        if (path.size() == 0) {
+            ArrayList<ArrayList<Integer>> generatedPaths = new ArrayList<>();
+            generatedPaths.add(path);
+            return generatedPaths;
         }
 
         boolean oneTimePerCluster = true; // numberSameTime
 
         int lastTime = 0;
         // liste des temps qui n'ont qu'un seul cluster
-        for (int i = 0; i < itemset.size(); ++i) {
-            int clusterId = itemset.get(i);
+        for (int i = 0; i < path.size(); ++i) {
+            int clusterId = path.get(i);
             lastTime = defaultDatabase.getClusterTimeId(clusterId);
 
-            if (i != itemset.size() - 1) {
-                int nextClusterId = itemset.get(i + 1);
+            if (i != path.size() - 1) {
+                int nextClusterId = path.get(i + 1);
                 if (defaultDatabase.getClusterTimeId(clusterId)
                         == defaultDatabase.getClusterTimeId(nextClusterId)) {
                     oneTimePerCluster = false;
@@ -343,10 +293,12 @@ public class ClusterGenerator implements Generator {
         }
 
         if (oneTimePerCluster) {
-            generatedArrayOfClusters.add(itemset); // why
+            ArrayList<ArrayList<Integer>> generatedPaths = new ArrayList<>();
+
+            generatedPaths.add(path); // why
             //generatedArrayOfTimeIds.add(times); // whyyy
             //generatedArrayOfClusterIds.add(database.getClusterIds()); // but why ???
-            return generatedArrayOfClusters;
+            return generatedPaths;
         }
 
         //Manage MultiClustering
@@ -354,31 +306,31 @@ public class ClusterGenerator implements Generator {
         ArrayList<ArrayList<Integer>> timesClusterIds = new ArrayList<>(); // PosDates
 
         for (int i = 1; i <= lastTime; i++) {
-            ArrayList<Integer> tempClusterIds = new ArrayList<>();
+            ArrayList<Integer> tempPath = new ArrayList<>();
 
-            for (int clusterId : itemset) {
+            for (int clusterId : path) {
                 if (defaultDatabase.getClusterTimeId(clusterId) == i) {
-                    tempClusterIds.add(clusterId);
+                    tempPath.add(clusterId);
                 }
             }
 
-            timesClusterIds.add(tempClusterIds);
+            timesClusterIds.add(tempPath);
         }
 
         //sizeGenerated stands for the number of potential itemsets to generate
-        Debug.println("sizeGenerated stands for the number of potential itemsets to generate");
+        Debug.println("sizeGenerated stands for the number of potential itemsets to generate", Debug.DEBUG);
 
         //initialise the set of generated itemsets
-        Debug.println("initialise the set of generated itemsets");
+        Debug.println("initialise the set of generated itemsets", Debug.DEBUG);
 
-        ArrayList<ArrayList<Integer>> tempArrayOfClusters = new ArrayList<>();
+        ArrayList<ArrayList<Integer>> tempPaths = new ArrayList<>();
         /*
-         * For each clusterId in timeClusterIds[0], push itemset of size 1
+         * For each clusterId in timeClusterIds[0], push path of size 1
          */
         for (Integer clusterId : timesClusterIds.get(0)) {
             ArrayList<Integer> singleton = new ArrayList<>(1);
             singleton.add(clusterId);
-            tempArrayOfClusters.add(singleton);
+            tempPaths.add(singleton);
             Debug.println("Add Singleton", singleton, Debug.WARNING);
         }
         /*
@@ -388,34 +340,34 @@ public class ClusterGenerator implements Generator {
             ArrayList<Integer> tempClusterIds = timesClusterIds.get(clusterIdsIndex);
             ArrayList<ArrayList<Integer>> results = new ArrayList<>();
 
-            for (ArrayList<Integer> generatedItems : tempArrayOfClusters) {
+            for (ArrayList<Integer> generatedPath : tempPaths) {
                 for (int item : tempClusterIds) {
-                    ArrayList<Integer> result = new ArrayList<>(generatedItems);
+                    ArrayList<Integer> result = new ArrayList<>(generatedPath);
                     result.add(item);
                     results.add(result); // but why ???
                 }
             }
-            tempArrayOfClusters = results;
+            tempPaths = results;
         }
 
         // Remove the itemsets already existing in the set of transactions
-        Debug.println("Remove Itemsets already existing");
+        Debug.println("Remove paths already existing", Debug.DEBUG);
         ArrayList<ArrayList<Integer>> checkedArrayOfClusterIds = new ArrayList<>(); //checkedItemsets
 
         boolean insertok;
 
-        for (ArrayList<Integer> currentClusterIds : tempArrayOfClusters) {
+        for (ArrayList<Integer> currentPath : tempPaths) {
             insertok = true;
 
             for (Transaction transaction : defaultDatabase.getTransactions().values()) {
-                if (ArrayUtils.isSame(transaction.getClusterIds(), currentClusterIds)) {
+                if (ArrayUtils.isSame(transaction.getClusterIds(), currentPath)) {
                     insertok = false;
                     break;
                 }
             }
 
             if (insertok) {
-                checkedArrayOfClusterIds.add(currentClusterIds);
+                checkedArrayOfClusterIds.add(currentPath);
             }
         }
 
@@ -432,10 +384,10 @@ public class ClusterGenerator implements Generator {
             }
         }*/
 
-        generatedArrayOfClusters.clear();
-        generatedArrayOfClusters.addAll(checkedArrayOfClusterIds); // why
+        //ArrayList<ArrayList<Integer>> generatedPaths = new ArrayList<>();
+        //generatedPaths.addAll(checkedArrayOfClusterIds); // why
         //generatedArrayOfTimeIds.add(times); // whyy
         //generatedArrayOfClusterIds.add(database.getClusterIds()); // but whyy ?
-        return generatedArrayOfClusters;
+        return checkedArrayOfClusterIds;
     }
 }
