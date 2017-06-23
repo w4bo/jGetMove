@@ -41,125 +41,47 @@ public class ConvoyDetector implements Detector {
         return convoyDetector;
     }
 
-
-    /*public ArrayList<Pattern> detect(Database defaultDatabase, Set<Integer> timeBased, Set<Integer> clusterBased,
-                                     Collection<Transaction> transactions) {
-
-        ArrayList<Pattern> convoys = new ArrayList<>();
-
-
-        ArrayList<Integer> clusters = new ArrayList<>(clusterBased);
-        ArrayList<Integer> times = new ArrayList<>(timeBased);
-        int firstTime = times.get(0);
-        int lastTime = firstTime;
-        int currentTime;
-        int currentIndex;
-        int firstIndex = 0;
-        int lastIndex = firstIndex;
-
-        //CurrentTransactionSet
-        ArrayList<Integer> currentTransactions;
-        // correctTransactionSet
-        ArrayList<Integer> goodTransactions = new ArrayList<>(
-                defaultDatabase.getClusterTransactions(clusters.get(0)).keySet());
-
-        //Pour tout les clusters
-        for (int i = 0; i < times.size(); i++) {
-            // currentTransactionSet
-            currentTransactions = new ArrayList<>(defaultDatabase.getClusterTransactions(clusters.get(i)).keySet());
-
-            currentTime = times.get(i);
-            currentIndex = i;
-
-            if (currentTime == lastTime + 1) {
-                ArrayList<Integer> objectTemp = new ArrayList<>();
-                for (int goodTransaction : goodTransactions) {
-                    if (currentTransactions.contains(goodTransaction)) objectTemp.add(goodTransaction);
-                }
-
-                goodTransactions = objectTemp;
-                lastTime = currentTime;
-                lastIndex = currentIndex;
-
-            } else {
-
-                if (currentTime > (lastTime + 1)) {
-                    int temp1 = goodTransactions.size();
-                    int temp2 = transactions.size();
-
-
-                    if ((lastTime - firstTime) >= minTime && (temp1 == temp2)) {
-                        //Init new Convoy
-                        // timesOfItemset
-                        Set<Time> timesOfCluster = new HashSet<>();
-                        Set<Transaction> transactionsOfCluster = new HashSet<>();
-
-                        for (int transactionId : goodTransactions) {
-                            transactionsOfCluster.add(defaultDatabase.getTransaction(transactionId));
-                        }
-                        for (int j = firstIndex; j <= lastIndex; j++) {
-                            timesOfCluster.add(defaultDatabase.getTime(times.get(j)));
-                        }
-
-                        convoys.add(new Convoy(transactionsOfCluster, timesOfCluster));
-                    } else {
-
-                        goodTransactions = currentTransactions;
-                    }
-                    firstTime = currentTime;
-                    firstIndex = currentIndex;
-                    lastTime = currentTime;
-                    lastIndex = currentIndex;
-                }
-            }
-        }
-
-        if ((lastTime - firstTime) >= minTime) {
-            //Init new Convoy
-            // timesOfItemset
-            Set<Time> timesOfCluster = new HashSet<>();
-            Set<Transaction> transactionsOfCluster = new HashSet<>();
-
-            for (int transactionId : goodTransactions) {
-                transactionsOfCluster.add(defaultDatabase.getTransaction(transactionId));
-            }
-            for (int j = firstIndex; j <= lastIndex; j++) {
-                timesOfCluster.add(defaultDatabase.getTime(times.get(j)));
-            }
-            convoys.add(new Convoy(transactionsOfCluster, timesOfCluster));
-        }
-        Debug.println("Convoys", convoys, Debug.INFO);
-
-        return convoys;
-    }*/
-    //TODO Opti,commenter,Simplifier + Tester plusieurs clusters par temps
+    //TODO Retester quand les itemsets en double seront corrigés + opti si besoin
     public ArrayList<Pattern> detect(Database defaultDatabase, Set<Integer> timeBased, Set<Integer> clusterBased,
                                      Collection<Transaction> transactions) {
 
         ArrayList<Pattern> convoys = new ArrayList<>();
-        ArrayList<Integer> clusters = new ArrayList<>(clusterBased);
+        ArrayList<Integer> itemset = new ArrayList<>(clusterBased);
         ArrayList<Integer> times = new ArrayList<>(timeBased);
-        ArrayList<Integer> transactionsOfItemset = new ArrayList<>();
+        ArrayList<Integer> transactionsOfItemset = new ArrayList<>(); //Minimal transactions of an itemset
+        ArrayList<Integer> transactionsOfAClusterOfItemset;
 
         int lastTime = times.get(0);
         int currentTime;
-        int sizeMin = 7777777; // :D
+        int sizeMin = 77777777; //Ivre, il resta appuyer sur la touche "7" pendant 2 secondes
         int size;
-        ArrayList<ArrayList <Integer> > tabTimesSet = new ArrayList< ArrayList<Integer>>();
-        ArrayList<Integer> timesSet = new ArrayList<Integer>();
+        ArrayList<ArrayList <Integer> > tabTimesSet = new ArrayList< ArrayList<Integer>>(); //Ensemble des temps consécutifs des temps de l'itemset
+        ArrayList<Integer> timesSet = new ArrayList<Integer>(); //un ensemble consécutif de temps de l'itemset
 
         for (int i = 0; i < times.size(); i++){
+            //Cette boucle determine les transactions de l'itemset + l'ensemble des temps consécutifs de l'itemsets
             currentTime = times.get(i);
-            size = defaultDatabase.getClusterTransactions(clusters.get(i)).keySet().size();
+            transactionsOfAClusterOfItemset = new ArrayList<>(defaultDatabase.getClusterTransactions(itemset.get(i)).keySet());
+            size = transactionsOfAClusterOfItemset.size();
+
+            if(size == sizeMin && !(transactionsOfItemset.equals(transactionsOfAClusterOfItemset))){
+                //Si on a ce cas par exemple [2,3] et [3,5] TofItemset = [3] mais on doit pas rentrer dedans si [2,3] et [2,3]
+                transactionsOfItemset.retainAll(transactionsOfAClusterOfItemset);
+                sizeMin = transactionsOfItemset.size();
+            }
+
             if(size < sizeMin){
                 sizeMin = size;
-                transactionsOfItemset = new ArrayList<>(defaultDatabase.getClusterTransactions(clusters.get(i)).keySet());
+                transactionsOfItemset = new ArrayList<>(defaultDatabase.getClusterTransactions(itemset.get(i)).keySet());
             }
+
             if(currentTime > (lastTime + 1) && timesSet.size() > 1){
-                ArrayList<Integer> clonic = (ArrayList<Integer>) timesSet.clone();
-                tabTimesSet.add(clonic);
+                //Si le temps actuel n'est plus consécutif aux temps précédent
+                ArrayList<Integer> timesSetClone = (ArrayList<Integer>) timesSet.clone();
+                tabTimesSet.add(timesSetClone);
                 timesSet.clear();
             }
+
             if (currentTime == lastTime + 1) {
                 if(!timesSet.contains(lastTime)){timesSet.add(lastTime);}
                 timesSet.add(currentTime);
@@ -169,17 +91,18 @@ public class ConvoyDetector implements Detector {
             }
             lastTime = currentTime;
         }
+        //TODO : opti surtout ici je pense
         for (ArrayList<Integer> actualTimesSet : tabTimesSet) {
-            Set<Time> timesOfCluster = new HashSet<>();
-            Set<Transaction> transactionsOfCluster = new HashSet<>();
+            //Plus qu'à remplir
+            Set<Time> timesOfClusters = new HashSet<>();
+            Set<Transaction> transactionsOfClusters = new HashSet<>();
             for (int transactionId : transactionsOfItemset) {
-                transactionsOfCluster.add(defaultDatabase.getTransaction(transactionId));
+                transactionsOfClusters.add(defaultDatabase.getTransaction(transactionId));
             }
             for (int time : actualTimesSet) {
-                System.out.println(time);
-                timesOfCluster.add(defaultDatabase.getTime(time));
+                timesOfClusters.add(defaultDatabase.getTime(time));
             }
-            convoys.add(new Convoy(transactionsOfCluster,timesOfCluster));
+            convoys.add(new Convoy(transactionsOfClusters,timesOfClusters));
         }
         Debug.println("Convoys", convoys, Debug.INFO);
         return convoys;
