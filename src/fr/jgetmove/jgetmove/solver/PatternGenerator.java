@@ -68,7 +68,7 @@ public class PatternGenerator implements Generator {
      * @param qSets          (q_sets)
      * @param itemset        (itemsets)
      * @param freq           (item)
-     * @deprecated use {@link GeneratorUtils#makeClosure(Database, Set, ArrayList, ArrayList, int)}
+     * @deprecated use {@link GeneratorUtils#makeClosure(Database, Set, ArrayList, TreeSet, int)}
      */
     @TraceMethod(displayTitle = true)
     private static void MakeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets,
@@ -123,7 +123,7 @@ public class PatternGenerator implements Generator {
      * @deprecated use {@link GeneratorUtils#getDifferentFromLastCluster(ArrayList, ArrayList)}
      */
     private static int CalcurateCoreI(ArrayList<Integer> clusterIds, ArrayList<Integer> frequentClusterIds) {
-        return GeneratorUtils.getDifferentFromLastCluster(clusterIds, frequentClusterIds);
+        return GeneratorUtils.getDifferentFromLastCluster(frequentClusterIds, clusterIds.get(0));
     }
 
     /**
@@ -168,7 +168,7 @@ public class PatternGenerator implements Generator {
         }
         Debug.println("freq_i : " + freqClusterIds);
 
-        ArrayList<Integer> qSets = new ArrayList<>();
+        ArrayList<Integer> newPathClusters = new ArrayList<>();
         ArrayList<Integer> newFreqList = new ArrayList<>();
 
         for (int freqClusterId : freqClusterIds) {
@@ -177,18 +177,18 @@ public class PatternGenerator implements Generator {
             int blockOfItem = lvl2TimeId.get(freqClusterId).get(0);
             if (PPCTest(database, itemsets, transactionIds, freqClusterId, newTransactionIds) &&
                     !blocks.contains(blockOfItem)) {
-                qSets.clear();
-                MakeClosure(database, newTransactionIds, qSets, itemsets, freqClusterId);
+                newPathClusters.clear();
+                MakeClosure(database, newTransactionIds, newPathClusters, itemsets, freqClusterId);
 
-                if (maxPattern == 0 || qSets.size() <= maxPattern) {
+                if (maxPattern == 0 || newPathClusters.size() <= maxPattern) {
                     newTransactionIds.clear();
 
                     Set<Integer> iterTransactionIds = GeneratorUtils
-                            .updateTransactions(database, database.getTransactionIds(), qSets, freqClusterId);
+                            .updateTransactions(database, database.getTransactionIds(), newPathClusters, freqClusterId);
                     newFreqList.clear();
                     newFreqList = GeneratorUtils
-                            .updateFreqList(database, database.getTransactionIds(), qSets, freqList, freqClusterId);
-                    run(database, qSets, iterTransactionIds, newFreqList, lvl2ClusterId, lvl2TimeId, detectors);
+                            .updateClustersFrequenceCount(database, database.getTransactionIds(), newPathClusters, freqList, freqClusterId);
+                    run(database, newPathClusters, iterTransactionIds, newFreqList, lvl2ClusterId, lvl2TimeId, detectors);
                 }
             }
         }

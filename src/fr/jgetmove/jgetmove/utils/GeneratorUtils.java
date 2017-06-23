@@ -13,23 +13,19 @@ public class GeneratorUtils {
      * Lcm::CalcurateCoreI(database, itemsets, freqList)
      * </pre>
      *
-     * @param clusterIds         (itemsets)
      * @param frequentClusterIds (freqList) !not empty
+     * @param defaultValue       default value to return if frequentclusterIds are the same
      * @return le dernier élement different du dernier clusterId de frequentClusterIds, si frequentClusterIds est trop petit, renvoie le premier element de clusterIds, sinon renvoi 0 si clusterIds est vide
      */
-    public static int getDifferentFromLastCluster(ArrayList<Integer> clusterIds,
-                                                  ArrayList<Integer> frequentClusterIds) {
-        if (clusterIds.size() > 0) {
-            int current = frequentClusterIds.get(frequentClusterIds.size() - 1);
+    public static int getDifferentFromLastCluster(ArrayList<Integer> frequentClusterIds, int defaultValue) {
+        int current = frequentClusterIds.get(frequentClusterIds.size() - 1);
 
-            for (int i = frequentClusterIds.size() - 1; i >= 0; i--) {
-                if (current != frequentClusterIds.get(i))
-                    return frequentClusterIds.get(i);
-            }
-
-            return clusterIds.get(0);
+        for (int i = frequentClusterIds.size() - 1; i >= 0; i--) {
+            if (current != frequentClusterIds.get(i))
+                return frequentClusterIds.get(i);
         }
-        return 0;
+
+        return defaultValue;
     }
 
     /**
@@ -44,20 +40,22 @@ public class GeneratorUtils {
      * @param database       (database)
      * @param transactionIds (transactionList)
      * @param qSets          (q_sets)
-     * @param itemset        (itemsets)
+     * @param path           (itemsets)
      * @param freq           (item)
      */
     @TraceMethod(displayTitle = true)
     public static void makeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets,
-                                   ArrayList<Integer> itemset, int freq) {
+                                   Collection<Integer> path, int freq) {
         Debug.println("transactionIds : " + transactionIds);
         Debug.println("qSets : " + qSets);
-        Debug.println("itemset : " + itemset);
+        Debug.println("itemset : " + path);
         Debug.println("freq : " + freq);
         Debug.println("");
 
-        for (int clusterIndex = 0; clusterIndex < itemset.size() && itemset.get(clusterIndex) < freq; clusterIndex++) {
-            qSets.add(itemset.get(clusterIndex));
+        for (int clusterId : path) {
+            if (clusterId < freq) {
+                qSets.add(clusterId);
+            }
         }
 
         //qSets.addAll(itemset);
@@ -81,20 +79,20 @@ public class GeneratorUtils {
      *
      * @param database       (database)
      * @param transactionIds (transactionList)
-     * @param qSets          (q_sets)
-     * @param freqClusterId  (item)
+     * @param pathClusterIds          (q_sets)
+     * @param maxClusterId  (item)
      * @return (newTransactionList)
      */
     public static Set<Integer> updateTransactions(Database database, Set<Integer> transactionIds,
-                                                  ArrayList<Integer> qSets, int freqClusterId) {
+                                                  ArrayList<Integer> pathClusterIds, int maxClusterId) {
         Set<Integer> newTransactionIds = new HashSet<>();
 
         for (int transactionId : transactionIds) {
             Transaction transaction = database.getTransaction(transactionId);
             boolean canAdd = true;
 
-            for (int qSetClusterId : qSets) {
-                if (qSetClusterId >= freqClusterId && !transaction.getClusterIds().contains(qSetClusterId)) {
+            for (int pathClusterId : pathClusterIds) {
+                if (pathClusterId >= maxClusterId && !transaction.getClusterIds().contains(pathClusterId)) {
                     canAdd = false;
                 }
             }
@@ -113,22 +111,22 @@ public class GeneratorUtils {
      *
      * @param database         (database)
      * @param transactionIds   (transactionList)
-     * @param qSets            (gsub)
-     * @param frequentClusters (freqList)
-     * @param freqClusterId    (freq)
+     * @param newPathClusters            (gsub)
+     * @param oldClustersFrequenceCount (freqList)
+     * @param maxClusterId    (freq)
      * @return (newFreq)
      */
-    public static ArrayList<Integer> updateFreqList(Database database, Set<Integer> transactionIds,
-                                                    ArrayList<Integer> qSets,
-                                                    ArrayList<Integer> frequentClusters, int freqClusterId) {
-        //On ajoute les frequences des itemsets de qSets
-        ArrayList<Integer> updatedFrequentClusters = new ArrayList<>();
+    public static ArrayList<Integer> updateClustersFrequenceCount(Database database, Set<Integer> transactionIds,
+                                                                  ArrayList<Integer> newPathClusters,
+                                                                  ArrayList<Integer> oldClustersFrequenceCount, int maxClusterId) {
+        //On ajoute les frequences des itemsets de newPathClusters
+        ArrayList<Integer> clustersFrequenceCount = new ArrayList<>();
 
-        int clusterId = 0;
-        if (frequentClusters.size() > 0) {
-            for (; clusterId < qSets.size(); clusterId++) {
-                if (qSets.get(clusterId) >= freqClusterId) break;
-                updatedFrequentClusters.add(frequentClusters.get(clusterId));
+        int clusterIndex = 0;
+        if (oldClustersFrequenceCount.size() > 0) {
+            for (; clusterIndex < newPathClusters.size(); clusterIndex++) {
+                if (newPathClusters.get(clusterIndex) >= maxClusterId) break;
+                clustersFrequenceCount.add(oldClustersFrequenceCount.get(clusterIndex));
             }
         }
         // newList = database.getTransactionsId()
@@ -141,7 +139,7 @@ public class GeneratorUtils {
         //      newlist = newnewlist
         ArrayList<Integer> previousList = new ArrayList<>(transactionIds);
 
-        for (; clusterId < qSets.size(); clusterId++) {
+        for (; clusterIndex < newPathClusters.size(); clusterIndex++) {
             ArrayList<Integer> lastList = new ArrayList<>();
 
             int freqCount = 0;
@@ -149,16 +147,16 @@ public class GeneratorUtils {
             for (int transactionId : previousList) {
                 Transaction transaction = database.getTransaction(transactionId);
 
-                if (transaction.getClusterIds().contains(qSets.get(clusterId))) {
+                if (transaction.getClusterIds().contains(newPathClusters.get(clusterIndex))) {
                     freqCount++;
                     lastList.add(transactionId);
                 }
             }
-            updatedFrequentClusters.add(freqCount);
+            clustersFrequenceCount.add(freqCount);
             previousList = lastList;
         }
 
-        return updatedFrequentClusters;
+        return clustersFrequenceCount;
     }
 
     /**
@@ -194,14 +192,14 @@ public class GeneratorUtils {
      * Lcm::PpcTest(database, []itemsets, []transactionList, item, []newTransactionList)
      * </pre>
      *
-     * @param itemset           (itemsets)
-     * @param maxClusterId     (item)
+     * @param path           (itemsets)
+     * @param maxClusterId   (item)
      * @param transactionIds (newTransactionList)
      * @return vrai si ppctest est réussi
      */
-    public static boolean ppcTest(Database database, ArrayList<Integer> itemset, int maxClusterId, Set<Integer> transactionIds) {
+    public static boolean ppcTest(Database database, TreeSet<Integer> path, int maxClusterId, Set<Integer> transactionIds) {
         for (int clusterId = 0; clusterId < maxClusterId; clusterId++) {
-            if (!itemset.contains(clusterId) && CheckItemInclusion(database, transactionIds, clusterId)) {
+            if (!path.contains(clusterId) && CheckItemInclusion(database, transactionIds, clusterId)) {
                 return false;
             }
         }

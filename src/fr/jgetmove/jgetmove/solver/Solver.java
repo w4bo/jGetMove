@@ -1,5 +1,6 @@
 package fr.jgetmove.jgetmove.solver;
 
+import fr.jgetmove.jgetmove.database.Path;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.detector.Detector;
 import fr.jgetmove.jgetmove.pattern.Pattern;
@@ -11,14 +12,14 @@ import javax.json.JsonObjectBuilder;
 import java.util.*;
 
 /**
- * Manager that handles a clusterGenerator and detectors
+ * Manager that handles a pathDetector and detectors
  */
 public class Solver {
 
     /**
-     * ClusterGenerator that will handle the creation of itemsets
+     * PathDetector that will handle the creation of itemsets
      */
-    private ClusterGenerator clusterGenerator;
+    private PathDetector pathDetector;
     private PatternGenerator patternGenerator;
 
     /**
@@ -27,19 +28,19 @@ public class Solver {
     private Set<Detector> detectors;
 
     /**
-     * The result of the ClusterGenerator
+     * The result of the PathDetector
      */
-    private ClusterGeneratorResult result;
+    private ArrayList<Path> result;
 
     /**
      * Constructor
      *
-     * @param clusterGenerator ClusterGenerator that will handle the creation of itemsets
+     * @param pathDetector PathDetector that will handle the creation of itemsets
      * @param detectors        list of detectors
      */
-    public Solver(ClusterGenerator clusterGenerator, PatternGenerator patternGenerator,
+    public Solver(PathDetector pathDetector, PatternGenerator patternGenerator,
                   Set<Detector> detectors) {
-        this.clusterGenerator = clusterGenerator;
+        this.pathDetector = pathDetector;
         this.patternGenerator = patternGenerator;
         this.detectors = detectors;
     }
@@ -47,10 +48,10 @@ public class Solver {
     /**
      * Constructor
      *
-     * @param clusterGenerator ClusterGenerator that will handle the creation of itemsets
+     * @param pathDetector PathDetector that will handle the creation of itemsets
      */
-    public Solver(ClusterGenerator clusterGenerator, PatternGenerator patternGenerator) {
-        this.clusterGenerator = clusterGenerator;
+    public Solver(PathDetector pathDetector, PatternGenerator patternGenerator) {
+        this.pathDetector = pathDetector;
         this.patternGenerator = patternGenerator;
         detectors = new HashSet<>();
     }
@@ -58,10 +59,10 @@ public class Solver {
     /**
      * Generate a list of clusters (Itemsets)
      *
-     * @return the list of clusters (Itemsets) generated from clusterGenerator
+     * @return the list of clusters (Itemsets) generated from pathDetector
      */
-    public ClusterGeneratorResult generateClusters() {
-        result = clusterGenerator.generate();
+    public ArrayList<Path> generateClusters() {
+        result = pathDetector.generate();
         return result;
     }
 
@@ -72,9 +73,9 @@ public class Solver {
      */
     public HashMap<Detector, ArrayList<Pattern>> detectPatterns() {
         Debug.println("resultats", result, Debug.WARNING);
-        patternGenerator.run(result.getDatabase(), result.getLvl2ClusterIds(), result.getLvl2TimeIds(), detectors);
+        //patternGenerator.run(result.getDatabase(), result.getLvl2ClusterIds(), result.getLvl2TimeIds(), detectors);
         /*for (Detector detector : detectors) {
-            motifs.put(detector, detector.detect(database, clusterGenerator.getClustersGenerated()));
+            motifs.put(detector, detector.detect(database, pathDetector.getClustersGenerated()));
         }*/
 
         return patternGenerator.getResults();
@@ -128,7 +129,7 @@ public class Solver {
     @Override
     public String toString() {
         return "Solver"
-                + "\n|-- ClusterGenerator :" + clusterGenerator
+                + "\n|-- PathDetector :" + pathDetector
                 + "\n|-- PatternGenerator :" + patternGenerator;
     }
 }

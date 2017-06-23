@@ -8,13 +8,12 @@ import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.detector.ClosedSwarmDetector;
 import fr.jgetmove.jgetmove.detector.ConvoyDetector;
 import fr.jgetmove.jgetmove.detector.Detector;
-import fr.jgetmove.jgetmove.detector.GroupPatternDetector;
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.exception.MalformedTimeIndexException;
 import fr.jgetmove.jgetmove.io.Input;
 import fr.jgetmove.jgetmove.io.Output;
 import fr.jgetmove.jgetmove.pattern.Pattern;
-import fr.jgetmove.jgetmove.solver.ClusterGenerator;
+import fr.jgetmove.jgetmove.solver.PathDetector;
 import fr.jgetmove.jgetmove.solver.PatternGenerator;
 import fr.jgetmove.jgetmove.solver.Solver;
 
@@ -91,9 +90,9 @@ public class Main {
             Debug.println(database, Debug.INFO);
 
             /*
-             * Init ClusterGenerator and detectors
+             * Init PathDetector and detectors
              */
-            ClusterGenerator clusterGenerator = new ClusterGenerator(database, config);
+            PathDetector pathDetector = new PathDetector(database, config);
             PatternGenerator patternGenerator = new PatternGenerator(database, config);
 
             Set<Detector> detectors = new HashSet<>();
@@ -102,9 +101,9 @@ public class Main {
             //detectors.add(new GroupPatternDetector(config.getMinTime(), config.getCommonObjectPercentage()));
 
             /*
-             * Create solver from clusterGenerator, patternGenerator, detectors and start the generation
+             * Create solver from pathDetector, patternGenerator, detectors and start the generation
              */
-            Solver solver = new Solver(clusterGenerator, patternGenerator, detectors);
+            Solver solver = new Solver(pathDetector, patternGenerator, detectors);
 
             Debug.printTitle("Solver Initialisation", Debug.INFO);
             Debug.println(solver, Debug.INFO);

@@ -36,9 +36,9 @@ class GeneratorUtilsTest {
         sameFrequent.add(1);
         sameFrequent.add(1);
 
-        assertEquals(4, GeneratorUtils.getDifferentFromLastCluster(clusterIds, frequent));
-        assertEquals(1, GeneratorUtils.getDifferentFromLastCluster(clusterIds, sameFrequent));
-        assertEquals(0, GeneratorUtils.getDifferentFromLastCluster(new ArrayList<>(), sameFrequent));
+        assertEquals(4, GeneratorUtils.getDifferentFromLastCluster(frequent, clusterIds.get(0)));
+        assertEquals(1, GeneratorUtils.getDifferentFromLastCluster(sameFrequent, clusterIds.get(0)));
+        assertEquals(0, GeneratorUtils.getDifferentFromLastCluster(sameFrequent, 0));
     }
 
     @Test
@@ -161,7 +161,7 @@ class GeneratorUtilsTest {
 
         ArrayList<Integer> frequentClusters = new ArrayList<>();
 
-        ArrayList<Integer> updated = GeneratorUtils.updateFreqList(database, transactionIds, qSets, frequentClusters, 0);
+        ArrayList<Integer> updated = GeneratorUtils.updateClustersFrequenceCount(database, transactionIds, qSets, frequentClusters, 0);
 
         assertEquals(3, updated.size());
         assertEquals(1, (int) updated.get(0));
@@ -174,7 +174,7 @@ class GeneratorUtilsTest {
         qSets.add(3);
         qSets.add(4);
 
-        updated = GeneratorUtils.updateFreqList(database, transactionIds, qSets, frequentClusters, 1);
+        updated = GeneratorUtils.updateClustersFrequenceCount(database, transactionIds, qSets, frequentClusters, 1);
 
         assertEquals(3, updated.size());
         assertEquals(1, (int) updated.get(0));
@@ -183,7 +183,7 @@ class GeneratorUtilsTest {
 
         qSets.clear();
         qSets.add(4);
-        updated = GeneratorUtils.updateFreqList(database, transactionIds, qSets, frequentClusters, 4);
+        updated = GeneratorUtils.updateClustersFrequenceCount(database, transactionIds, qSets, frequentClusters, 4);
 
         assertEquals(1, updated.size());
         assertEquals(2, (int) updated.get(0));
@@ -220,7 +220,7 @@ class GeneratorUtilsTest {
         try {
             Database database = new Database(new Input("tests/assets/itemset_check.dat"), new Input("tests/assets/itemset_check_time_index.dat"), 0);
 
-            ArrayList<Integer> itemset = new ArrayList<>();
+            TreeSet<Integer> itemset = new TreeSet<>();
             itemset.add(0);
             itemset.add(1);
 
