@@ -42,7 +42,7 @@ public class ConvoyDetector implements Detector {
     }
 
 
-    public ArrayList<Pattern> detect(Database defaultDatabase, Set<Integer> timeBased, Set<Integer> clusterBased,
+    /*public ArrayList<Pattern> detect(Database defaultDatabase, Set<Integer> timeBased, Set<Integer> clusterBased,
                                      Collection<Transaction> transactions) {
 
         ArrayList<Pattern> convoys = new ArrayList<>();
@@ -50,7 +50,6 @@ public class ConvoyDetector implements Detector {
 
         ArrayList<Integer> clusters = new ArrayList<>(clusterBased);
         ArrayList<Integer> times = new ArrayList<>(timeBased);
-
         int firstTime = times.get(0);
         int lastTime = firstTime;
         int currentTime;
@@ -131,6 +130,58 @@ public class ConvoyDetector implements Detector {
         }
         Debug.println("Convoys", convoys, Debug.INFO);
 
+        return convoys;
+    }*/
+    //TODO Opti,commenter,Simplifier + Tester plusieurs clusters par temps
+    public ArrayList<Pattern> detect(Database defaultDatabase, Set<Integer> timeBased, Set<Integer> clusterBased,
+                                     Collection<Transaction> transactions) {
+
+        ArrayList<Pattern> convoys = new ArrayList<>();
+        ArrayList<Integer> clusters = new ArrayList<>(clusterBased);
+        ArrayList<Integer> times = new ArrayList<>(timeBased);
+        ArrayList<Integer> transactionsOfItemset = new ArrayList<>();
+
+        int lastTime = times.get(0);
+        int currentTime;
+        int sizeMin = 7777777; // :D
+        int size;
+        ArrayList<ArrayList <Integer> > tabTimesSet = new ArrayList< ArrayList<Integer>>();
+        ArrayList<Integer> timesSet = new ArrayList<Integer>();
+
+        for (int i = 0; i < times.size(); i++){
+            currentTime = times.get(i);
+            size = defaultDatabase.getClusterTransactions(clusters.get(i)).keySet().size();
+            if(size < sizeMin){
+                sizeMin = size;
+                transactionsOfItemset = new ArrayList<>(defaultDatabase.getClusterTransactions(clusters.get(i)).keySet());
+            }
+            if(currentTime > (lastTime + 1) && timesSet.size() > 1){
+                ArrayList<Integer> clonic = (ArrayList<Integer>) timesSet.clone();
+                tabTimesSet.add(clonic);
+                timesSet.clear();
+            }
+            if (currentTime == lastTime + 1) {
+                if(!timesSet.contains(lastTime)){timesSet.add(lastTime);}
+                timesSet.add(currentTime);
+                if(currentTime == times.get(times.size() - 1)){
+                    tabTimesSet.add(timesSet);
+                }
+            }
+            lastTime = currentTime;
+        }
+        for (ArrayList<Integer> actualTimesSet : tabTimesSet) {
+            Set<Time> timesOfCluster = new HashSet<>();
+            Set<Transaction> transactionsOfCluster = new HashSet<>();
+            for (int transactionId : transactionsOfItemset) {
+                transactionsOfCluster.add(defaultDatabase.getTransaction(transactionId));
+            }
+            for (int time : actualTimesSet) {
+                System.out.println(time);
+                timesOfCluster.add(defaultDatabase.getTime(time));
+            }
+            convoys.add(new Convoy(transactionsOfCluster,timesOfCluster));
+        }
+        Debug.println("Convoys", convoys, Debug.INFO);
         return convoys;
     }
 }
