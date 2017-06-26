@@ -18,6 +18,7 @@ public class PathDetector implements Generator {
     ArrayList<ArrayList<Integer>> lvl2TimeIds;
     private int minSupport, maxPattern, minTime;
     private ArrayList<Path> paths;
+    private ArrayList<ArrayList<Integer>> allPathTransactions;
 
     /**
      * Initialise le solveur.
@@ -32,6 +33,8 @@ public class PathDetector implements Generator {
         lvl2ClusterIds = new ArrayList<>();
         lvl2TimeIds = new ArrayList<>();
         paths = new ArrayList<>();
+        allPathTransactions = new ArrayList<>();
+
     }
 
     /**
@@ -151,6 +154,7 @@ public class PathDetector implements Generator {
 
         Debug.println("Generating paths", Debug.INFO);
         ArrayList<TreeSet<Integer>> pathsClusterIds = generatePaths(clusterIds);
+
         Debug.println("pathsClusterIds", pathsClusterIds, Debug.DEBUG);
 
         for (TreeSet<Integer> pathClusterIds : pathsClusterIds) {
@@ -159,18 +163,24 @@ public class PathDetector implements Generator {
             int calcurateCoreI;
 
             if (pathClusterIds.size() > 0) { // code c complient
-                //TODO back to minTime for itemsize
+                //TODO back to minTime for itemsize And optimiser cet modif qui evite les itemsets redondants (ce mot est moche mais pratique et c mieux que doublon)
+                //TODO j'ai fais TreeSet -> ArrayList car je n'arrivais pas à faire ce que je voulais juste avec des TreeSet.
                 //if (path.size() > minTime) {
                 TreeSet<Integer> pathTransactions = clusterMatrix.getClusterTransactionIds(pathClusterIds.last());
+                ArrayList<Integer> arrayPathTransactions = new ArrayList<Integer>(pathTransactions.size());
+                arrayPathTransactions.addAll(pathTransactions);
                 TreeSet<Integer> pathTimes = new TreeSet<>();
                 for (Integer clusterId : pathClusterIds) {
                     pathTimes.add(clusterMatrix.getClusterTimeId(clusterId));
                 }
-
-                Path path = new Path(pathId[0], pathTransactions, pathClusterIds, pathTimes);
-                pathId[0]++;
-                paths.add(path);
-
+                if(!allPathTransactions.contains(arrayPathTransactions)){
+                    //2 Itemsets ayant exactements les mêmes transactions sont identiques, donc il suffit de vérifier les transactions des itemsets
+                    Path path = new Path(pathId[0], pathTransactions, pathClusterIds, pathTimes);
+                    pathId[0]++;
+                    paths.add(path);
+                    allPathTransactions.add(arrayPathTransactions);
+                }
+                System.out.println(allPathTransactions);
                 calcurateCoreI = GeneratorUtils.getDifferentFromLastCluster(clustersFrequenceCount, pathClusterIds.first());
             } else {
                 calcurateCoreI = 0;
@@ -232,7 +242,6 @@ public class PathDetector implements Generator {
     void printItemsetsNew(ClusterMatrix clusterMatrix, TreeSet<Integer> pathClusters, int[] pathId) {
         Debug.println("ItemsetSize : ", pathClusters.size(), Debug.DEBUG);
         Debug.println("MinTime : ", minTime, Debug.DEBUG);
-
         //TODO back to minTime for pathize
         if (pathClusters.size() > 0) { // code c complient
             //if (pathClusters.size() > minTime) {
