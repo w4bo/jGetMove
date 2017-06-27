@@ -30,7 +30,7 @@ public class Solver {
     /**
      * The result of the PathDetector
      */
-    private ArrayList<Path> result;
+    private TreeSet<Path> result;
 
     /**
      * Constructor
@@ -61,7 +61,7 @@ public class Solver {
      *
      * @return the list of clusters (Itemsets) generated from pathDetector
      */
-    public ArrayList<Path> generateClusters() {
+    public TreeSet<Path> generateClusters() {
         result = pathDetector.generate();
         return result;
     }

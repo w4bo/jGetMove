@@ -7,7 +7,7 @@ import java.util.TreeSet;
 /**
  *
  */
-public class Path {
+public class Path implements Comparable<Path> {
 
     private final int id;
     private TreeSet<Integer> clusters;
@@ -57,10 +57,23 @@ public class Path {
     @Override
     public String toString() {
 
-        String str = "\n|-- id : " + id;
-        str += "\n|-- Clusters :" + clusters;
-        str += "\n|-- Transactions :" + transactions;
-        str += "\n`-- Temps :" + times;
-        return str;
+        return "\n. id : " + id +
+                "\n|-- Clusters : " + clusters +
+                "\n|-- Transactions : " + transactions +
+                "\n`-- Temps : " + times;
+    }
+
+
+    @Override
+    public int compareTo(Path p) {
+        if (clusters.equals(p.clusters)) {
+            return 0;
+        } else if (clusters.containsAll(p.clusters)) {
+            return 1;
+        } else if (p.clusters.containsAll(clusters)) {
+            return -1;
+        }
+
+        return id - p.id;
     }
 }
