@@ -1,6 +1,6 @@
 package fr.jgetmove.jgetmove.detector;
 
-import fr.jgetmove.jgetmove.database.Database;
+import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.database.Time;
 import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
@@ -23,7 +23,7 @@ public class GroupPatternDetector implements Detector {
     }
 
     @Override
-    public ArrayList<Pattern> detect(Database defaultDatabase, Set<Integer> timeBased, Set<Integer> clusterBased,
+    public ArrayList<Pattern> detect(DataBase defaultDataBase, Set<Integer> timeBased, Set<Integer> clusterBased,
                                      Collection<Transaction> transactions) {
         Debug.println("Start Group Pattern", Debug.DEBUG);
         ArrayList<Pattern> patterns = new ArrayList<>();
@@ -52,12 +52,12 @@ public class GroupPatternDetector implements Detector {
 
         //Correct object set
         ArrayList<Integer> goodTransactions = new ArrayList<>(
-                defaultDatabase.getClusterTransactions(clusters.get(0)).keySet());
+                defaultDataBase.getClusterTransactions(clusters.get(0)).keySet());
 
         for (int i = 0; i < times.size(); i++) {
             //Current ObjectSet
             ArrayList<Integer> currentTransactions = new ArrayList<>(
-                    defaultDatabase.getClusterTransactions(clusters.get(i)).keySet());
+                    defaultDataBase.getClusterTransactions(clusters.get(i)).keySet());
 
             currentTime = times.get(i);
             currentIndex = i;
@@ -98,17 +98,17 @@ public class GroupPatternDetector implements Detector {
                 }
             }
         }
-        if ((numOverlapTimePoint / defaultDatabase.getTimeIds().size()) >= commonObjectPercentage) {
+        if ((numOverlapTimePoint / defaultDataBase.getTimeIds().size()) >= commonObjectPercentage) {
             Debug.println("New Group Pattern", Debug.DEBUG);
             Set<Time> timesOfPattern = new HashSet<>();
             Set<Transaction> transactionsOfPattern = new HashSet<>();
 
             for (Transaction transaction : transactions) {
-                transactionsOfPattern.add(defaultDatabase.getTransaction(transaction.getId()));
+                transactionsOfPattern.add(defaultDataBase.getTransaction(transaction.getId()));
             }
 
             for (Integer time : timeBased) {
-                timesOfPattern.add(defaultDatabase.getTime(time));
+                timesOfPattern.add(defaultDataBase.getTime(time));
             }
 
             patterns.add(new GroupPattern(transactionsOfPattern, timesOfPattern));

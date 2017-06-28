@@ -6,7 +6,7 @@ import java.util.Set;
 /**
  * Represents a fixed time in the timeline, contains a set of clusters, contained in a block and has a unique identifier
  * <p>
- * Time is managed by Database
+ * Time is managed by DataBase
  */
 public class Time implements Comparable<Time> {
     private int id;
@@ -14,7 +14,7 @@ public class Time implements Comparable<Time> {
     /**
      * The block in which the time is, can be null
      */
-    private Block bloc;
+    private BlockBase bloc;
     /**
      * Hashmap containing the list of clusters (idCluster -> Cluster)
      * Hashmap contenant la liste des clusters idCluster=>Cluster
@@ -24,7 +24,7 @@ public class Time implements Comparable<Time> {
     /**
      * @param id identifier
      */
-    Time(int id) {
+    public Time(int id) {
         this.id = id;
         clusters = new HashMap<>();
     }
@@ -45,16 +45,16 @@ public class Time implements Comparable<Time> {
 
 
     /**
-     * @return the <tt>Block</tt> which contains this <tt>Time</tt>
+     * @return the <tt>BlockBase</tt> which contains this <tt>Time</tt>
      */
-    public Block getBloc() {
+    public BlockBase getBloc() {
         return bloc;
     }
 
     /**
-     * @param bloc sets the containing <tt>Block</tt>
+     * @param bloc sets the containing <tt>BlockBase</tt>
      */
-    public void setBloc(Block bloc) {
+    public void setBloc(BlockBase bloc) {
         this.bloc = bloc;
     }
 

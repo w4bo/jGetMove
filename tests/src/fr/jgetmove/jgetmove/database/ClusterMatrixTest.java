@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ClusterMatrixTest {
-    private static Database database;
+    private static DataBase dataBase;
     private static ClusterMatrix clusterMatrix;
 
     @BeforeAll
@@ -21,9 +21,9 @@ class ClusterMatrixTest {
         try {
             Input data = new Input("tests/assets/itemset_check.dat");
             Input dataTime = new Input("tests/assets/itemset_check_time_index.dat");
-            database = new Database(data, dataTime, 0);
+            dataBase = new DataBase(data, dataTime);
 
-            clusterMatrix = new ClusterMatrix(database);
+            clusterMatrix = new ClusterMatrix(dataBase);
         } catch (MalformedTimeIndexException | IOException | ClusterNotExistException e) {
             e.printStackTrace();
         }
@@ -60,11 +60,11 @@ class ClusterMatrixTest {
 
     @Test
     void optimizeMatrix() {
-        ClusterMatrix clusterMatrix = new ClusterMatrix(database);
+        ClusterMatrix clusterMatrix = new ClusterMatrix(dataBase);
 
         TreeSet<Integer> set = new TreeSet<>();
         set.add(1);
-        clusterMatrix.optimizeMatrix(database, set);
+        clusterMatrix.optimizeMatrix(dataBase, set);
 
         assertEquals(0, clusterMatrix.getClusterTransactionIds(0).size());
 

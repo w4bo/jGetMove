@@ -1,6 +1,6 @@
 package fr.jgetmove.jgetmove.detector;
 
-import fr.jgetmove.jgetmove.database.Database;
+import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.database.Time;
 import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
@@ -21,7 +21,7 @@ public class ClosedSwarmDetector implements Detector {
     }
 
     @Override
-    public ArrayList<Pattern> detect(Database defaultDatabase, Set<Integer> timeBased, Set<Integer> clusterBased,
+    public ArrayList<Pattern> detect(DataBase defaultDataBase, Set<Integer> timeBased, Set<Integer> clusterBased,
                                      Collection<Transaction> transactions) {
         ArrayList<Pattern> closedSwarm = new ArrayList<>();
 
@@ -31,11 +31,11 @@ public class ClosedSwarmDetector implements Detector {
             Set<Transaction> transactionsOfPattern = new HashSet<>();
 
             for (Transaction transaction : transactions) {
-                transactionsOfPattern.add(defaultDatabase.getTransaction(transaction.getId()));
+                transactionsOfPattern.add(defaultDataBase.getTransaction(transaction.getId()));
             }
 
             for (Integer time : timeBased) {
-                timesOfPattern.add(defaultDatabase.getTime(time));
+                timesOfPattern.add(defaultDataBase.getTime(time));
             }
 
             closedSwarm.add(new ClosedSwarm(transactionsOfPattern, timesOfPattern));

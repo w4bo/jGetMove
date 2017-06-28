@@ -13,22 +13,15 @@ import java.util.TreeSet;
 
 public class PathDetector implements Generator {
 
-    private final Database defaultDatabase;
     ArrayList<ArrayList<Integer>> lvl2ClusterIds;
     ArrayList<ArrayList<Integer>> lvl2TimeIds;
     private int minSupport, maxPattern, minTime;
     private TreeSet<Path> paths;
 
-    /**
-     * Initialise le solveur.
-     *
-     * @param database database par defaut
-     */
-    public PathDetector(Database database, DefaultConfig config) {
+    public PathDetector(DefaultConfig config) {
         this.minSupport = config.getMinSupport();
         this.maxPattern = config.getMaxPattern();
         this.minTime = config.getMinTime();
-        this.defaultDatabase = database;
         lvl2ClusterIds = new ArrayList<>();
         lvl2TimeIds = new ArrayList<>();
         paths = new TreeSet<>();
@@ -38,7 +31,7 @@ public class PathDetector implements Generator {
      * Teste si p(i-1) == q(i-1)
      * <p>
      * <pre>
-     * Lcm::PpcTest(database, []itemsets, []transactionList, item, []newTransactionList)
+     * Lcm::PpcTest(dataBase, []itemsets, []transactionList, item, []newTransactionList)
      * </pre>
      *
      * @param clusters          (itemsets)
@@ -47,16 +40,16 @@ public class PathDetector implements Generator {
      * @param newTransactionIds (newTransactionList)
      * @return vrai si ppctest est réussi
      * @deprecated use
-     * {@link Database#getFilteredTransactionIdsIfHaveCluster(Set, int)}
+     * {@link DataBase#getFilteredTransactionIdsIfHaveCluster(Set, int)}
      * and
-     * {@link GeneratorUtils#ppcTest(Database, TreeSet, int, Set)}
+     * {@link GeneratorUtils#ppcTest(Base, TreeSet, int, Set)}
      */
     @TraceMethod(displayTitle = true)
-    static boolean PPCTest(Database database, TreeSet<Integer> clusters, Set<Integer> transactionIds,
+    static boolean PPCTest(DataBase dataBase, TreeSet<Integer> clusters, Set<Integer> transactionIds,
                            int freqClusterId, Set<Integer> newTransactionIds) {
         // CalcTransactionList
         for (int transactionId : transactionIds) {
-            Transaction transaction = database.getTransaction(transactionId);
+            Transaction transaction = dataBase.getTransaction(transactionId);
 
             if (transaction.getClusterIds().contains(freqClusterId)) {
                 newTransactionIds.add(transactionId);
@@ -64,7 +57,7 @@ public class PathDetector implements Generator {
         }
         for (int clusterId = 0; clusterId < freqClusterId; clusterId++) {
             if (!clusters.contains(clusterId)
-                    && database.isClusterInTransactions(newTransactionIds, clusterId)) {
+                    && dataBase.isClusterInTransactions(newTransactionIds, clusterId)) {
                 return false;
             }
         }
@@ -101,25 +94,25 @@ public class PathDetector implements Generator {
      * </pre>
      */
     @TraceMethod
-    TreeSet<Path> generate() {
-        ClusterMatrix clusterMatrix = new ClusterMatrix(defaultDatabase);
-        Debug.println("totalItem", defaultDatabase.getClusterIds(), Debug.DEBUG);
+    TreeSet<Path> generate(Base matrix) {
+        ClusterMatrix clusterMatrix = new ClusterMatrix(matrix);
+        Debug.println("totalItem", matrix.getClusterIds(), Debug.DEBUG);
 
         ArrayList<Integer> path = new ArrayList<>();
         ArrayList<Integer> freqItemset = new ArrayList<>();
-        ArrayList<Transaction> transactions = new ArrayList<>(defaultDatabase.getTransactions().size());
+        ArrayList<Transaction> transactions = new ArrayList<>(matrix.getTransactions().size());
 
-        for (Transaction transaction : defaultDatabase.getTransactions().values()) {
+        for (Transaction transaction : matrix.getTransactions().values()) {
             transactions.add(new Transaction(transaction.getId()));
         }
 
-        TreeSet<Integer> transactionIds = new TreeSet<>(defaultDatabase.getTransactionIds());
+        TreeSet<Integer> transactionIds = new TreeSet<>(matrix.getTransactionIds());
 
 
         int[] pathId = new int[1];
         pathId[0] = 0;
 
-        run(clusterMatrix, path, transactionIds, freqItemset, pathId);
+        run(matrix, clusterMatrix, path, transactionIds, freqItemset, pathId);
         Debug.println("Transactions", transactions, Debug.DEBUG);
 
         return paths;
@@ -135,6 +128,7 @@ public class PathDetector implements Generator {
      * []timeID, [][]level2ItemID, [][]level2TimeID) {
      * </pre>
      *
+     * @param matrix                  (default database)
      * @param clusterMatrix          (database, , itemID, timeID) La database &agrave; analyser
      * @param clusterIds             (itemsets) une liste representant les id
      * @param transactionIds         (transactionList)
@@ -142,7 +136,7 @@ public class PathDetector implements Generator {
      * @param pathId                 (pathId)
      */
     @TraceMethod(displayTitle = true)
-    private void run(ClusterMatrix clusterMatrix, ArrayList<Integer> clusterIds,
+    private void run(Base matrix, ClusterMatrix clusterMatrix, ArrayList<Integer> clusterIds,
                      Set<Integer> transactionIds, ArrayList<Integer> clustersFrequenceCount, int[] pathId) {
         Debug.println("clusterMatrix", clusterMatrix, Debug.DEBUG);
         Debug.println("path", clusterIds, Debug.DEBUG);
@@ -150,7 +144,7 @@ public class PathDetector implements Generator {
         Debug.println("clustersFrequenceCount ", clustersFrequenceCount, Debug.DEBUG);
 
         Debug.println("Generating paths", Debug.INFO);
-        ArrayList<TreeSet<Integer>> pathsClusterIds = generatePaths(clusterIds);
+        ArrayList<TreeSet<Integer>> pathsClusterIds = generatePaths(matrix, clusterIds);
 
         Debug.println("pathsClusterIds", pathsClusterIds, Debug.DEBUG);
 
@@ -161,8 +155,6 @@ public class PathDetector implements Generator {
 
             if (pathClusterIds.size() > 0) { // code c complient
                 //if (path.size() > minTime) {
-                // TODO back to minTime for itemsize And optimiser cet modif qui evite les itemsets redondants (ce mot est moche mais pratique et c mieux que doublon)
-                //TODO j'ai fais TreeSet -> ArrayList car je n'arrivais pas à faire ce que je voulais juste avec des TreeSet.
 
                 TreeSet<Integer> pathTransactions = clusterMatrix.getClusterTransactionIds(pathClusterIds.last());
 
@@ -170,8 +162,8 @@ public class PathDetector implements Generator {
                 for (Integer clusterId : pathClusterIds) {
                     pathTimes.add(clusterMatrix.getClusterTimeId(clusterId));
                 }
-                //2 Itemsets ayant exactements les mêmes transactions sont identiques, donc il suffit de vérifier les transactions des itemsets
                 Path path = new Path(pathId[0], pathTransactions, pathClusterIds, pathTimes);
+
                 if (paths.add(path)) {
                     pathId[0]++;
                 }
@@ -184,7 +176,7 @@ public class PathDetector implements Generator {
 
             Debug.println("Core_i : " + calcurateCoreI, Debug.DEBUG);
 
-            SortedSet<Integer> clustersTailSet = defaultDatabase.getClusterIds().tailSet(calcurateCoreI);
+            SortedSet<Integer> clustersTailSet = matrix.getClusterIds().tailSet(calcurateCoreI);
 
             // freq_i
             ArrayList<Integer> freqPath = new ArrayList<>();
@@ -201,22 +193,22 @@ public class PathDetector implements Generator {
             Debug.println("Frequent : ", freqPath, Debug.DEBUG);
 
             for (int maxClusterId : freqPath) {
-                Set<Integer> newTransactionIds = defaultDatabase.getFilteredTransactionIdsIfHaveCluster(transactionIds, maxClusterId);
+                Set<Integer> newTransactionIds = matrix.getFilteredTransactionIdsIfHaveCluster(transactionIds, maxClusterId);
 
-                if (GeneratorUtils.ppcTest(defaultDatabase, pathClusterIds, maxClusterId, newTransactionIds)) {
+                if (GeneratorUtils.ppcTest(matrix, pathClusterIds, maxClusterId, newTransactionIds)) {
                     ArrayList<Integer> newPathClusters = new ArrayList<>();
 
-                    GeneratorUtils.makeClosure(defaultDatabase, newTransactionIds, newPathClusters, pathClusterIds, maxClusterId);
+                    GeneratorUtils.makeClosure(matrix, newTransactionIds, newPathClusters, pathClusterIds, maxClusterId);
                     if (maxPattern == 0 || newPathClusters.size() <= maxPattern) {
                         Set<Integer> updatedTransactionIds = GeneratorUtils
-                                .updateTransactions(defaultDatabase, transactionIds, newPathClusters, maxClusterId);
+                                .updateTransactions(matrix, transactionIds, newPathClusters, maxClusterId);
                         ArrayList<Integer> newclustersFrequenceCount = GeneratorUtils
-                                .updateClustersFrequenceCount(defaultDatabase, transactionIds, newPathClusters, clustersFrequenceCount,
+                                .updateClustersFrequenceCount(matrix, transactionIds, newPathClusters, clustersFrequenceCount,
                                         maxClusterId);
 
-                        clusterMatrix.optimizeMatrix(defaultDatabase, updatedTransactionIds);
+                        clusterMatrix.optimizeMatrix(matrix, updatedTransactionIds);
 
-                        run(clusterMatrix, newPathClusters, updatedTransactionIds, newclustersFrequenceCount, pathId);
+                        run(matrix, clusterMatrix, newPathClusters, updatedTransactionIds, newclustersFrequenceCount, pathId);
 
                     }
                 }
@@ -250,7 +242,7 @@ public class PathDetector implements Generator {
                 }
             }*/
             TreeSet<Integer> pathTimes = new TreeSet<>();
-            //TODO :Block management
+            //TODO :BlockBase management
             //pathTimes.add(0);
             //pathClusters.add(0);
 
@@ -281,13 +273,14 @@ public class PathDetector implements Generator {
 
     /**
      * <pre>
-     * Lcm::GenerateItemset(Database,[]itemsets,[]itemID,[]timeID,[][]generatedItemsets, [][]generatedtimeID,[][]generateditemID,sizeGenerated)
+     * Lcm::GenerateItemset(DataBase,[]itemsets,[]itemID,[]timeID,[][]generatedItemsets, [][]generatedtimeID,[][]generateditemID,sizeGenerated)
      * </pre>
      *
-     * @param path (itemsets) une liste representant les clusterId
+     * @param matrix (database)
+     * @param path  (itemsets) une liste representant les clusterId
      */
     @TraceMethod(displayTitleIfLast = true)
-    ArrayList<TreeSet<Integer>> generatePaths(ArrayList<Integer> path) {
+    ArrayList<TreeSet<Integer>> generatePaths(Base matrix, ArrayList<Integer> path) {
         // todo faire passer Path en parametres et non pas un clusterIds représentant l'path
         if (path.size() == 0) {
             ArrayList<TreeSet<Integer>> generatedPaths = new ArrayList<>();
@@ -301,12 +294,11 @@ public class PathDetector implements Generator {
         // liste des temps qui n'ont qu'un seul cluster
         for (int i = 0; i < path.size(); ++i) {
             int clusterId = path.get(i);
-            lastTime = defaultDatabase.getClusterTimeId(clusterId);
+            lastTime = matrix.getClusterTimeId(clusterId);
 
             if (i != path.size() - 1) {
                 int nextClusterId = path.get(i + 1);
-                if (defaultDatabase.getClusterTimeId(clusterId)
-                        == defaultDatabase.getClusterTimeId(nextClusterId)) {
+                if (matrix.getClusterTimeId(clusterId) == matrix.getClusterTimeId(nextClusterId)) {
                     oneTimePerCluster = false;
                 }
             }
@@ -329,7 +321,7 @@ public class PathDetector implements Generator {
             ArrayList<Integer> tempPath = new ArrayList<>();
 
             for (int clusterId : path) {
-                if (defaultDatabase.getClusterTimeId(clusterId) == i) {
+                if (matrix.getClusterTimeId(clusterId) == i) {
                     tempPath.add(clusterId);
                 }
             }
@@ -379,7 +371,7 @@ public class PathDetector implements Generator {
         for (TreeSet<Integer> currentPath : tempPaths) {
             insertok = true;
 
-            for (Transaction transaction : defaultDatabase.getTransactions().values()) {
+            for (Transaction transaction : matrix.getTransactions().values()) {
                 if (transaction.getClusterIds().equals(currentPath)) {
                     insertok = false;
                     break;
@@ -399,7 +391,7 @@ public class PathDetector implements Generator {
         for (ArrayList<Integer> checkedClusterIds : checkedArrayOfClusterIds) {
             for (int checkedClusterId : checkedClusterIds) {
                 if (clusterIds.contains(checkedClusterId)) {
-                    times.add(defaultDatabase.getClusterTimeId(checkedClusterId));
+                    times.add(defaultDataBase.getClusterTimeId(checkedClusterId));
                 }
             }
         }*/

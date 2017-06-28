@@ -1,6 +1,6 @@
 package fr.jgetmove.jgetmove.detector;
 
-import fr.jgetmove.jgetmove.database.Database;
+import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.database.Time;
 import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
@@ -42,7 +42,7 @@ public class ConvoyDetector implements Detector {
     }
 
     //TODO Retester quand les itemsets en double seront corrigés + opti si besoin
-    public ArrayList<Pattern> detect(Database defaultDatabase, Set<Integer> timeBased, Set<Integer> clusterBased,
+    public ArrayList<Pattern> detect(DataBase defaultDataBase, Set<Integer> timeBased, Set<Integer> clusterBased,
                                      Collection<Transaction> transactions) {
 
         ArrayList<Pattern> convoys = new ArrayList<>();
@@ -61,7 +61,7 @@ public class ConvoyDetector implements Detector {
         for (int i = 0; i < times.size(); i++){
             //Cette boucle determine les transactions de l'itemset + l'ensemble des temps consécutifs de l'itemsets
             currentTime = times.get(i);
-            transactionsOfAClusterOfItemset = new ArrayList<>(defaultDatabase.getClusterTransactions(itemset.get(i)).keySet());
+            transactionsOfAClusterOfItemset = new ArrayList<>(defaultDataBase.getClusterTransactions(itemset.get(i)).keySet());
             size = transactionsOfAClusterOfItemset.size();
 
             if(size == sizeMin && !(transactionsOfItemset.equals(transactionsOfAClusterOfItemset))){
@@ -72,7 +72,7 @@ public class ConvoyDetector implements Detector {
 
             if(size < sizeMin){
                 sizeMin = size;
-                transactionsOfItemset = new ArrayList<>(defaultDatabase.getClusterTransactions(itemset.get(i)).keySet());
+                transactionsOfItemset = new ArrayList<>(defaultDataBase.getClusterTransactions(itemset.get(i)).keySet());
             }
 
             if(currentTime > (lastTime + 1) && timesSet.size() > 1){
@@ -97,10 +97,10 @@ public class ConvoyDetector implements Detector {
             Set<Time> timesOfClusters = new HashSet<>();
             Set<Transaction> transactionsOfClusters = new HashSet<>();
             for (int transactionId : transactionsOfItemset) {
-                transactionsOfClusters.add(defaultDatabase.getTransaction(transactionId));
+                transactionsOfClusters.add(defaultDataBase.getTransaction(transactionId));
             }
             for (int time : actualTimesSet) {
-                timesOfClusters.add(defaultDatabase.getTime(time));
+                timesOfClusters.add(defaultDataBase.getTime(time));
             }
             convoys.add(new Convoy(transactionsOfClusters,timesOfClusters));
         }

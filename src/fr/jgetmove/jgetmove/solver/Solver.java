@@ -1,6 +1,6 @@
 package fr.jgetmove.jgetmove.solver;
 
-import fr.jgetmove.jgetmove.database.Path;
+import fr.jgetmove.jgetmove.database.*;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.detector.Detector;
 import fr.jgetmove.jgetmove.pattern.Pattern;
@@ -16,6 +16,7 @@ import java.util.*;
  */
 public class Solver {
 
+    private final int blockSize;
     /**
      * PathDetector that will handle the creation of itemsets
      */
@@ -28,21 +29,24 @@ public class Solver {
     private Set<Detector> detectors;
 
     /**
-     * The result of the PathDetector
+     * The results of the PathDetector
      */
-    private TreeSet<Path> result;
+    private TreeSet<TreeSet<Path>> results;
 
     /**
      * Constructor
      *
      * @param pathDetector PathDetector that will handle the creation of itemsets
-     * @param detectors        list of detectors
+     * @param detectors    list of detectors
+     * @param blockSize
      */
     public Solver(PathDetector pathDetector, PatternGenerator patternGenerator,
-                  Set<Detector> detectors) {
+                  Set<Detector> detectors, int blockSize) {
         this.pathDetector = pathDetector;
         this.patternGenerator = patternGenerator;
         this.detectors = detectors;
+        this.blockSize = blockSize;
+        this.results = new TreeSet<>();
     }
 
     /**
@@ -50,10 +54,12 @@ public class Solver {
      *
      * @param pathDetector PathDetector that will handle the creation of itemsets
      */
-    public Solver(PathDetector pathDetector, PatternGenerator patternGenerator) {
+    public Solver(PathDetector pathDetector, PatternGenerator patternGenerator, int blockSize) {
         this.pathDetector = pathDetector;
         this.patternGenerator = patternGenerator;
         detectors = new HashSet<>();
+        this.results = new TreeSet<>();
+        this.blockSize = blockSize;
     }
 
     /**
@@ -61,9 +67,60 @@ public class Solver {
      *
      * @return the list of clusters (Itemsets) generated from pathDetector
      */
-    public TreeSet<Path> generateClusters() {
-        result = pathDetector.generate();
-        return result;
+    public TreeSet<TreeSet<Path>> generatePath(DataBase dataBase) {
+        if (blockSize > 0) {
+
+            BlockBase blockBase;
+            int id = 0;
+            Iterator<Integer> lastTime = dataBase.getTimeIds().iterator();
+
+            while ((blockBase = createBlock(id, dataBase, lastTime)) != null) {
+                TreeSet<Path> result = pathDetector.generate(blockBase);
+                ++id;
+                results.add(result);
+            }
+        } else {
+            results.add(pathDetector.generate(dataBase));
+        }
+
+
+        return results;
+    }
+
+    private BlockBase createBlock(int id, DataBase dataBase, Iterator<Integer> lastTime) {
+        BlockBase blockBase = null;
+
+        if (lastTime.hasNext()) {
+            blockBase = new BlockBase(id);
+
+            int counter = 0;
+
+            while (lastTime.hasNext() && counter < blockSize) {
+                // adds a time in the blockBase
+                Integer timeId = lastTime.next();
+                Time blockTime = new Time(timeId);
+                blockBase.add(blockTime);
+
+                for (Cluster cluster : dataBase.getTime(timeId).getClusters().values()) {
+                    // adds a (possibly new) cluster in the blockBase and links it with the correct time
+                    Cluster blockCluster = blockBase.getOrCreateCluster(cluster.getId());
+                    blockCluster.setTime(blockTime);
+
+                    for (int transactionId : cluster.getTransactions().keySet()) {
+                        // get all the transactions of the cluster, adds them in the blockBase and links it with cluster
+                        Transaction blockTransaction = blockBase.getOrCreateTransaction(transactionId);
+
+                        blockCluster.add(blockTransaction);
+                        blockTransaction.add(blockCluster);
+                    }
+                }
+
+                ++counter;
+            }
+        }
+
+
+        return blockBase;
     }
 
     /**
@@ -72,8 +129,8 @@ public class Solver {
      * @return a HashMap Detector -> ArrayList< Motif>
      */
     public HashMap<Detector, ArrayList<Pattern>> detectPatterns() {
-        Debug.println("resultats", result, Debug.WARNING);
-        //patternGenerator.run(result.getDatabase(), result.getLvl2ClusterIds(), result.getLvl2TimeIds(), detectors);
+        Debug.println("resultats", results, Debug.WARNING);
+        //patternGenerator.run(results, detectors);
         /*for (Detector detector : detectors) {
             motifs.put(detector, detector.detect(database, pathDetector.getClustersGenerated()));
         }*/
@@ -99,7 +156,7 @@ public class Solver {
         detectors.remove(detector);
     }
 
-    public JsonArrayBuilder toJSON(HashMap<Detector, ArrayList<Pattern>> detectors) {
+    public JsonArrayBuilder toJson(HashMap<Detector, ArrayList<Pattern>> detectors) {
         JsonArrayBuilder jsonPatterns = Json.createArrayBuilder();
 
         for (Map.Entry<Detector, ArrayList<Pattern>> detector : detectors.entrySet()) {

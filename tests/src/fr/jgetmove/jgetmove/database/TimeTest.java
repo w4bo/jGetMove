@@ -46,10 +46,10 @@ class TimeTest {
 
     @Test
     void setAndGetBlock() {
-        Block block = new Block(1);
+        BlockBase blockBase = new BlockBase(1);
 
-        time.setBloc(block);
-        assertEquals(block, time.getBloc());
+        time.setBloc(blockBase);
+        assertEquals(blockBase, time.getBloc());
     }
 
 

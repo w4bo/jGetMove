@@ -1,7 +1,7 @@
 package fr.jgetmove.jgetmove.pattern;
 
 import fr.jgetmove.jgetmove.database.Cluster;
-import fr.jgetmove.jgetmove.database.Database;
+import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.database.Transaction;
 
 import javax.json.Json;
@@ -12,19 +12,19 @@ import java.util.List;
 
 public class Convergeant implements Pattern{
 
-    public Database defaultDatabase;
+    public DataBase defaultDataBase;
     public int idCluster;
     public HashMap<Integer, Transaction> TransactionsOfIdCluster;
 
-    public Convergeant(Database defaultDatabase, int idCluster) {
-        this.defaultDatabase = defaultDatabase;
+    public Convergeant(DataBase defaultDataBase, int idCluster) {
+        this.defaultDataBase = defaultDataBase;
         this.idCluster = idCluster;
-        this.TransactionsOfIdCluster = defaultDatabase.getClusterTransactions(idCluster);
+        this.TransactionsOfIdCluster = defaultDataBase.getClusterTransactions(idCluster);
     }
 
     public ArrayList<Integer> getTransactionsClusters(int idTransaction) {
         ArrayList<Integer> clusterSet = new ArrayList<>();
-        for (Cluster cluster : defaultDatabase.getTransactionClusters(idTransaction).values()) {
+        for (Cluster cluster : defaultDataBase.getTransactionClusters(idTransaction).values()) {
             clusterSet.add(cluster.getId());
         }
         return clusterSet;

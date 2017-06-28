@@ -3,7 +3,7 @@ package fr.jgetmove.jgetmove;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import fr.jgetmove.jgetmove.config.DefaultConfig;
-import fr.jgetmove.jgetmove.database.Database;
+import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.detector.ClosedSwarmDetector;
 import fr.jgetmove.jgetmove.detector.ConvoyDetector;
@@ -82,18 +82,18 @@ public class Main {
             Input inputObj = new Input(files.get(0));
             Input inputTime = new Input(files.get(1));
             /*
-             * Create a new database from the Input objects
+             * Create a new dataBase from the Input objects
              */
-            Database database = new Database(inputObj, inputTime, blockSize);
+            DataBase dataBase = new DataBase(inputObj, inputTime);
 
-            Debug.printTitle("Database Initialisation", Debug.INFO);
-            Debug.println(database, Debug.INFO);
+            Debug.printTitle("DataBase Initialisation", Debug.INFO);
+            Debug.println(dataBase, Debug.INFO);
 
             /*
              * Init PathDetector and detectors
              */
-            PathDetector pathDetector = new PathDetector(database, config);
-            PatternGenerator patternGenerator = new PatternGenerator(database, config);
+            PathDetector pathDetector = new PathDetector(config);
+            PatternGenerator patternGenerator = new PatternGenerator(dataBase, config);
 
             Set<Detector> detectors = new HashSet<>();
             detectors.add(new ConvoyDetector(minTime));
@@ -103,19 +103,19 @@ public class Main {
             /*
              * Create solver from pathDetector, patternGenerator, detectors and start the generation
              */
-            Solver solver = new Solver(pathDetector, patternGenerator, detectors);
+            Solver solver = new Solver(pathDetector, patternGenerator, detectors, blockSize);
 
             Debug.printTitle("Solver Initialisation", Debug.INFO);
             Debug.println(solver, Debug.INFO);
 
-            solver.generateClusters();
+            solver.generatePath(dataBase);
             HashMap<Detector, ArrayList<Pattern>> patterns = solver.detectPatterns();
 
             /*
              * Create new Output object from results
              */
-            JsonObjectBuilder jsonBuilder = database.toJson();
-            jsonBuilder.add("patterns", solver.toJSON(patterns));
+            JsonObjectBuilder jsonBuilder = dataBase.toJson();
+            jsonBuilder.add("patterns", solver.toJson(patterns));
 
             Output outputSolver = new Output(outputFile);
             outputSolver.write(jsonBuilder.build().toString());

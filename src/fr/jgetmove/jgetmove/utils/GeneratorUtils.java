@@ -1,6 +1,7 @@
 package fr.jgetmove.jgetmove.utils;
 
-import fr.jgetmove.jgetmove.database.Database;
+import fr.jgetmove.jgetmove.database.Base;
+import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.TraceMethod;
@@ -32,19 +33,19 @@ public class GeneratorUtils {
      * Renvoie la valeur qui englobe le plus de transactions
      * <p>
      * <pre>
-     * Lcm::MakeClosure(const Database &database, vector<int> &transactionList,
+     * Lcm::MakeClosure(const DataBase &database, vector<int> &transactionList,
      * vector<int> &q_sets, vector<int> &itemsets,
      * int item)
      * </pre>
      *
-     * @param database       (database)
+     * @param matrix       (database)
      * @param transactionIds (transactionList)
      * @param qSets          (q_sets)
      * @param path           (itemsets)
      * @param freq           (item)
      */
     @TraceMethod(displayTitle = true)
-    public static void makeClosure(Database database, Set<Integer> transactionIds, ArrayList<Integer> qSets,
+    public static void makeClosure(Base matrix, Set<Integer> transactionIds, ArrayList<Integer> qSets,
                                    Collection<Integer> path, int freq) {
         Debug.println("transactionIds : " + transactionIds);
         Debug.println("qSets : " + qSets);
@@ -62,10 +63,10 @@ public class GeneratorUtils {
 
         qSets.add(freq);
 
-        SortedSet<Integer> lowerBoundSet = GeneratorUtils.lower_bound(database.getClusterIds(), freq + 1);
+        SortedSet<Integer> lowerBoundSet = GeneratorUtils.lower_bound(matrix.getClusterIds(), freq + 1);
 
         for (int clusterId : lowerBoundSet) {
-            if (GeneratorUtils.CheckItemInclusion(database, transactionIds, clusterId)) {
+            if (GeneratorUtils.CheckItemInclusion(matrix, transactionIds, clusterId)) {
                 qSets.add(clusterId);
             }
         }
@@ -74,21 +75,21 @@ public class GeneratorUtils {
 
     /**
      * <pre>
-     * Lcm::UpdateTransactionList(const Database &database, const vector<int> &transactionList, const vector<int> &q_sets, int item, vector<int> &newTransactionList)
+     * Lcm::UpdateTransactionList(const DataBase &database, const vector<int> &transactionList, const vector<int> &q_sets, int item, vector<int> &newTransactionList)
      * </pre>
      *
-     * @param database       (database)
+     * @param matrix       (database)
      * @param transactionIds (transactionList)
      * @param pathClusterIds          (q_sets)
      * @param maxClusterId  (item)
      * @return (newTransactionList)
      */
-    public static Set<Integer> updateTransactions(Database database, Set<Integer> transactionIds,
+    public static Set<Integer> updateTransactions(Base matrix, Set<Integer> transactionIds,
                                                   ArrayList<Integer> pathClusterIds, int maxClusterId) {
         Set<Integer> newTransactionIds = new HashSet<>();
 
         for (int transactionId : transactionIds) {
-            Transaction transaction = database.getTransaction(transactionId);
+            Transaction transaction = matrix.getTransaction(transactionId);
             boolean canAdd = true;
 
             for (int pathClusterId : pathClusterIds) {
@@ -106,17 +107,17 @@ public class GeneratorUtils {
 
     /**
      * <pre>
-     * Lcm::UpdateFreqList(const Database &database, const vector<int> &transactionList, const vector<int> &gsub, vector<int> &freqList, int freq, vector<int> &newFreq)
+     * Lcm::UpdateFreqList(const DataBase &database, const vector<int> &transactionList, const vector<int> &gsub, vector<int> &freqList, int freq, vector<int> &newFreq)
      * </pre>
      *
-     * @param database         (database)
+     * @param matrix         (database)
      * @param transactionIds   (transactionList)
      * @param newPathClusters            (gsub)
      * @param oldClustersFrequenceCount (freqList)
      * @param maxClusterId    (freq)
      * @return (newFreq)
      */
-    public static ArrayList<Integer> updateClustersFrequenceCount(Database database, Set<Integer> transactionIds,
+    public static ArrayList<Integer> updateClustersFrequenceCount(Base matrix, Set<Integer> transactionIds,
                                                                   ArrayList<Integer> newPathClusters,
                                                                   ArrayList<Integer> oldClustersFrequenceCount, int maxClusterId) {
         //On ajoute les frequences des itemsets de newPathClusters
@@ -145,7 +146,7 @@ public class GeneratorUtils {
             int freqCount = 0;
 
             for (int transactionId : previousList) {
-                Transaction transaction = database.getTransaction(transactionId);
+                Transaction transaction = matrix.getTransaction(transactionId);
 
                 if (transaction.getClusterIds().contains(newPathClusters.get(clusterIndex))) {
                     freqCount++;
@@ -172,17 +173,17 @@ public class GeneratorUtils {
     }
 
     /**
-     * CheckItemInclusion(Database,transactionlist,item)
+     * CheckItemInclusion(DataBase,transactionlist,item)
      * Check whether clusterId is included in any of the transactions pointed to transactions
      *
-     * @param database       (database)
+     * @param matrix       (database)
      * @param transactionIds (transactionList) la liste des transactions
      * @param clusterId      (item) clusterId to find
      * @return true if the clusterId is in one of the transactions
-     * @deprecated not expressive naming use {@link Database#isClusterInTransactions(Set, int)}
+     * @deprecated not expressive naming use {@link DataBase#isClusterInTransactions(Set, int)}
      */
-    public static boolean CheckItemInclusion(Database database, Set<Integer> transactionIds, int clusterId) {
-        return database.isClusterInTransactions(transactionIds, clusterId);
+    public static boolean CheckItemInclusion(Base matrix, Set<Integer> transactionIds, int clusterId) {
+        return matrix.isClusterInTransactions(transactionIds, clusterId);
     }
 
     /**
@@ -197,9 +198,9 @@ public class GeneratorUtils {
      * @param transactionIds (newTransactionList)
      * @return vrai si ppctest est réussi
      */
-    public static boolean ppcTest(Database database, TreeSet<Integer> path, int maxClusterId, Set<Integer> transactionIds) {
+    public static boolean ppcTest(Base matrix, TreeSet<Integer> path, int maxClusterId, Set<Integer> transactionIds) {
         for (int clusterId = 0; clusterId < maxClusterId; clusterId++) {
-            if (!path.contains(clusterId) && CheckItemInclusion(database, transactionIds, clusterId)) {
+            if (!path.contains(clusterId) && CheckItemInclusion(matrix, transactionIds, clusterId)) {
                 return false;
             }
         }

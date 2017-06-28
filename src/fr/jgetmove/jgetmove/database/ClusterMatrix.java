@@ -14,20 +14,20 @@ public class ClusterMatrix {
 
 
     /**
-     * Initializes the cluster by tacking the relations of the database as a reference
+     * Initializes the cluster by tacking the relations of the block as a reference
      *
-     * @param database Initial matrix reference
+     * @param matrix Initial matrix reference
      */
-    public ClusterMatrix(Database database) {
+    public ClusterMatrix(Base matrix) {
         clusterTimeMatrix = new HashMap<>();
         clusterTransactionsMatrix = new HashMap<>();
 
-        for (Transaction transaction : database.getTransactions().values()) {
+        for (Transaction transaction : matrix.getTransactions().values()) {
             for (int clusterId : transaction.getClusterIds()) {
 
                 if (!clusterTransactionsMatrix.containsKey(clusterId)) {
                     clusterTransactionsMatrix.put(clusterId, new TreeSet<>());
-                    clusterTimeMatrix.put(clusterId, database.getClusterTimeId(clusterId));
+                    clusterTimeMatrix.put(clusterId, matrix.getClusterTimeId(clusterId));
                 }
 
                 clusterTransactionsMatrix.get(clusterId).add(transaction.getId());
@@ -55,22 +55,22 @@ public class ClusterMatrix {
      * Rebinds the cluster-transaction matrix by removing the transactions not present in transactionIds and adding the one which are
      *
      * <pre>
-     * Lcm::UpdateOccurenceDeriver(const Database &database, const vector<int> &transactionList, ClusterMatrix &occurence)
+     * Lcm::UpdateOccurenceDeriver(const DataBase &database, const vector<int> &transactionList, ClusterMatrix &occurence)
      * </pre>
      *
-     * @param database       Reference database to retrieve the bindings
+     * @param referenceMatrix       Reference database to retrieve the bindings
      * @param transactionIds Transactions which need to be present in the matrix
      */
-    public void optimizeMatrix(Database database, Set<Integer> transactionIds) {
+    public void optimizeMatrix(Base referenceMatrix, Set<Integer> transactionIds) {
         clusterTransactionsMatrix.forEach((clusterId, transactions) -> transactions.clear());
         for (int transactionId : transactionIds) {
-            Transaction transaction = database.getTransaction(transactionId);
+            Transaction transaction = referenceMatrix.getTransaction(transactionId);
             Set<Integer> clusterIds = transaction.getClusterIds();
 
             for (int clusterId : clusterIds) {
                 if (!clusterTransactionsMatrix.containsKey(clusterId)) {
                     clusterTransactionsMatrix.put(clusterId, new TreeSet<>());
-                    clusterTimeMatrix.put(clusterId, database.getClusterTimeId(clusterId));
+                    clusterTimeMatrix.put(clusterId, referenceMatrix.getClusterTimeId(clusterId));
                 }
 
                 clusterTransactionsMatrix.get(clusterId).add(transactionId);

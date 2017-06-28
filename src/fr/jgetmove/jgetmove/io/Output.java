@@ -1,12 +1,11 @@
 package fr.jgetmove.jgetmove.io;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
 /**
- * Créé le fichier .json à partir d'une chaîne de caractère générée dans Database
+ * Créé le fichier .json à partir d'une chaîne de caractère générée dans DataBase
  */
 
 public class Output {
@@ -25,7 +24,7 @@ public class Output {
 
     /**
      * @throws IOException si il y a une erreur I/O
-     * @see BufferedReader#writeline
+     * @see BufferedWriter#write(String)
      */
     public void write(String line) throws IOException {
         writer.write(line);
