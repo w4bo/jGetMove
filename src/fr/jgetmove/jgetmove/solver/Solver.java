@@ -31,7 +31,7 @@ public class Solver {
     /**
      * The results of the PathDetector
      */
-    private TreeSet<TreeSet<Path>> results;
+    private ArrayList<PathsOfBlock> results;
 
     /**
      * Constructor
@@ -46,7 +46,7 @@ public class Solver {
         this.patternGenerator = patternGenerator;
         this.detectors = detectors;
         this.blockSize = blockSize;
-        this.results = new TreeSet<>();
+        this.results = new ArrayList<>();
     }
 
     /**
@@ -58,7 +58,7 @@ public class Solver {
         this.pathDetector = pathDetector;
         this.patternGenerator = patternGenerator;
         detectors = new HashSet<>();
-        this.results = new TreeSet<>();
+        this.results = new ArrayList<>();
         this.blockSize = blockSize;
     }
 
@@ -67,7 +67,7 @@ public class Solver {
      *
      * @return the list of clusters (Itemsets) generated from pathDetector
      */
-    public TreeSet<TreeSet<Path>> generatePath(DataBase dataBase) {
+    public ArrayList<PathsOfBlock> generatePath(DataBase dataBase) {
         if (blockSize > 0) {
 
             BlockBase blockBase;
@@ -76,14 +76,14 @@ public class Solver {
 
             while ((blockBase = createBlock(id, dataBase, lastTime)) != null) {
                 TreeSet<Path> result = pathDetector.generate(blockBase);
+                results.add(new PathsOfBlock(id, result));
                 ++id;
-                results.add(result);
             }
         } else {
-            results.add(pathDetector.generate(dataBase));
+            results.add(new PathsOfBlock(0, pathDetector.generate(dataBase)));
         }
 
-
+        System.out.println("results = " + results);
         return results;
     }
 
@@ -129,7 +129,7 @@ public class Solver {
      * @return a HashMap Detector -> ArrayList< Motif>
      */
     public HashMap<Detector, ArrayList<Pattern>> detectPatterns() {
-        Debug.println("resultats", results, Debug.WARNING);
+        Debug.println("results", results, Debug.WARNING);
         //patternGenerator.run(results, detectors);
         /*for (Detector detector : detectors) {
             motifs.put(detector, detector.detect(database, pathDetector.getClustersGenerated()));
