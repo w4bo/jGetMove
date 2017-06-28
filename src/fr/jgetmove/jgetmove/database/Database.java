@@ -275,6 +275,14 @@ public class Database {
     }
 
     /**
+     * @param transactionId identifiant de la transaction
+     * @return l'ensemble des clusters de la transaction
+     */
+    public HashMap<Integer, Cluster> getTransactionClusters(int transactionId) {
+        return getTransaction(transactionId).getClusters();
+    }
+
+    /**
      * @param clusterId l'identifiant du cluster
      * @return le Time du cluster
      */
