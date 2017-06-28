@@ -29,22 +29,22 @@ public class Base {
     }
 
 
-    public void add(Cluster cluster) {
+    public void add(final Cluster cluster) {
         clusters.put(cluster.getId(), cluster);
         clusterIds.add(cluster.getId());
     }
 
-    public void add(Transaction transaction) {
+    public void add(final Transaction transaction) {
         transactions.put(transaction.getId(), transaction);
         transactionIds.add(transaction.getId());
     }
 
-    public void add(Time time) {
+    public void add(final Time time) {
         times.put(time.getId(), time);
         timeIds.add(time.getId());
     }
 
-    public Cluster getOrCreateCluster(int clusterId) {
+    public Cluster getOrCreateCluster(final int clusterId) {
         Cluster cluster = this.getCluster(clusterId);
 
         if (cluster == null) {
@@ -59,7 +59,7 @@ public class Base {
      * @param transactionId l'id de la transaction à récuperer
      * @return La transaction crée ou récuperée
      */
-    public Transaction getOrCreateTransaction(int transactionId) {
+    public Transaction getOrCreateTransaction(final int transactionId) {
         Transaction transaction = this.getTransaction(transactionId);
 
         if (transaction == null) {
@@ -69,11 +69,11 @@ public class Base {
         return transaction;
     }
 
-    public Cluster getCluster(int clusterId) {
+    public Cluster getCluster(final int clusterId) {
         return clusters.get(clusterId);
     }
 
-    public Transaction getTransaction(int transactionId) {
+    public Transaction getTransaction(final int transactionId) {
         return transactions.get(transactionId);
     }
 
@@ -109,7 +109,7 @@ public class Base {
      * @param clusterId identifiant du cluster
      * @return l'ensemble des transactions du cluster
      */
-    public HashMap<Integer, Transaction> getClusterTransactions(int clusterId) {
+    public HashMap<Integer, Transaction> getClusterTransactions(final int clusterId) {
         return getCluster(clusterId).getTransactions();
     }
 
@@ -117,7 +117,7 @@ public class Base {
      * @param transactionId identifiant de la transaction
      * @return l'ensemble des clusters de la transaction
      */
-    public HashMap<Integer, Cluster> getTransactionClusters(int transactionId) {
+    public HashMap<Integer, Cluster> getTransactionClusters(final int transactionId) {
         return getTransaction(transactionId).getClusters();
     }
 
@@ -128,7 +128,7 @@ public class Base {
      * @param clusterId      the cluster to filter them
      * @return a list of transactionIds
      */
-    public Set<Integer> getFilteredTransactionIdsIfHaveCluster(Set<Integer> transactionIds, int clusterId) {
+    public Set<Integer> getFilteredTransactionIdsIfHaveCluster(final Set<Integer> transactionIds, final int clusterId) {
         Set<Integer> filteredTransactionIds = new HashSet<>();
 
         for (int transactionId : transactionIds) {
@@ -151,7 +151,7 @@ public class Base {
      * @param clusterId      (item) le cluster à trouver
      * @return vrai si le cluster est présent dans toute les transactions de la liste
      */
-    public boolean isClusterInTransactions(Set<Integer> transactionIds, int clusterId) {
+    public boolean isClusterInTransactions(final Set<Integer> transactionIds, final int clusterId) {
         for (int transactionId : transactionIds) {
             if (this.getCluster(clusterId) != null && !this.getClusterTransactions(clusterId).containsKey(transactionId)) {
                 return false;
@@ -160,7 +160,7 @@ public class Base {
         return true;
     }
 
-    public int getClusterTimeId(int clusterId) {
+    public int getClusterTimeId(final int clusterId) {
         return clusters.get(clusterId).getTimeId();
     }
 

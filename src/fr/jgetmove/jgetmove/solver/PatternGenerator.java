@@ -12,7 +12,7 @@ import fr.jgetmove.jgetmove.utils.GeneratorUtils;
 
 import java.util.*;
 
-public class PatternGenerator implements Generator {
+public class PatternGenerator {
 
     private final DataBase defaultDataBase;
     private ArrayList<ArrayList<Integer>> clustersGenerated;

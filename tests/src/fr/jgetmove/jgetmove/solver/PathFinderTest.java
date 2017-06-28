@@ -21,7 +21,7 @@ import java.util.TreeSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class PathDetectorTest {
+class PathFinderTest {
 // TODO finish complexDataBase tests
 
     private static DataBase simpleDataBase;
@@ -53,7 +53,7 @@ class PathDetectorTest {
 
             // current ppcTest structure
             TreeSet<Integer> clusterGeneratorTransactionIds = new TreeSet<>();
-            boolean clusterGenerator = PathDetector.PPCTest(dataBase, itemset, transactionIds, 0, clusterGeneratorTransactionIds);
+            boolean clusterGenerator = PathFinder.PPCTest(dataBase, itemset, transactionIds, 0, clusterGeneratorTransactionIds);
 
             // new == old
             assertEquals(filteredTransactionIds, clusterGeneratorTransactionIds);
@@ -69,7 +69,7 @@ class PathDetectorTest {
 
             // current ppcTest structure
             clusterGeneratorTransactionIds.clear();
-            clusterGenerator = PathDetector.PPCTest(dataBase, itemset, transactionIds, 4, clusterGeneratorTransactionIds);
+            clusterGenerator = PathFinder.PPCTest(dataBase, itemset, transactionIds, 4, clusterGeneratorTransactionIds);
 
             // new == old
             assertEquals(filteredTransactionIds, clusterGeneratorTransactionIds);
@@ -88,9 +88,9 @@ class PathDetectorTest {
 
     @Test
     void generateBasic() {
-        PathDetector pathDetector = new PathDetector(config);
+        PathFinder pathFinder = new PathFinder(config);
 
-        TreeSet<Path> results = pathDetector.generate(simpleDataBase);
+        TreeSet<Path> results = pathFinder.generate(simpleDataBase);
 
         assertEquals(3, results.size());
 
@@ -147,9 +147,9 @@ class PathDetectorTest {
     @Test
     void generateComplex() {
 
-        PathDetector pathDetector = new PathDetector(config);
+        PathFinder pathFinder = new PathFinder(config);
 
-        TreeSet<Path> results = pathDetector.generate(complexDataBase);
+        TreeSet<Path> results = pathFinder.generate(complexDataBase);
         assertEquals(19, results.size());
         // assertEquals("[[0, 0], [0, 0, 2, 19], [0, 0, 2, 5, 10, 12, 13, 19, 23], [0, 0, 2, 6, 9, 15, 19, 22], [0, 0, 3, 5, 7, 8, 14, 18, 20, 22], [0, 0, 5], [0, 0, 3, 5, 7, 8, 14, 18, 20, 22], [0, 0, 22], [0, 0, 3, 5, 7, 8, 14, 18, 20, 22], [0, 1], [0, 1, 3, 5, 11, 12, 16, 20, 22], [0, 1, 4, 7], [0, 1, 4, 7, 11, 16, 21, 23], [0, 1, 4, 7, 17], [0, 1, 11, 16], [0, 1, 3, 5, 11, 12, 16, 20, 22], [0, 1, 4, 7, 11, 16, 21, 23], [0, 3, 5, 20, 22], [0, 5], [0, 5, 12], [0, 7], [0, 22], [0, 23]]", results.toString());
         //assertEquals("[[0, 1], [0, 1, 2, 9], [0, 1, 2, 3, 5, 6, 7, 9, 10], [0, 1, 2, 4, 5, 7, 9, 10], [0, 1, 2, 3, 4, 5, 7, 8, 9, 10], [0, 1, 3], [0, 1, 2, 3, 4, 5, 7, 8, 9, 10], [0, 1, 10], [0, 1, 2, 3, 4, 5, 7, 8, 9, 10], [0, 1], [0, 1, 2, 3, 5, 6, 7, 9, 10], [0, 1, 2, 4], [0, 1, 2, 4, 5, 7, 9, 10], [0, 1, 2, 4, 7], [0, 1, 5, 7], [0, 1, 2, 3, 5, 6, 7, 9, 10], [0, 1, 2, 4, 5, 7, 9, 10], [0, 2, 3, 9, 10], [0, 3], [0, 3, 6], [0, 4], [0, 10], [0, 10]]", results.getLvl2TimeIds().toString());
@@ -159,76 +159,6 @@ class PathDetectorTest {
     @Test
     void run() {
         //TODO
-    }
-
-    @Test
-    void addPathToBlockPath() {
-        TreeSet<Integer> itemset = new TreeSet<>();
-        itemset.add(0);
-        itemset.add(2);
-        itemset.add(4);
-
-        TreeSet<Integer> transactionIds = new TreeSet<>();
-        transactionIds.add(0);
-
-        ClusterMatrix clusterMatrix = new ClusterMatrix(simpleDataBase);
-
-        PathDetector pathDetector = new PathDetector(config);
-        clusterMatrix.optimizeMatrix(simpleDataBase, transactionIds);
-
-        pathDetector.addPathToPathBlock(clusterMatrix, itemset);
-
-        assertEquals(1, pathDetector.lvl2ClusterIds.size());
-        assertEquals(0, pathDetector.lvl2ClusterIds.get(0).get(0).intValue());
-        assertEquals(0, pathDetector.lvl2ClusterIds.get(0).get(1).intValue());
-        assertEquals(2, pathDetector.lvl2ClusterIds.get(0).get(2).intValue());
-        assertEquals(4, pathDetector.lvl2ClusterIds.get(0).get(3).intValue());
-        assertEquals(1, pathDetector.lvl2TimeIds.size());
-        assertEquals(0, pathDetector.lvl2TimeIds.get(0).get(0).intValue());
-        assertEquals(1, pathDetector.lvl2TimeIds.get(0).get(1).intValue());
-        assertEquals(2, pathDetector.lvl2TimeIds.get(0).get(2).intValue());
-        assertEquals(3, pathDetector.lvl2TimeIds.get(0).get(3).intValue());
-
-        // ---
-        itemset.clear();
-        itemset.add(1);
-        itemset.add(3);
-        itemset.add(4);
-
-        transactionIds.clear();
-        transactionIds.add(1);
-
-        clusterMatrix.optimizeMatrix(simpleDataBase, transactionIds);
-        pathDetector.addPathToPathBlock(clusterMatrix, itemset);
-
-        assertEquals(2, pathDetector.lvl2ClusterIds.size());
-        assertEquals(0, pathDetector.lvl2ClusterIds.get(1).get(0).intValue());
-        assertEquals(1, pathDetector.lvl2ClusterIds.get(1).get(1).intValue());
-        assertEquals(3, pathDetector.lvl2ClusterIds.get(1).get(2).intValue());
-        assertEquals(4, pathDetector.lvl2ClusterIds.get(1).get(3).intValue());
-        assertEquals(2, pathDetector.lvl2TimeIds.size());
-        assertEquals(0, pathDetector.lvl2TimeIds.get(1).get(0).intValue());
-        assertEquals(1, pathDetector.lvl2TimeIds.get(1).get(1).intValue());
-        assertEquals(2, pathDetector.lvl2TimeIds.get(1).get(2).intValue());
-        assertEquals(3, pathDetector.lvl2TimeIds.get(1).get(3).intValue());
-
-        // ---
-        itemset.clear();
-        itemset.add(4);
-
-        transactionIds.clear();
-        transactionIds.add(0);
-        transactionIds.add(1);
-
-        clusterMatrix.optimizeMatrix(simpleDataBase, transactionIds);
-        pathDetector.addPathToPathBlock(clusterMatrix, itemset);
-
-        assertEquals(3, pathDetector.lvl2ClusterIds.size());
-        assertEquals(0, pathDetector.lvl2ClusterIds.get(2).get(0).intValue());
-        assertEquals(4, pathDetector.lvl2ClusterIds.get(2).get(1).intValue());
-        assertEquals(3, pathDetector.lvl2TimeIds.size());
-        assertEquals(0, pathDetector.lvl2TimeIds.get(2).get(0).intValue());
-        assertEquals(3, pathDetector.lvl2TimeIds.get(2).get(1).intValue());
     }
 
     @Test
@@ -252,7 +182,7 @@ class PathDetectorTest {
         ClusterMatrix clusterMatrix = new ClusterMatrix(simpleDataBase);
 
         clusterMatrix.optimizeMatrix(simpleDataBase, transactionIds);
-        PathDetector.addPathToTransaction(clusterMatrix, itemset, transactions, numCluster);
+        PathFinder.addPathToTransaction(clusterMatrix, itemset, transactions, numCluster);
 
         assertTrue(transactions.get(0).getClusterIds().contains(0));
         assertEquals(1, numCluster[0]);
@@ -267,7 +197,7 @@ class PathDetectorTest {
         transactionIds.add(1);
 
         clusterMatrix.optimizeMatrix(simpleDataBase, transactionIds);
-        PathDetector.addPathToTransaction(clusterMatrix, itemset, transactions, numCluster);
+        PathFinder.addPathToTransaction(clusterMatrix, itemset, transactions, numCluster);
 
         assertTrue(transactions.get(1).getClusterIds().contains(1));
         assertEquals(2, numCluster[0]);
@@ -281,7 +211,7 @@ class PathDetectorTest {
         transactionIds.add(1);
 
         clusterMatrix.optimizeMatrix(simpleDataBase, transactionIds);
-        PathDetector.addPathToTransaction(clusterMatrix, itemset, transactions, numCluster);
+        PathFinder.addPathToTransaction(clusterMatrix, itemset, transactions, numCluster);
 
         assertTrue(transactions.get(0).getClusterIds().contains(2));
         assertTrue(transactions.get(1).getClusterIds().contains(2));
@@ -293,9 +223,9 @@ class PathDetectorTest {
 
         // Testing with singlepath itemset
 
-        PathDetector pathDetector = new PathDetector(config);
+        PathFinder pathFinder = new PathFinder(config);
 
-        ArrayList<TreeSet<Integer>> generatedItemsets = pathDetector.generatePaths(simpleDataBase, new ArrayList<>());
+        ArrayList<TreeSet<Integer>> generatedItemsets = pathFinder.generatePaths(simpleDataBase, new ArrayList<>());
 
         Debug.println("generatedItemset", generatedItemsets, Debug.DEBUG);
 
@@ -307,7 +237,7 @@ class PathDetectorTest {
         itemset.add(2);
         itemset.add(4);
 
-        generatedItemsets = pathDetector.generatePaths(simpleDataBase, itemset);
+        generatedItemsets = pathFinder.generatePaths(simpleDataBase, itemset);
 
         assertEquals(1, generatedItemsets.size());
         assertEquals(3, generatedItemsets.get(0).size());
@@ -317,7 +247,7 @@ class PathDetectorTest {
         itemset.add(3);
         itemset.add(4);
 
-        generatedItemsets = pathDetector.generatePaths(simpleDataBase, itemset);
+        generatedItemsets = pathFinder.generatePaths(simpleDataBase, itemset);
 
         assertEquals(1, generatedItemsets.size());
         assertEquals(3, generatedItemsets.get(0).size());
@@ -325,7 +255,7 @@ class PathDetectorTest {
         itemset.clear();
         itemset.add(4);
 
-        generatedItemsets = pathDetector.generatePaths(simpleDataBase, itemset);
+        generatedItemsets = pathFinder.generatePaths(simpleDataBase, itemset);
 
         assertEquals(1, generatedItemsets.size());
         assertEquals(1, generatedItemsets.get(0).size());

@@ -12,15 +12,15 @@ import javax.json.JsonObjectBuilder;
 import java.util.*;
 
 /**
- * Manager that handles a pathDetector and detectors
+ * Manager that handles a pathFinder and detectors
  */
 public class Solver {
 
     private final int blockSize;
     /**
-     * PathDetector that will handle the creation of itemsets
+     * PathFinder that will handle the creation of itemsets
      */
-    private PathDetector pathDetector;
+    private PathFinder pathFinder;
     private PatternGenerator patternGenerator;
 
     /**
@@ -29,20 +29,20 @@ public class Solver {
     private Set<Detector> detectors;
 
     /**
-     * The results of the PathDetector
+     * The results of the PathFinder
      */
     private ArrayList<PathsOfBlock> results;
 
     /**
      * Constructor
      *
-     * @param pathDetector PathDetector that will handle the creation of itemsets
-     * @param detectors    list of detectors
+     * @param pathFinder PathFinder that will handle the creation of itemsets
+     * @param detectors  list of detectors
      * @param blockSize
      */
-    public Solver(PathDetector pathDetector, PatternGenerator patternGenerator,
+    public Solver(PathFinder pathFinder, PatternGenerator patternGenerator,
                   Set<Detector> detectors, int blockSize) {
-        this.pathDetector = pathDetector;
+        this.pathFinder = pathFinder;
         this.patternGenerator = patternGenerator;
         this.detectors = detectors;
         this.blockSize = blockSize;
@@ -52,10 +52,10 @@ public class Solver {
     /**
      * Constructor
      *
-     * @param pathDetector PathDetector that will handle the creation of itemsets
+     * @param pathFinder PathFinder that will handle the creation of itemsets
      */
-    public Solver(PathDetector pathDetector, PatternGenerator patternGenerator, int blockSize) {
-        this.pathDetector = pathDetector;
+    public Solver(PathFinder pathFinder, PatternGenerator patternGenerator, int blockSize) {
+        this.pathFinder = pathFinder;
         this.patternGenerator = patternGenerator;
         detectors = new HashSet<>();
         this.results = new ArrayList<>();
@@ -65,7 +65,7 @@ public class Solver {
     /**
      * Generate a list of clusters (Itemsets)
      *
-     * @return the list of clusters (Itemsets) generated from pathDetector
+     * @return the list of clusters (Itemsets) generated from pathFinder
      */
     public ArrayList<PathsOfBlock> generatePath(DataBase dataBase) {
         if (blockSize > 0) {
@@ -75,12 +75,12 @@ public class Solver {
             Iterator<Integer> lastTime = dataBase.getTimeIds().iterator();
 
             while ((blockBase = createBlock(id, dataBase, lastTime)) != null) {
-                TreeSet<Path> result = pathDetector.generate(blockBase);
+                TreeSet<Path> result = pathFinder.generate(blockBase);
                 results.add(new PathsOfBlock(id, result));
                 ++id;
             }
         } else {
-            results.add(new PathsOfBlock(0, pathDetector.generate(dataBase)));
+            results.add(new PathsOfBlock(0, pathFinder.generate(dataBase)));
         }
 
         System.out.println("results = " + results);
@@ -132,7 +132,7 @@ public class Solver {
         Debug.println("results", results, Debug.WARNING);
         //patternGenerator.run(results, detectors);
         /*for (Detector detector : detectors) {
-            motifs.put(detector, detector.detect(database, pathDetector.getClustersGenerated()));
+            motifs.put(detector, detector.detect(database, pathFinder.getClustersGenerated()));
         }*/
 
         return patternGenerator.getResults();
@@ -185,8 +185,7 @@ public class Solver {
 
     @Override
     public String toString() {
-        return "Solver"
-                + "\n|-- PathDetector :" + pathDetector
-                + "\n|-- PatternGenerator :" + patternGenerator;
+        return "\n|-- PathFinder :" + pathFinder
+                + "\n`-- PatternGenerator :" + patternGenerator;
     }
 }

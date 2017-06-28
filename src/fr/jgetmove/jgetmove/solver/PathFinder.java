@@ -11,19 +11,15 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-public class PathDetector implements Generator {
+public class PathFinder {
 
-    ArrayList<ArrayList<Integer>> lvl2ClusterIds;
-    ArrayList<ArrayList<Integer>> lvl2TimeIds;
     private int minSupport, maxPattern, minTime;
     private TreeSet<Path> paths;
 
-    public PathDetector(DefaultConfig config) {
+    public PathFinder(DefaultConfig config) {
         this.minSupport = config.getMinSupport();
         this.maxPattern = config.getMaxPattern();
         this.minTime = config.getMinTime();
-        lvl2ClusterIds = new ArrayList<>();
-        lvl2TimeIds = new ArrayList<>();
         paths = new TreeSet<>();
     }
 
@@ -255,20 +251,6 @@ public class PathDetector implements Generator {
         }
 
 
-    }
-
-    void addPathToPathBlock(ClusterMatrix clusterMatrix, TreeSet<Integer> path) {
-        ArrayList<Integer> timeIds = new ArrayList<>();
-        ArrayList<Integer> clusterList = new ArrayList<>();
-        timeIds.add(0);
-        clusterList.add(0);
-
-        for (Integer clusterId : path) {
-            clusterList.add(clusterId);
-            timeIds.add(clusterMatrix.getClusterTimeId(clusterId));
-        }
-        lvl2ClusterIds.add(clusterList);
-        lvl2TimeIds.add(timeIds);
     }
 
     /**

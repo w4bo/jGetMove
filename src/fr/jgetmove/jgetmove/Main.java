@@ -13,7 +13,7 @@ import fr.jgetmove.jgetmove.exception.MalformedTimeIndexException;
 import fr.jgetmove.jgetmove.io.Input;
 import fr.jgetmove.jgetmove.io.Output;
 import fr.jgetmove.jgetmove.pattern.Pattern;
-import fr.jgetmove.jgetmove.solver.PathDetector;
+import fr.jgetmove.jgetmove.solver.PathFinder;
 import fr.jgetmove.jgetmove.solver.PatternGenerator;
 import fr.jgetmove.jgetmove.solver.Solver;
 
@@ -90,9 +90,9 @@ public class Main {
             Debug.println(dataBase, Debug.INFO);
 
             /*
-             * Init PathDetector and detectors
+             * Init PathFinder and detectors
              */
-            PathDetector pathDetector = new PathDetector(config);
+            PathFinder pathFinder = new PathFinder(config);
             PatternGenerator patternGenerator = new PatternGenerator(dataBase, config);
 
             Set<Detector> detectors = new HashSet<>();
@@ -101,9 +101,9 @@ public class Main {
             //detectors.add(new GroupPatternDetector(config.getMinTime(), config.getCommonObjectPercentage()));
 
             /*
-             * Create solver from pathDetector, patternGenerator, detectors and start the generation
+             * Create solver from pathFinder, patternGenerator, detectors and start the generation
              */
-            Solver solver = new Solver(pathDetector, patternGenerator, detectors, blockSize);
+            Solver solver = new Solver(pathFinder, patternGenerator, detectors, blockSize);
 
             Debug.printTitle("Solver Initialisation", Debug.INFO);
             Debug.println(solver, Debug.INFO);
