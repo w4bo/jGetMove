@@ -4,6 +4,7 @@ import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.database.Path;
 import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.pattern.Convergeant;
+import fr.jgetmove.jgetmove.pattern.Divergeant;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
 import java.util.ArrayList;
@@ -18,39 +19,76 @@ public class DivergeantDetector {
 
     public ArrayList<Pattern> detect(DataBase defaultDataBase, ArrayList<Path> itemsets) {
 
-        ArrayList<Pattern> convergeants = new ArrayList<>();
-        TreeSet<Integer> firstClusters = new TreeSet<Integer>();
-
-        for (Path itemset : itemsets) {
-            //Pour tt les itemsets
-            //Si les transactions de chaque clusters de l'itemsets ne sont pas identiques Alors on peut continuer sinon RIP
-            //On récupère le 1er element et on l'inclus dans le tableau firstclusters
-            //Tout en vérifiant qu'il ne soit dejà pas présent dans ce tableau.
-            if (goodItemsets(defaultDataBase, itemset) && itemset.getClusters().size() > 1) {
-                int lastItem = itemset.getClusters().first();
-                if(firstClusters.contains(lastItem)){
-                    firstClusters.add(lastItem);
+        ArrayList<Pattern> divergeants = new ArrayList<>();
+        ArrayList<Integer> firstClusters = new ArrayList<>();
+        int nbClusters = defaultDataBase.getClusters().size();
+        int nbItemsets = itemsets.size();
+        boolean[][] itemsetMatrice = new boolean[nbItemsets][nbClusters];
+        int indexItemset = 0;
+        /*
+        Construction de la Matrice [Itemset][Clusters]
+         */
+        for (Path itemset : itemsets){
+            for (int idCluster: itemset.getClusters()) {
+                if(itemset.getClusters().size() < 2){
+                    itemsetMatrice[indexItemset][idCluster] = true;
                 }
             }
+            indexItemset++;
         }
+        /*
+        Ajout des clusters à la liste firstClusters
+         */
+        for(int clusterId = nbClusters - 1 ; clusterId >= 0; clusterId--){
+            if(defaultDataBase.getCluster(clusterId).getTimeId() != defaultDataBase.getCluster(defaultDataBase.getClusters().size() - 1).getTimeId()) {
+                ArrayList<Integer> itemsetIds = new ArrayList<>();
+                for (int j = 0; j < nbItemsets; j++){
+                    if(itemsetMatrice[j][clusterId]){
+                        itemsetIds.add(j);
+                    }
+                }
+                if(itemsetIds.size() > 1){
+                    int idFirstCluster = subDetect(itemsetMatrice,clusterId,itemsetIds,nbClusters);
+                    firstClusters.add(idFirstCluster);
+                }
+            }
 
-        for (int idCluster : firstClusters) {
-            //Lorsqu'on a notre tableau, pour tt les firstclusters
-            //New Convergeant (defaultDataBase, firstClusters[i]);
-            convergeants.add(new Convergeant(defaultDataBase, idCluster));
         }
-        return convergeants;
+        /*
+        Creation d'un convergeant par cluster dans la liste firstClusters
+         */
+        for (int idCluster : firstClusters) {
+            //Lorsqu'on a notre tableau, pour tt les lastclusters
+            //New Convergeant (defaultDataBase, lastClusters[i]);
+            divergeants.add(new Divergeant(defaultDataBase, idCluster));
+        }
+        return divergeants;
     }
 
-    public boolean goodItemsets(DataBase defaultDataBase, Path itemset) {
-        //Vérifie si les transactions de chaque clusters de l'itemset ne sont pas identiques
-        HashMap<Integer, Transaction> lastTransactions = defaultDataBase.getClusterTransactions(0);
-        for (int idCluster : itemset.getClusters()) {
-            HashMap<Integer, Transaction> Transactions = defaultDataBase.getClusterTransactions(idCluster);
-            if(!lastTransactions.equals(Transactions)){
-                return true;
+    public int subDetect(boolean[][] itemsetMatrice, int clusterId, ArrayList<Integer> itemsetIds, int nbClusters){
+        boolean finalResult = true; //Variable qui permet de verifier si les itemsets sont identiques (true) ou opposes (false) opposes = tt vrai et dans l'autre cluster tt faux
+        for(int i = clusterId - 1; i >= 0; i--){
+            //Pour chaque cluster en partant du clusterId + 1 vu qu'on doit comparer clusterId aux clusters précèdents
+            for(int j = 0; j < itemsetIds.size() - 1 ; j++) {
+                //Pour chaque itemset du cluster avec pour id i;
+                if(itemsetMatrice[itemsetIds.get(j)][i] == itemsetMatrice[itemsetIds.get(j + 1)][i]){
+                    //Si j et j + 1 sont egaux
+                    if (itemsetMatrice[itemsetIds.get(j)][i]){
+                        //On va enregistrer si l'ensemble est identique ou oppose
+                        finalResult = true;
+                    } else {
+                        finalResult = false;
+                    }
+                } else {
+                    //si j et j+1 sont differents, on retourne le clusterId comme cluster divergeant
+                    return clusterId;
+                }
+            }
+            if(finalResult){
+                //si les itemsets etaient identiques, alors clusterId prend la valeur du cluster le plus avance dans le temps.
+                clusterId = i;
             }
         }
-        return false;
+        return clusterId;
     }
 }
