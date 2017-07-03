@@ -3,6 +3,8 @@ package fr.jgetmove.jgetmove.solver;
 import fr.jgetmove.jgetmove.database.*;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.detector.Detector;
+import fr.jgetmove.jgetmove.detector.MultiDetector;
+import fr.jgetmove.jgetmove.detector.SingleDetector;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
 import javax.json.Json;
@@ -12,62 +14,62 @@ import javax.json.JsonObjectBuilder;
 import java.util.*;
 
 /**
- * Manager that handles a pathFinder and detectors
+ * Manager that handles a itemsetFinder and singleDetectors
  */
 public class Solver {
 
     private final int blockSize;
     /**
-     * PathFinder that will handle the creation of itemsets
+     * ItemsetFinder that will handle the creation of itemsets
      */
-    private PathFinder pathFinder;
+    private ItemsetFinder itemsetFinder;
     private PatternGenerator patternGenerator;
 
     /**
      * Detectors of patterns
      */
-    private Set<Detector> detectors;
+    private Set<SingleDetector> singleDetectors;
+    private Set<MultiDetector> multiDetectors;
 
-    /**
-     * The results of the PathFinder
-     */
-    private ArrayList<PathsOfBlock> results;
 
     /**
      * Constructor
      *
-     * @param pathFinder PathFinder that will handle the creation of itemsets
-     * @param detectors  list of detectors
-     * @param blockSize
+     * @param itemsetFinder   ItemsetFinder that will handle the creation of itemsets
+     * @param singleDetectors list of singleDetectors
+     * @param blockSize       size of block
      */
-    public Solver(PathFinder pathFinder, PatternGenerator patternGenerator,
-                  Set<Detector> detectors, int blockSize) {
-        this.pathFinder = pathFinder;
+    public Solver(ItemsetFinder itemsetFinder, PatternGenerator patternGenerator,
+                  Set<SingleDetector> singleDetectors, Set<MultiDetector> multiDetectors, int blockSize) {
+        this.itemsetFinder = itemsetFinder;
         this.patternGenerator = patternGenerator;
-        this.detectors = detectors;
+        this.singleDetectors = singleDetectors;
+        this.multiDetectors = multiDetectors;
         this.blockSize = blockSize;
-        this.results = new ArrayList<>();
     }
 
     /**
      * Constructor
      *
-     * @param pathFinder PathFinder that will handle the creation of itemsets
+     * @param itemsetFinder ItemsetFinder that will handle the creation of itemsets
      */
-    public Solver(PathFinder pathFinder, PatternGenerator patternGenerator, int blockSize) {
-        this.pathFinder = pathFinder;
+    public Solver(ItemsetFinder itemsetFinder, PatternGenerator patternGenerator, int blockSize) {
+        this.itemsetFinder = itemsetFinder;
         this.patternGenerator = patternGenerator;
-        detectors = new HashSet<>();
-        this.results = new ArrayList<>();
+        singleDetectors = new HashSet<>();
         this.blockSize = blockSize;
     }
 
     /**
      * Generate a list of clusters (Itemsets)
      *
-     * @return the list of clusters (Itemsets) generated from pathFinder
+     * @return the list of clusters (Itemsets) generated from itemsetFinder
      */
-    public ArrayList<PathsOfBlock> generatePath(DataBase dataBase) {
+    public ArrayList<ItemsetsOfBlock> findItemsets(DataBase dataBase) {
+        Debug.printTitle("Find Itemsets", Debug.INFO);
+
+        ArrayList<ItemsetsOfBlock> results = new ArrayList<>();
+
         if (blockSize > 0) {
 
             BlockBase blockBase;
@@ -75,12 +77,12 @@ public class Solver {
             Iterator<Integer> lastTime = dataBase.getTimeIds().iterator();
 
             while ((blockBase = createBlock(id, dataBase, lastTime)) != null) {
-                TreeSet<Path> result = pathFinder.generate(blockBase);
-                results.add(new PathsOfBlock(id, result));
+                TreeSet<Itemset> result = itemsetFinder.generate(blockBase);
+                results.add(new ItemsetsOfBlock(id, result));
                 ++id;
             }
         } else {
-            results.add(new PathsOfBlock(0, pathFinder.generate(dataBase)));
+            results.add(new ItemsetsOfBlock(0, itemsetFinder.generate(dataBase)));
         }
 
         System.out.println("results = " + results);
@@ -126,34 +128,53 @@ public class Solver {
     /**
      * Detect patterns
      *
-     * @return a HashMap Detector -> ArrayList< Motif>
+     * @return a HashMap SingleDetector -> ArrayList< Motif>
      */
-    public HashMap<Detector, ArrayList<Pattern>> detectPatterns() {
-        Debug.println("results", results, Debug.WARNING);
-        //patternGenerator.run(results, detectors);
-        /*for (Detector detector : detectors) {
-            motifs.put(detector, detector.detect(database, pathFinder.getClustersGenerated()));
-        }*/
+    public HashMap<Detector, ArrayList<Pattern>> detectPatterns(DataBase dataBase, ArrayList<ItemsetsOfBlock> results) {
+        Debug.printTitle("DetectPatterns", Debug.INFO);
 
-        return patternGenerator.getResults();
+        HashMap<Detector, ArrayList<Pattern>> motifs = new HashMap<>(singleDetectors.size());
+        //patternGenerator.generate(dataBase, results);
+        // TODO : é ouais
+        for (ItemsetsOfBlock itemsets : results) {
+            for (Itemset itemset : itemsets.getItemsets()) {
+                for (SingleDetector singleDetector : singleDetectors) {
+                    motifs.put(singleDetector, singleDetector.detect(dataBase, itemset));
+                }
+            }
+
+            for (MultiDetector multiDetector : multiDetectors) {
+                motifs.put(multiDetector, multiDetector.detect(dataBase, itemsets.getItemsetArrayList()));
+            }
+        }
+
+        return motifs;
     }
 
     /**
-     * Add a new detector to the list of detectors
+     * Add a new singleDetector to the list of singleDetectors
      *
-     * @param detector
+     * @param singleDetector
      */
-    private void addDetector(Detector detector) {
-        detectors.add(detector);
+    private void add(SingleDetector singleDetector) {
+        singleDetectors.add(singleDetector);
+    }
+
+    private void add(MultiDetector multiDetector) {
+        multiDetectors.add(multiDetector);
     }
 
     /**
-     * Remove the detector from the list of detectors
+     * Remove the singleDetector from the list of singleDetectors
      *
-     * @param detector
+     * @param singleDetector
      */
-    private void removeDetector(Detector detector) {
-        detectors.remove(detector);
+    private void remove(SingleDetector singleDetector) {
+        singleDetectors.remove(singleDetector);
+    }
+
+    private void removeDetector(MultiDetector multiDetector) {
+        multiDetectors.remove(multiDetector);
     }
 
     public JsonArrayBuilder toJson(HashMap<Detector, ArrayList<Pattern>> detectors) {
@@ -185,7 +206,7 @@ public class Solver {
 
     @Override
     public String toString() {
-        return "\n|-- PathFinder :" + pathFinder
+        return "\n|-- ItemsetFinder :" + itemsetFinder
                 + "\n`-- PatternGenerator :" + patternGenerator;
     }
 }

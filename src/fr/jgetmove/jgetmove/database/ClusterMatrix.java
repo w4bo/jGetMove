@@ -16,18 +16,18 @@ public class ClusterMatrix {
     /**
      * Initializes the cluster by tacking the relations of the block as a reference
      *
-     * @param matrix Initial matrix reference
+     * @param base Initial base reference
      */
-    public ClusterMatrix(Base matrix) {
+    public ClusterMatrix(Base base) {
         clusterTimeMatrix = new HashMap<>();
         clusterTransactionsMatrix = new HashMap<>();
 
-        for (Transaction transaction : matrix.getTransactions().values()) {
+        for (Transaction transaction : base.getTransactions().values()) {
             for (int clusterId : transaction.getClusterIds()) {
 
                 if (!clusterTransactionsMatrix.containsKey(clusterId)) {
                     clusterTransactionsMatrix.put(clusterId, new TreeSet<>());
-                    clusterTimeMatrix.put(clusterId, matrix.getClusterTimeId(clusterId));
+                    clusterTimeMatrix.put(clusterId, base.getClusterTimeId(clusterId));
                 }
 
                 clusterTransactionsMatrix.get(clusterId).add(transaction.getId());
@@ -58,19 +58,19 @@ public class ClusterMatrix {
      * Lcm::UpdateOccurenceDeriver(const DataBase &database, const vector<int> &transactionList, ClusterMatrix &occurence)
      * </pre>
      *
-     * @param referenceMatrix       Reference database to retrieve the bindings
+     * @param base       Reference database to retrieve the bindings
      * @param transactionIds Transactions which need to be present in the matrix
      */
-    public void optimizeMatrix(Base referenceMatrix, Set<Integer> transactionIds) {
+    public void optimizeMatrix(Base base, Set<Integer> transactionIds) {
         clusterTransactionsMatrix.forEach((clusterId, transactions) -> transactions.clear());
         for (int transactionId : transactionIds) {
-            Transaction transaction = referenceMatrix.getTransaction(transactionId);
+            Transaction transaction = base.getTransaction(transactionId);
             Set<Integer> clusterIds = transaction.getClusterIds();
 
             for (int clusterId : clusterIds) {
                 if (!clusterTransactionsMatrix.containsKey(clusterId)) {
                     clusterTransactionsMatrix.put(clusterId, new TreeSet<>());
-                    clusterTimeMatrix.put(clusterId, referenceMatrix.getClusterTimeId(clusterId));
+                    clusterTimeMatrix.put(clusterId, base.getClusterTimeId(clusterId));
                 }
 
                 clusterTransactionsMatrix.get(clusterId).add(transactionId);

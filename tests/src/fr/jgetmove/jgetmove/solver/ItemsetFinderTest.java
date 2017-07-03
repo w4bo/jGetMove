@@ -3,7 +3,7 @@ package fr.jgetmove.jgetmove.solver;
 import fr.jgetmove.jgetmove.config.DefaultConfig;
 import fr.jgetmove.jgetmove.database.ClusterMatrix;
 import fr.jgetmove.jgetmove.database.DataBase;
-import fr.jgetmove.jgetmove.database.Path;
+import fr.jgetmove.jgetmove.database.Itemset;
 import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
@@ -21,7 +21,7 @@ import java.util.TreeSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class PathFinderTest {
+class ItemsetFinderTest {
 // TODO finish complexDataBase tests
 
     private static DataBase simpleDataBase;
@@ -53,7 +53,7 @@ class PathFinderTest {
 
             // current ppcTest structure
             TreeSet<Integer> clusterGeneratorTransactionIds = new TreeSet<>();
-            boolean clusterGenerator = PathFinder.PPCTest(dataBase, itemset, transactionIds, 0, clusterGeneratorTransactionIds);
+            boolean clusterGenerator = ItemsetFinder.PPCTest(dataBase, itemset, transactionIds, 0, clusterGeneratorTransactionIds);
 
             // new == old
             assertEquals(filteredTransactionIds, clusterGeneratorTransactionIds);
@@ -69,7 +69,7 @@ class PathFinderTest {
 
             // current ppcTest structure
             clusterGeneratorTransactionIds.clear();
-            clusterGenerator = PathFinder.PPCTest(dataBase, itemset, transactionIds, 4, clusterGeneratorTransactionIds);
+            clusterGenerator = ItemsetFinder.PPCTest(dataBase, itemset, transactionIds, 4, clusterGeneratorTransactionIds);
 
             // new == old
             assertEquals(filteredTransactionIds, clusterGeneratorTransactionIds);
@@ -88,9 +88,9 @@ class PathFinderTest {
 
     @Test
     void generateBasic() {
-        PathFinder pathFinder = new PathFinder(config);
+        ItemsetFinder itemsetFinder = new ItemsetFinder(config);
 
-        TreeSet<Path> results = pathFinder.generate(simpleDataBase);
+        TreeSet<Itemset> results = itemsetFinder.generate(simpleDataBase);
 
         assertEquals(3, results.size());
 
@@ -147,12 +147,25 @@ class PathFinderTest {
     @Test
     void generateComplex() {
 
-        PathFinder pathFinder = new PathFinder(config);
+        ItemsetFinder itemsetFinder = new ItemsetFinder(config);
 
-        TreeSet<Path> results = pathFinder.generate(complexDataBase);
+        TreeSet<Itemset> results = itemsetFinder.generate(complexDataBase);
         assertEquals(19, results.size());
         // assertEquals("[[0, 0], [0, 0, 2, 19], [0, 0, 2, 5, 10, 12, 13, 19, 23], [0, 0, 2, 6, 9, 15, 19, 22], [0, 0, 3, 5, 7, 8, 14, 18, 20, 22], [0, 0, 5], [0, 0, 3, 5, 7, 8, 14, 18, 20, 22], [0, 0, 22], [0, 0, 3, 5, 7, 8, 14, 18, 20, 22], [0, 1], [0, 1, 3, 5, 11, 12, 16, 20, 22], [0, 1, 4, 7], [0, 1, 4, 7, 11, 16, 21, 23], [0, 1, 4, 7, 17], [0, 1, 11, 16], [0, 1, 3, 5, 11, 12, 16, 20, 22], [0, 1, 4, 7, 11, 16, 21, 23], [0, 3, 5, 20, 22], [0, 5], [0, 5, 12], [0, 7], [0, 22], [0, 23]]", results.toString());
         //assertEquals("[[0, 1], [0, 1, 2, 9], [0, 1, 2, 3, 5, 6, 7, 9, 10], [0, 1, 2, 4, 5, 7, 9, 10], [0, 1, 2, 3, 4, 5, 7, 8, 9, 10], [0, 1, 3], [0, 1, 2, 3, 4, 5, 7, 8, 9, 10], [0, 1, 10], [0, 1, 2, 3, 4, 5, 7, 8, 9, 10], [0, 1], [0, 1, 2, 3, 5, 6, 7, 9, 10], [0, 1, 2, 4], [0, 1, 2, 4, 5, 7, 9, 10], [0, 1, 2, 4, 7], [0, 1, 5, 7], [0, 1, 2, 3, 5, 6, 7, 9, 10], [0, 1, 2, 4, 5, 7, 9, 10], [0, 2, 3, 9, 10], [0, 3], [0, 3, 6], [0, 4], [0, 10], [0, 10]]", results.getLvl2TimeIds().toString());
+
+    }
+
+    @Test
+    void generateMultiCluster() {
+        ItemsetFinder itemsetFinder = new ItemsetFinder(config);
+
+        try {
+            DataBase multiDataBase = new DataBase(new Input("tests/assets/multi_cluster.dat"), new Input("tests/assets/multi_cluster_time_index.dat"));
+            TreeSet<Itemset> results = itemsetFinder.generate(multiDataBase);
+        } catch (IOException | ClusterNotExistException | MalformedTimeIndexException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -182,7 +195,7 @@ class PathFinderTest {
         ClusterMatrix clusterMatrix = new ClusterMatrix(simpleDataBase);
 
         clusterMatrix.optimizeMatrix(simpleDataBase, transactionIds);
-        PathFinder.addPathToTransaction(clusterMatrix, itemset, transactions, numCluster);
+        ItemsetFinder.addPathToTransaction(clusterMatrix, itemset, transactions, numCluster);
 
         assertTrue(transactions.get(0).getClusterIds().contains(0));
         assertEquals(1, numCluster[0]);
@@ -197,7 +210,7 @@ class PathFinderTest {
         transactionIds.add(1);
 
         clusterMatrix.optimizeMatrix(simpleDataBase, transactionIds);
-        PathFinder.addPathToTransaction(clusterMatrix, itemset, transactions, numCluster);
+        ItemsetFinder.addPathToTransaction(clusterMatrix, itemset, transactions, numCluster);
 
         assertTrue(transactions.get(1).getClusterIds().contains(1));
         assertEquals(2, numCluster[0]);
@@ -211,7 +224,7 @@ class PathFinderTest {
         transactionIds.add(1);
 
         clusterMatrix.optimizeMatrix(simpleDataBase, transactionIds);
-        PathFinder.addPathToTransaction(clusterMatrix, itemset, transactions, numCluster);
+        ItemsetFinder.addPathToTransaction(clusterMatrix, itemset, transactions, numCluster);
 
         assertTrue(transactions.get(0).getClusterIds().contains(2));
         assertTrue(transactions.get(1).getClusterIds().contains(2));
@@ -223,9 +236,9 @@ class PathFinderTest {
 
         // Testing with singlepath itemset
 
-        PathFinder pathFinder = new PathFinder(config);
+        ItemsetFinder itemsetFinder = new ItemsetFinder(config);
 
-        ArrayList<TreeSet<Integer>> generatedItemsets = pathFinder.generatePaths(simpleDataBase, new ArrayList<>());
+        ArrayList<TreeSet<Integer>> generatedItemsets = itemsetFinder.generateItemsets(simpleDataBase, new ArrayList<>());
 
         Debug.println("generatedItemset", generatedItemsets, Debug.DEBUG);
 
@@ -237,7 +250,7 @@ class PathFinderTest {
         itemset.add(2);
         itemset.add(4);
 
-        generatedItemsets = pathFinder.generatePaths(simpleDataBase, itemset);
+        generatedItemsets = itemsetFinder.generateItemsets(simpleDataBase, itemset);
 
         assertEquals(1, generatedItemsets.size());
         assertEquals(3, generatedItemsets.get(0).size());
@@ -247,7 +260,7 @@ class PathFinderTest {
         itemset.add(3);
         itemset.add(4);
 
-        generatedItemsets = pathFinder.generatePaths(simpleDataBase, itemset);
+        generatedItemsets = itemsetFinder.generateItemsets(simpleDataBase, itemset);
 
         assertEquals(1, generatedItemsets.size());
         assertEquals(3, generatedItemsets.get(0).size());
@@ -255,7 +268,7 @@ class PathFinderTest {
         itemset.clear();
         itemset.add(4);
 
-        generatedItemsets = pathFinder.generatePaths(simpleDataBase, itemset);
+        generatedItemsets = itemsetFinder.generateItemsets(simpleDataBase, itemset);
 
         assertEquals(1, generatedItemsets.size());
         assertEquals(1, generatedItemsets.get(0).size());

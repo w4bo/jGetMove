@@ -1,6 +1,7 @@
 package fr.jgetmove.jgetmove.detector;
 
 import fr.jgetmove.jgetmove.database.DataBase;
+import fr.jgetmove.jgetmove.database.Itemset;
 import fr.jgetmove.jgetmove.database.Time;
 import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
@@ -8,14 +9,13 @@ import fr.jgetmove.jgetmove.pattern.Convoy;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * Class/Singleton related to the detection of convoys in a database
  */
-public class ConvoyDetector implements Detector {
+public class ConvoyDetector implements SingleDetector {
 
     private static ConvoyDetector convoyDetector;
     private int minTime;
@@ -42,12 +42,11 @@ public class ConvoyDetector implements Detector {
     }
 
     //TODO Retester quand les itemsets en double seront corrigés + opti si besoin
-    public ArrayList<Pattern> detect(DataBase defaultDataBase, Set<Integer> timeBased, Set<Integer> clusterBased,
-                                     Collection<Transaction> transactions) {
+    public ArrayList<Pattern> detect(final DataBase defaultDataBase, final Itemset itemset) {
 
         ArrayList<Pattern> convoys = new ArrayList<>();
-        ArrayList<Integer> itemset = new ArrayList<>(clusterBased);
-        ArrayList<Integer> times = new ArrayList<>(timeBased);
+        ArrayList<Integer> clusters = new ArrayList<>(itemset.getClusters());
+        ArrayList<Integer> times = new ArrayList<>(itemset.getTimes());
         ArrayList<Integer> transactionsOfItemset = new ArrayList<>(); //Minimal transactions of an itemset
         ArrayList<Integer> transactionsOfAClusterOfItemset;
 
@@ -55,13 +54,13 @@ public class ConvoyDetector implements Detector {
         int currentTime;
         int sizeMin = 77777777; //Ivre, il resta appuyer sur la touche "7" pendant 2 secondes
         int size;
-        ArrayList<ArrayList <Integer> > tabTimesSet = new ArrayList< ArrayList<Integer>>(); //Ensemble des temps consécutifs des temps de l'itemset
-        ArrayList<Integer> timesSet = new ArrayList<Integer>(); //un ensemble consécutif de temps de l'itemset
+        ArrayList<ArrayList<Integer>> tabTimesSet = new ArrayList<>(); //Ensemble des temps consécutifs des temps de l'itemset
+        ArrayList<Integer> timesSet = new ArrayList<>(); //un ensemble consécutif de temps de l'itemset
 
         for (int i = 0; i < times.size(); i++){
             //Cette boucle determine les transactions de l'itemset + l'ensemble des temps consécutifs de l'itemsets
             currentTime = times.get(i);
-            transactionsOfAClusterOfItemset = new ArrayList<>(defaultDataBase.getClusterTransactions(itemset.get(i)).keySet());
+            transactionsOfAClusterOfItemset = new ArrayList<>(defaultDataBase.getClusterTransactions(clusters.get(i)).keySet());
             size = transactionsOfAClusterOfItemset.size();
 
             if(size == sizeMin && !(transactionsOfItemset.equals(transactionsOfAClusterOfItemset))){
@@ -72,12 +71,12 @@ public class ConvoyDetector implements Detector {
 
             if(size < sizeMin){
                 sizeMin = size;
-                transactionsOfItemset = new ArrayList<>(defaultDataBase.getClusterTransactions(itemset.get(i)).keySet());
+                transactionsOfItemset = new ArrayList<>(defaultDataBase.getClusterTransactions(clusters.get(i)).keySet());
             }
 
             if(currentTime > (lastTime + 1) && timesSet.size() > 1){
                 //Si le temps actuel n'est plus consécutif aux temps précédent
-                ArrayList<Integer> timesSetClone = (ArrayList<Integer>) timesSet.clone();
+                ArrayList<Integer> timesSetClone = new ArrayList<>(timesSet);
                 tabTimesSet.add(timesSetClone);
                 timesSet.clear();
             }

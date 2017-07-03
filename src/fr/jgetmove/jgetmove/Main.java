@@ -4,16 +4,15 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import fr.jgetmove.jgetmove.config.DefaultConfig;
 import fr.jgetmove.jgetmove.database.DataBase;
+import fr.jgetmove.jgetmove.database.ItemsetsOfBlock;
 import fr.jgetmove.jgetmove.debug.Debug;
-import fr.jgetmove.jgetmove.detector.ClosedSwarmDetector;
-import fr.jgetmove.jgetmove.detector.ConvoyDetector;
-import fr.jgetmove.jgetmove.detector.Detector;
+import fr.jgetmove.jgetmove.detector.*;
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.exception.MalformedTimeIndexException;
 import fr.jgetmove.jgetmove.io.Input;
 import fr.jgetmove.jgetmove.io.Output;
 import fr.jgetmove.jgetmove.pattern.Pattern;
-import fr.jgetmove.jgetmove.solver.PathFinder;
+import fr.jgetmove.jgetmove.solver.ItemsetFinder;
 import fr.jgetmove.jgetmove.solver.PatternGenerator;
 import fr.jgetmove.jgetmove.solver.Solver;
 
@@ -90,26 +89,32 @@ public class Main {
             Debug.println(dataBase, Debug.INFO);
 
             /*
-             * Init PathFinder and detectors
+             * Init ItemsetFinder and singleDetectors
              */
-            PathFinder pathFinder = new PathFinder(config);
-            PatternGenerator patternGenerator = new PatternGenerator(dataBase, config);
+            ItemsetFinder itemsetFinder = new ItemsetFinder(config);
+            PatternGenerator patternGenerator = new PatternGenerator(config);
 
-            Set<Detector> detectors = new HashSet<>();
-            detectors.add(new ConvoyDetector(minTime));
-            detectors.add(new ClosedSwarmDetector(minTime));
-            //detectors.add(new GroupPatternDetector(config.getMinTime(), config.getCommonObjectPercentage()));
+            Set<SingleDetector> singleDetectors = new HashSet<>();
+            singleDetectors.add(new ConvoyDetector(minTime));
+            singleDetectors.add(new ClosedSwarmDetector(minTime));
+
+            Set<MultiDetector> multiDetectors = new HashSet<>();
+            multiDetectors.add(new DivergeantDetector());
+            multiDetectors.add(new ConvergeantDetector());
+
+
+            //singleDetectors.add(new GroupPatternDetector(config.getMinTime(), config.getCommonObjectPercentage()));
 
             /*
-             * Create solver from pathFinder, patternGenerator, detectors and start the generation
+             * Create solver from itemsetFinder, patternGenerator, singleDetectors and start the generation
              */
-            Solver solver = new Solver(pathFinder, patternGenerator, detectors, blockSize);
+            Solver solver = new Solver(itemsetFinder, patternGenerator, singleDetectors, multiDetectors, blockSize);
 
             Debug.printTitle("Solver Initialisation", Debug.INFO);
             Debug.println(solver, Debug.INFO);
 
-            solver.generatePath(dataBase);
-            HashMap<Detector, ArrayList<Pattern>> patterns = solver.detectPatterns();
+            ArrayList<ItemsetsOfBlock> results = solver.findItemsets(dataBase);
+            HashMap<Detector, ArrayList<Pattern>> patterns = solver.detectPatterns(dataBase, results);
 
             /*
              * Create new Output object from results

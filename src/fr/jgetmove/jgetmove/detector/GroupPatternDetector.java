@@ -1,6 +1,7 @@
 package fr.jgetmove.jgetmove.detector;
 
 import fr.jgetmove.jgetmove.database.DataBase;
+import fr.jgetmove.jgetmove.database.Itemset;
 import fr.jgetmove.jgetmove.database.Time;
 import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
@@ -8,11 +9,10 @@ import fr.jgetmove.jgetmove.pattern.GroupPattern;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-public class GroupPatternDetector implements Detector {
+public class GroupPatternDetector implements SingleDetector {
 
     int minTime;
     double commonObjectPercentage;
@@ -23,8 +23,7 @@ public class GroupPatternDetector implements Detector {
     }
 
     @Override
-    public ArrayList<Pattern> detect(DataBase defaultDataBase, Set<Integer> timeBased, Set<Integer> clusterBased,
-                                     Collection<Transaction> transactions) {
+    public ArrayList<Pattern> detect(DataBase defaultDataBase, Itemset itemset) {
         Debug.println("Start Group Pattern", Debug.DEBUG);
         ArrayList<Pattern> patterns = new ArrayList<>();
 
@@ -42,8 +41,8 @@ public class GroupPatternDetector implements Detector {
         ArrayList<Integer> startConvoyIndex = new ArrayList<>();
         ArrayList<Integer> endConvoyIndex = new ArrayList<>();
 
-        ArrayList<Integer> clusters = new ArrayList<>(clusterBased);
-        ArrayList<Integer> times = new ArrayList<>(timeBased);
+        ArrayList<Integer> clusters = new ArrayList<>(itemset.getClusters());
+        ArrayList<Integer> times = new ArrayList<>(itemset.getTimes());
 
         firstTime = times.get(0);
         firstIndex = 0;
@@ -75,7 +74,7 @@ public class GroupPatternDetector implements Detector {
             } else {
                 if (currentTime > (lastTime + 1)) {
                     //Needs to check if objectSet equals goodTransactions
-                    if ((lastTime - firstTime) > minTime && goodTransactions.size() == transactions.size()) {
+                    if ((lastTime - firstTime) > minTime && goodTransactions.size() == itemset.getTransactions().size()) {
                         //Needs double check
                         startConvoy.add(firstTime);
                         startConvoyIndex.add(firstIndex);
@@ -103,11 +102,11 @@ public class GroupPatternDetector implements Detector {
             Set<Time> timesOfPattern = new HashSet<>();
             Set<Transaction> transactionsOfPattern = new HashSet<>();
 
-            for (Transaction transaction : transactions) {
-                transactionsOfPattern.add(defaultDataBase.getTransaction(transaction.getId()));
+            for (int transaction : itemset.getTransactions()) {
+                transactionsOfPattern.add(defaultDataBase.getTransaction(transaction));
             }
 
-            for (Integer time : timeBased) {
+            for (int time : itemset.getTimes()) {
                 timesOfPattern.add(defaultDataBase.getTime(time));
             }
 

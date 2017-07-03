@@ -7,21 +7,21 @@ import java.util.TreeSet;
 /**
  *
  */
-public class Path implements Comparable<Path> {
+public class Itemset implements Comparable<Itemset> {
 
     private final int id;
     private TreeSet<Integer> clusters;
     private TreeSet<Integer> transactions;
     private TreeSet<Integer> times;
 
-    Path(final int id) {
+    Itemset(final int id) {
         this.id = id;
         clusters = new TreeSet<>();
         transactions = new TreeSet<>();
         times = new TreeSet<>();
     }
 
-    public Path(final int id, final Set<Integer> transactions, final Set<Integer> clusters, final Set<Integer> times) {
+    public Itemset(final int id, final Set<Integer> transactions, final Set<Integer> clusters, final Set<Integer> times) {
         this.id = id;
         this.clusters = new TreeSet<>(clusters);
         this.transactions = new TreeSet<>(transactions);
@@ -65,7 +65,7 @@ public class Path implements Comparable<Path> {
 
 
     @Override
-    public int compareTo(Path p) {
+    public int compareTo(Itemset p) {
         if (clusters.equals(p.clusters)) {
             return 0;
         } else if (clusters.containsAll(p.clusters)) {

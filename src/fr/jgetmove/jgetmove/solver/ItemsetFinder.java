@@ -11,16 +11,16 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-public class PathFinder {
+public class ItemsetFinder {
 
     private int minSupport, maxPattern, minTime;
-    private TreeSet<Path> paths;
+    private TreeSet<Itemset> itemsets;
 
-    public PathFinder(DefaultConfig config) {
+    public ItemsetFinder(DefaultConfig config) {
         this.minSupport = config.getMinSupport();
         this.maxPattern = config.getMaxPattern();
         this.minTime = config.getMinTime();
-        paths = new TreeSet<>();
+        itemsets = new TreeSet<>();
     }
 
     /**
@@ -60,19 +60,19 @@ public class PathFinder {
         return true;
     }
 
-    static void addPathToTransaction(ClusterMatrix clusterMatrix, TreeSet<Integer> path, ArrayList<Transaction> transactions, int[] pathId) {
+    static void addPathToTransaction(ClusterMatrix clusterMatrix, TreeSet<Integer> itemset, ArrayList<Transaction> transactions, int[] pathId) {
         //TODO : opti ce truc mais en gros ça règle le pb du surplus de transactions par itemsets
-        Set<Integer> transactionOfLast = clusterMatrix.getClusterTransactionIds(path.last());
-        //Parmis la liste de clusters d'un itemsets, je cherche le cluster qui a le moins de transaction et ça sera par définition les transactions de mon path
+        Set<Integer> transactionOfLast = clusterMatrix.getClusterTransactionIds(itemset.last());
+        //Parmis la liste de clusters d'un itemsets, je cherche le cluster qui a le moins de transaction et ça sera par définition les transactions de mon itemset
         // sert à rien, déja limité par clustermatrix
-            /*for (int clusterId : path) {
+            /*for (int clusterId : itemset) {
                 if (clusterMatrix.getClusterTransactionIds(clusterId).size() < transactionOfLast.size()) {
                     transactionOfLast = clusterMatrix.getClusterTransactionIds(clusterId);
                 }
             }*/
 
         //Pour chaque transaction, on ajoute le cluster qui a l'id numItem
-        // TODO :on ajoute pour chaque transaction le path auquel il appartient :D
+        // TODO :on ajoute pour chaque transaction le itemset auquel il appartient :D
         for (Integer transactionId : transactionOfLast) {
             transactions.get(transactionId).add(new Cluster(pathId[0]));
         }
@@ -90,28 +90,28 @@ public class PathFinder {
      * </pre>
      */
     @TraceMethod
-    TreeSet<Path> generate(Base matrix) {
-        ClusterMatrix clusterMatrix = new ClusterMatrix(matrix);
-        Debug.println("totalItem", matrix.getClusterIds(), Debug.DEBUG);
+    TreeSet<Itemset> generate(Base base) {
+        ClusterMatrix clusterMatrix = new ClusterMatrix(base);
+        Debug.println("totalItem", base.getClusterIds(), Debug.DEBUG);
 
-        ArrayList<Integer> path = new ArrayList<>();
+        ArrayList<Integer> itemset = new ArrayList<>();
         ArrayList<Integer> freqItemset = new ArrayList<>();
-        ArrayList<Transaction> transactions = new ArrayList<>(matrix.getTransactions().size());
+        ArrayList<Transaction> transactions = new ArrayList<>(base.getTransactions().size());
 
-        for (Transaction transaction : matrix.getTransactions().values()) {
+        for (Transaction transaction : base.getTransactions().values()) {
             transactions.add(new Transaction(transaction.getId()));
         }
 
-        TreeSet<Integer> transactionIds = new TreeSet<>(matrix.getTransactionIds());
+        TreeSet<Integer> transactionIds = new TreeSet<>(base.getTransactionIds());
 
 
         int[] pathId = new int[1];
         pathId[0] = 0;
 
-        run(matrix, clusterMatrix, path, transactionIds, freqItemset, pathId);
+        run(base, clusterMatrix, itemset, transactionIds, freqItemset, pathId);
         Debug.println("Transactions", transactions, Debug.DEBUG);
 
-        return paths;
+        return itemsets;
     }
 
     /**
@@ -124,47 +124,47 @@ public class PathFinder {
      * []timeID, [][]level2ItemID, [][]level2TimeID) {
      * </pre>
      *
-     * @param matrix                  (default database)
+     * @param base                   (default database)
      * @param clusterMatrix          (database, , itemID, timeID) La database &agrave; analyser
-     * @param clusterIds             (itemsets) une liste representant les id
+     * @param toItemsetize           (itemsets) une liste representant les id
      * @param transactionIds         (transactionList)
      * @param clustersFrequenceCount (freqList) une liste representant les clusterIds frequents
-     * @param pathId                 (pathId)
+     * @param itemsetId              (pathId)
      */
     @TraceMethod(displayTitle = true)
-    private void run(Base matrix, ClusterMatrix clusterMatrix, ArrayList<Integer> clusterIds,
-                     Set<Integer> transactionIds, ArrayList<Integer> clustersFrequenceCount, int[] pathId) {
+    private void run(Base base, ClusterMatrix clusterMatrix, ArrayList<Integer> toItemsetize,
+                     Set<Integer> transactionIds, ArrayList<Integer> clustersFrequenceCount, int[] itemsetId) {
         Debug.println("clusterMatrix", clusterMatrix, Debug.DEBUG);
-        Debug.println("path", clusterIds, Debug.DEBUG);
+        Debug.println("itemset", toItemsetize, Debug.DEBUG);
         Debug.println("transactionIds ", transactionIds, Debug.DEBUG);
         Debug.println("clustersFrequenceCount ", clustersFrequenceCount, Debug.DEBUG);
 
-        Debug.println("Generating paths", Debug.INFO);
-        ArrayList<TreeSet<Integer>> pathsClusterIds = generatePaths(matrix, clusterIds);
+        Debug.println("Generating itemsets", Debug.INFO);
+        ArrayList<TreeSet<Integer>> itemsetArrayList = generateItemsets(base, toItemsetize);
 
-        Debug.println("pathsClusterIds", pathsClusterIds, Debug.DEBUG);
+        Debug.println("itemsets", itemsetArrayList, Debug.DEBUG);
 
-        for (TreeSet<Integer> pathClusterIds : pathsClusterIds) {
+        for (TreeSet<Integer> itemsetTreeSet : itemsetArrayList) {
 
-            // Lcm::printItemsetsNew([]itemsets, occ, []transactionsets, pathId, []timeID, [][]level2ItemID, [][]level2TimeID)
+            // Lcm::printItemsetsNew([]itemsets, occ, []transactionsets, itemsetId, []timeID, [][]level2ItemID, [][]level2TimeID)
             int calcurateCoreI;
 
-            if (pathClusterIds.size() > 0) { // code c complient
-                //if (path.size() > minTime) {
+            if (itemsetTreeSet.size() > 0) { // code c complient
+                //if (itemset.size() > minTime) {
 
-                TreeSet<Integer> pathTransactions = clusterMatrix.getClusterTransactionIds(pathClusterIds.last());
+                TreeSet<Integer> pathTransactions = clusterMatrix.getClusterTransactionIds(itemsetTreeSet.last());
 
                 TreeSet<Integer> pathTimes = new TreeSet<>();
-                for (Integer clusterId : pathClusterIds) {
+                for (Integer clusterId : itemsetTreeSet) {
                     pathTimes.add(clusterMatrix.getClusterTimeId(clusterId));
                 }
-                Path path = new Path(pathId[0], pathTransactions, pathClusterIds, pathTimes);
+                Itemset itemset = new Itemset(itemsetId[0], pathTransactions, itemsetTreeSet, pathTimes);
 
-                if (paths.add(path)) {
-                    pathId[0]++;
+                if (this.itemsets.add(itemset)) {
+                    itemsetId[0]++;
                 }
 
-                calcurateCoreI = GeneratorUtils.getDifferentFromLastCluster(clustersFrequenceCount, pathClusterIds.first());
+                calcurateCoreI = GeneratorUtils.getDifferentFromLastCluster(clustersFrequenceCount, itemsetTreeSet.first());
             } else {
                 calcurateCoreI = 0;
             }
@@ -172,39 +172,39 @@ public class PathFinder {
 
             Debug.println("Core_i : " + calcurateCoreI, Debug.DEBUG);
 
-            SortedSet<Integer> clustersTailSet = matrix.getClusterIds().tailSet(calcurateCoreI);
+            SortedSet<Integer> clustersTailSet = base.getClusterIds().tailSet(calcurateCoreI);
 
             // freq_i
-            ArrayList<Integer> freqPath = new ArrayList<>();
+            ArrayList<Integer> freqItemset = new ArrayList<>();
             Debug.println("lower bounds", clustersTailSet, Debug.DEBUG);
             Debug.println("min Support", minSupport, Debug.DEBUG);
 
             for (int clusterId : clustersTailSet) {
                 if (clusterMatrix.getClusterTransactionIds(clusterId).size() >= minSupport &&
-                        !pathClusterIds.contains(clusterId)) {
-                    freqPath.add(clusterId);
+                        !itemsetTreeSet.contains(clusterId)) {
+                    freqItemset.add(clusterId);
                 }
             }
 
-            Debug.println("Frequent : ", freqPath, Debug.DEBUG);
+            Debug.println("Frequent : ", freqItemset, Debug.DEBUG);
 
-            for (int maxClusterId : freqPath) {
-                Set<Integer> newTransactionIds = matrix.getFilteredTransactionIdsIfHaveCluster(transactionIds, maxClusterId);
+            for (int maxClusterId : freqItemset) {
+                Set<Integer> newTransactionIds = base.getFilteredTransactionIdsIfHaveCluster(transactionIds, maxClusterId);
 
-                if (GeneratorUtils.ppcTest(matrix, pathClusterIds, maxClusterId, newTransactionIds)) {
+                if (GeneratorUtils.ppcTest(base, itemsetTreeSet, maxClusterId, newTransactionIds)) {
                     ArrayList<Integer> newPathClusters = new ArrayList<>();
 
-                    GeneratorUtils.makeClosure(matrix, newTransactionIds, newPathClusters, pathClusterIds, maxClusterId);
+                    GeneratorUtils.makeClosure(base, newTransactionIds, newPathClusters, itemsetTreeSet, maxClusterId);
                     if (maxPattern == 0 || newPathClusters.size() <= maxPattern) {
                         Set<Integer> updatedTransactionIds = GeneratorUtils
-                                .updateTransactions(matrix, transactionIds, newPathClusters, maxClusterId);
+                                .updateTransactions(base, transactionIds, newPathClusters, maxClusterId);
                         ArrayList<Integer> newclustersFrequenceCount = GeneratorUtils
-                                .updateClustersFrequenceCount(matrix, transactionIds, newPathClusters, clustersFrequenceCount,
+                                .updateClustersFrequenceCount(base, transactionIds, newPathClusters, clustersFrequenceCount,
                                         maxClusterId);
 
-                        clusterMatrix.optimizeMatrix(matrix, updatedTransactionIds);
+                        clusterMatrix.optimizeMatrix(base, updatedTransactionIds);
 
-                        run(matrix, clusterMatrix, newPathClusters, updatedTransactionIds, newclustersFrequenceCount, pathId);
+                        run(base, clusterMatrix, newPathClusters, updatedTransactionIds, newclustersFrequenceCount, itemsetId);
 
                     }
                 }
@@ -230,9 +230,9 @@ public class PathFinder {
             //if (pathClusters.size() > minTime) {
 
             Set<Integer> pathTransactions = clusterMatrix.getClusterTransactionIds(pathClusters.last());
-            //Parmis la liste de clusters d'un itemsets, je cherche le cluster qui a le moins de transaction et ça sera par définition les transactions de mon path
+            //Parmis la liste de clusters d'un itemsets, je cherche le cluster qui a le moins de transaction et ça sera par définition les transactions de mon itemset
             // sert à rien, déja limité par clustermatrix
-            /*for (int clusterId : path) {
+            /*for (int clusterId : itemset) {
                 if (clusterMatrix.getClusterTransactionIds(clusterId).size() < transactionOfLast.size()) {
                     transactionOfLast = clusterMatrix.getClusterTransactionIds(clusterId);
                 }
@@ -246,8 +246,8 @@ public class PathFinder {
                 pathTimes.add(clusterMatrix.getClusterTimeId(clusterId));
             }
 
-            Path path = new Path(pathId[0], pathTransactions, pathClusters, pathTimes);
-            paths.add(path);
+            Itemset itemset = new Itemset(pathId[0], pathTransactions, pathClusters, pathTimes);
+            itemsets.add(itemset);
         }
 
 
@@ -258,12 +258,12 @@ public class PathFinder {
      * Lcm::GenerateItemset(DataBase,[]itemsets,[]itemID,[]timeID,[][]generatedItemsets, [][]generatedtimeID,[][]generateditemID,sizeGenerated)
      * </pre>
      *
-     * @param matrix (database)
-     * @param path  (itemsets) une liste representant les clusterId
+     * @param base (database)
+     * @param path (itemsets) une liste representant les clusterId
      */
     @TraceMethod(displayTitleIfLast = true)
-    ArrayList<TreeSet<Integer>> generatePaths(Base matrix, ArrayList<Integer> path) {
-        // todo faire passer Path en parametres et non pas un clusterIds représentant l'path
+    ArrayList<TreeSet<Integer>> generateItemsets(Base base, ArrayList<Integer> path) {
+        // todo faire passer Itemset en parametres et non pas un clusterIds représentant l'path
         if (path.size() == 0) {
             ArrayList<TreeSet<Integer>> generatedPaths = new ArrayList<>();
             generatedPaths.add(new TreeSet<>(path));
@@ -276,11 +276,11 @@ public class PathFinder {
         // liste des temps qui n'ont qu'un seul cluster
         for (int i = 0; i < path.size(); ++i) {
             int clusterId = path.get(i);
-            lastTime = matrix.getClusterTimeId(clusterId);
+            lastTime = base.getClusterTimeId(clusterId);
 
             if (i != path.size() - 1) {
                 int nextClusterId = path.get(i + 1);
-                if (matrix.getClusterTimeId(clusterId) == matrix.getClusterTimeId(nextClusterId)) {
+                if (base.getClusterTimeId(clusterId) == base.getClusterTimeId(nextClusterId)) {
                     oneTimePerCluster = false;
                 }
             }
@@ -303,7 +303,7 @@ public class PathFinder {
             ArrayList<Integer> tempPath = new ArrayList<>();
 
             for (int clusterId : path) {
-                if (matrix.getClusterTimeId(clusterId) == i) {
+                if (base.getClusterTimeId(clusterId) == i) {
                     tempPath.add(clusterId);
                 }
             }
@@ -345,7 +345,7 @@ public class PathFinder {
         }
 
         // Remove the itemsets already existing in the set of transactions
-        Debug.println("Remove paths already existing", Debug.DEBUG);
+        Debug.println("Remove itemsets already existing", Debug.DEBUG);
         ArrayList<TreeSet<Integer>> checkedArrayOfClusterIds = new ArrayList<>(); //checkedItemsets
 
         boolean insertok;
@@ -353,7 +353,7 @@ public class PathFinder {
         for (TreeSet<Integer> currentPath : tempPaths) {
             insertok = true;
 
-            for (Transaction transaction : matrix.getTransactions().values()) {
+            for (Transaction transaction : base.getTransactions().values()) {
                 if (transaction.getClusterIds().equals(currentPath)) {
                     insertok = false;
                     break;
