@@ -1,12 +1,11 @@
 package fr.jgetmove.jgetmove.solver;
 
 import fr.jgetmove.jgetmove.config.DefaultConfig;
-import fr.jgetmove.jgetmove.database.Base;
-import fr.jgetmove.jgetmove.database.DataBase;
-import fr.jgetmove.jgetmove.database.Transaction;
+import fr.jgetmove.jgetmove.database.*;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.TraceMethod;
 import fr.jgetmove.jgetmove.detector.Detector;
+import fr.jgetmove.jgetmove.detector.SingleDetector;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 import fr.jgetmove.jgetmove.utils.GeneratorUtils;
 
@@ -14,26 +13,21 @@ import java.util.*;
 
 public class PatternGenerator {
 
-    private final DataBase defaultDataBase;
-    private ArrayList<ArrayList<Integer>> clustersGenerated;
     private int minSupport, maxPattern, minTime;
     private boolean printed;
-    private HashMap<Detector, ArrayList<Pattern>> motifs;
+    private HashMap<SingleDetector, ArrayList<Pattern>> motifs;
 
     /**
      * Initialise le solveur.
      *
-     * @param dataBase   dataBase par defaut
      * @param minSupport support minimal
      * @param maxPattern nombre maximal de pattern a trouvé
      * @param minTime    temps minimal
      */
-    public PatternGenerator(DataBase dataBase, int minSupport, int maxPattern, int minTime) {
+    public PatternGenerator(int minSupport, int maxPattern, int minTime) {
         this.minSupport = minSupport;
         this.maxPattern = maxPattern;
         this.minTime = minTime;
-        this.clustersGenerated = new ArrayList<>();
-        this.defaultDataBase = dataBase;
         motifs = new HashMap<>();
         printed = false;
 
@@ -42,15 +36,11 @@ public class PatternGenerator {
 
     /**
      * Initialise le solveur.
-     *
-     * @param dataBase dataBase par defaut
      */
-    public PatternGenerator(DataBase dataBase, DefaultConfig config) {
+    public PatternGenerator(DefaultConfig config) {
         this.minSupport = config.getMinSupport();
         this.maxPattern = config.getMaxPattern();
         this.minTime = config.getMinTime();
-        this.clustersGenerated = new ArrayList<>();
-        this.defaultDataBase = dataBase;
         motifs = new HashMap<>();
         printed = false;
 
@@ -129,57 +119,66 @@ public class PatternGenerator {
 
     /**
      */
-    protected void run(DataBase dataBase, ArrayList<ArrayList<Integer>> lvl2ClusterId,
-                       ArrayList<ArrayList<Integer>> lvl2TimeId, Set<Detector> detectors) {
-
+    void generate(Base base, ArrayList<ItemsetsOfBlock> itemsetsOfBlocks) {
+        ClusterMatrix clusterMatrix = new ClusterMatrix(base);
 
         ArrayList<Integer> itemsets = new ArrayList<>();
-        ArrayList<Integer> freqList = new ArrayList<>();
-        Debug.println("DataBase : " + dataBase);
-        Debug.println("Run Lvl2TimeId  " + lvl2TimeId);
-        Debug.println("Run Lvl2ClusterId  " + lvl2ClusterId);
-        run(dataBase, itemsets, dataBase.getTransactionIds(), freqList, lvl2ClusterId, lvl2TimeId, detectors);
+        ArrayList<Integer> clustersFrequenceCount = new ArrayList<>();
+        TreeSet<Integer> transactionIds = new TreeSet<>(base.getTransactionIds());
+        Debug.println("ItemsetsOfBlock", itemsets, Debug.DEBUG);
+        //run(base, clusterMatrix, itemsets, transactionIds, clustersFrequenceCount, itemsetsOfBlocks);
 
     }
 
     @TraceMethod(displayTitle = true)
-    private void run(DataBase dataBase, ArrayList<Integer> itemsets, Set<Integer> transactionIds,
-                     ArrayList<Integer> freqList, ArrayList<ArrayList<Integer>> lvl2ClusterId,
+    private void run(DataBase dataBase, ClusterMatrix clusterMatrix, ArrayList<Integer> itemset, Set<Integer> transactionIds,
+                     ArrayList<Integer> clustersFrequenceCount, ArrayList<ArrayList<Integer>> lvl2ClusterId,
                      ArrayList<ArrayList<Integer>> lvl2TimeId, Set<Detector> detectors) {
+                /*TODO private void run(Base base, ClusterMatrix clusterMatrix, ArrayList<Integer> itemset, Set<Integer> transactionIds,
+                     ArrayList<Integer> clustersFrequenceCount, ArrayList<ItemsetsOfBlock> itemsetsOfBlocks) {*/
         Debug.displayTitle();
 
-        int calcurateCoreI = CalcurateCoreI(itemsets, freqList);
-        SortedSet<Integer> lowerBounds = GeneratorUtils.lower_bound(dataBase.getClusterIds(), calcurateCoreI);
+        int calcurateCoreI;
+        if (itemset.size() > 0) {
+            calcurateCoreI = GeneratorUtils.getDifferentFromLastCluster(clustersFrequenceCount, itemset.get(0));
+        } else {
+            calcurateCoreI = 0;
+        }
+
+        SortedSet<Integer> clustersTailSet = dataBase.getClusterIds().tailSet(calcurateCoreI);
 
         //Blocks
+        //TODO /*
         ArrayList<Integer> blocks = new ArrayList<>();
-        for (Integer itemset : itemsets) {
-            blocks.add(lvl2TimeId.get(itemset).get(0));
+        for (Integer clusterId : itemset) {
+            blocks.add(lvl2TimeId.get(clusterId).get(0));
         }
+        //*/
         // freq_i
-        ArrayList<Integer> freqClusterIds = new ArrayList<>();
-        Debug.println("lower bounds : " + lowerBounds.size());
+        ArrayList<Integer> freqItemset = new ArrayList<>();
+        Debug.println("lower bounds", clustersTailSet, Debug.DEBUG);
+        Debug.println("min Support", minSupport, Debug.DEBUG);
 
-        for (int clusterId : lowerBounds) {
-
-            if (dataBase.getCluster(clusterId).getTransactions().size() >= minSupport &&
-                    !itemsets.contains(clusterId)) {
-                freqClusterIds.add(clusterId);
+        for (int clusterId : clustersTailSet) {
+            if (clusterMatrix.getClusterTransactionIds(clusterId).size() >= minSupport &&
+                    !itemset.contains(clusterId)) {
+                freqItemset.add(clusterId);
             }
         }
-        Debug.println("freq_i : " + freqClusterIds);
+
+        Debug.println("frequent : " + freqItemset);
 
         ArrayList<Integer> newPathClusters = new ArrayList<>();
         ArrayList<Integer> newFreqList = new ArrayList<>();
 
-        for (int freqClusterId : freqClusterIds) {
+        for (int freqClusterId : freqItemset) {
             Set<Integer> newTransactionIds = new TreeSet<>();
 
             int blockOfItem = lvl2TimeId.get(freqClusterId).get(0);
-            if (PPCTest(dataBase, itemsets, transactionIds, freqClusterId, newTransactionIds) &&
+            if (PPCTest(dataBase, itemset, transactionIds, freqClusterId, newTransactionIds) &&
                     !blocks.contains(blockOfItem)) {
                 newPathClusters.clear();
-                MakeClosure(dataBase, newTransactionIds, newPathClusters, itemsets, freqClusterId);
+                MakeClosure(dataBase, newTransactionIds, newPathClusters, itemset, freqClusterId);
 
                 if (maxPattern == 0 || newPathClusters.size() <= maxPattern) {
                     newTransactionIds.clear();
@@ -188,13 +187,13 @@ public class PatternGenerator {
                             .updateTransactions(dataBase, dataBase.getTransactionIds(), newPathClusters, freqClusterId);
                     newFreqList.clear();
                     newFreqList = GeneratorUtils
-                            .updateClustersFrequenceCount(dataBase, dataBase.getTransactionIds(), newPathClusters, freqList, freqClusterId);
-                    run(dataBase, newPathClusters, iterTransactionIds, newFreqList, lvl2ClusterId, lvl2TimeId, detectors);
+                            .updateClustersFrequenceCount(dataBase, dataBase.getTransactionIds(), newPathClusters, clustersFrequenceCount, freqClusterId);
+                   //TODO run(dataBase, newPathClusters, iterTransactionIds, newFreqList, lvl2ClusterId, lvl2TimeId, detectors);
                 }
             }
         }
         if (!printed) {
-            printItemsets(dataBase, itemsets, lvl2ClusterId, lvl2TimeId, detectors);
+            printItemsets(dataBase, itemset, lvl2ClusterId, lvl2TimeId, detectors);
             printed = true;
         }
     }
@@ -202,7 +201,7 @@ public class PatternGenerator {
     @TraceMethod(displayTitle = true)
     private void printItemsets(DataBase dataBase, ArrayList<Integer> itemsets,
                                ArrayList<ArrayList<Integer>> lvl2ClusterId, ArrayList<ArrayList<Integer>> lvl2TimeId,
-                               Set<Detector> detectors) {
+                               Set<Detector> singleDetectors) {
         Debug.println("Database2" + dataBase);
         Debug.println("itemsets : " + itemsets);
         Debug.println("lvl2TimeId : " + lvl2TimeId);
@@ -225,20 +224,20 @@ public class PatternGenerator {
                 }
 
                 /*if (timeBased.size() > minTime) {
-                    for (Detector detector : detectors) {
+                    for (SingleDetector detector : singleDetectors) {
                         motifs.put(detector, detector.detect(defaultDataBase, timeBased, clusterBased, transactions));
                     }
                 }*/
 
                 if (timeBased.size() > minTime) {
-                    for (Detector detector : detectors) {
-                        if (motifs.get(detector) == null) {
-                            ArrayList<Pattern> patterns = detector.detect(defaultDataBase, timeBased, clusterBased, transactions);
-                            //ArrayList<Pattern> patterns = detector.detect(dataBase, timeBased, clusterBased, transactions);
-                            motifs.put(detector, patterns);
+                    for (Detector singleDetector : singleDetectors) {
+                        if (motifs.get(singleDetector) == null) {
+                           // TODO ArrayList<Pattern> patterns = singleDetector.detect(defaultDataBase, timeBased, clusterBased, transactions);
+                            //ArrayList<Pattern> patterns = singleDetector.detect(dataBase, timeBased, clusterBased, transactions);
+                            // TODO motifs.put(singleDetector, patterns);
                         } else {
-                            motifs.get(detector).addAll(detector.detect(defaultDataBase, timeBased, clusterBased, transactions));
-                            //motifs.get(detector).addAll(detector.detect(dataBase, timeBased, clusterBased, transactions));
+                           //TODO motifs.get(singleDetector).addAll(singleDetector.detect(defaultDataBase, timeBased, clusterBased, transactions));
+                            //motifs.get(singleDetector).addAll(singleDetector.detect(dataBase, timeBased, clusterBased, transactions));
 
                         }
                     }
@@ -250,7 +249,7 @@ public class PatternGenerator {
     /**
      *
      */
-    public HashMap<Detector, ArrayList<Pattern>> getResults() {
+    public HashMap<SingleDetector, ArrayList<Pattern>> getResults() {
         return motifs;
     }
 }

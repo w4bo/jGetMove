@@ -14,30 +14,52 @@ import javax.json.JsonObjectBuilder;
 import java.util.*;
 
 /**
- * Manager that handles a itemsetFinder and singleDetectors
+ * Manager that handles all the core logic of the application.
+ * <p>
+ * It's used to call {@link ItemsetFinder} to detect all the itemsets per block
+ * <p>
+ * IIt's used to call {@link PatternGenerator} to merge them in a single array of itemsets used for detecting different patterns with their given detectors.
  */
 public class Solver {
 
+    /**
+     * Size of each block, used for ItemsetFinder
+     */
     private final int blockSize;
+
     /**
      * ItemsetFinder that will handle the creation of itemsets
      */
     private ItemsetFinder itemsetFinder;
+
+    /**
+     * PatternGenerator handles the block merging and calls the detection
+     */
     private PatternGenerator patternGenerator;
 
     /**
-     * Detectors of patterns
+     * List of detectors called foreach itemset
+     *
+     * @see SingleDetector#detect(DataBase, Itemset)
      */
     private Set<SingleDetector> singleDetectors;
+
+    /**
+     * List of detectors called once, passing all the itemsets
+     *
+     * @see MultiDetector#detect(DataBase, ArrayList)
+     */
     private Set<MultiDetector> multiDetectors;
 
 
     /**
-     * Constructor
+     * Prepares the solver with all the elements used to detect patterns.
      *
-     * @param itemsetFinder   ItemsetFinder that will handle the creation of itemsets
-     * @param singleDetectors list of singleDetectors
-     * @param blockSize       size of block
+     * @param itemsetFinder    DI, has for function to find all the itemsets of the database
+     * @param patternGenerator DI, has for function to join blocks and detect all patterns
+     * @param singleDetectors  initializes all the singleDetectors to use
+     * @param multiDetectors   initializes all the multiDetectors to use
+     * @param blockSize        fixes the size of each block.
      */
     public Solver(ItemsetFinder itemsetFinder, PatternGenerator patternGenerator,
                   Set<SingleDetector> singleDetectors, Set<MultiDetector> multiDetectors, int blockSize) {
@@ -49,21 +71,28 @@ public class Solver {
     }
 
     /**
-     * Constructor
+     * Prepares the solver with all the elements used to detect patterns.
      *
-     * @param itemsetFinder ItemsetFinder that will handle the creation of itemsets
+     * @param itemsetFinder    DI, has for function to find all the itemsets of the database
+     * @param patternGenerator DI, has for function to join blocks and detect all patterns from the itemsets.
+     * @param blockSize        fixes the size of each block.
      */
     public Solver(ItemsetFinder itemsetFinder, PatternGenerator patternGenerator, int blockSize) {
         this.itemsetFinder = itemsetFinder;
         this.patternGenerator = patternGenerator;
         singleDetectors = new HashSet<>();
+        multiDetectors = new HashSet<>();
         this.blockSize = blockSize;
     }
 
     /**
-     * Generate a list of clusters (Itemsets)
+     * Finds all the itemsets from the database.
+     * <p>
+     * Breaks the task by blocks (a given time interval {@link Solver#blockSize} ) and returns an array of blocks containing their respective itemsets.
+     * <p>
+     * If the {@link Solver#blockSize} is 0, then a single block is returned, containing all the itemset of the database.
      *
-     * @return the list of clusters (Itemsets) generated from itemsetFinder
+     * @return ArrayList of blocks containing it's id and all the itemsets detected in the block
      */
     public ArrayList<ItemsetsOfBlock> findItemsets(DataBase dataBase) {
         Debug.printTitle("Find Itemsets", Debug.INFO);
@@ -126,54 +155,60 @@ public class Solver {
     }
 
     /**
-     * Detect patterns
+     * Call PatternGenerator and launches the pattern detection system
      *
      * @return a HashMap SingleDetector -> ArrayList< Motif>
      */
     public HashMap<Detector, ArrayList<Pattern>> detectPatterns(DataBase dataBase, ArrayList<ItemsetsOfBlock> results) {
         Debug.printTitle("DetectPatterns", Debug.INFO);
 
-        HashMap<Detector, ArrayList<Pattern>> motifs = new HashMap<>(singleDetectors.size());
+        HashMap<Detector, ArrayList<Pattern>> pattern = new HashMap<>(singleDetectors.size() + multiDetectors.size());
         //patternGenerator.generate(dataBase, results);
         // TODO : é ouais
         for (ItemsetsOfBlock itemsets : results) {
             for (Itemset itemset : itemsets.getItemsets()) {
                 for (SingleDetector singleDetector : singleDetectors) {
-                    motifs.put(singleDetector, singleDetector.detect(dataBase, itemset));
+                    pattern.put(singleDetector, singleDetector.detect(dataBase, itemset));
                 }
             }
 
             for (MultiDetector multiDetector : multiDetectors) {
-                motifs.put(multiDetector, multiDetector.detect(dataBase, itemsets.getItemsetArrayList()));
+                pattern.put(multiDetector, multiDetector.detect(dataBase, itemsets.getItemsetArrayList()));
             }
         }
 
-        return motifs;
+        return pattern;
     }
 
     /**
-     * Add a new singleDetector to the list of singleDetectors
+     * {@link SingleDetector#detect(DataBase, Itemset)} is called foreach itemset.
      *
-     * @param singleDetector
+     * @param singleDetector adds this detector to the list of detectors to detect
      */
     private void add(SingleDetector singleDetector) {
         singleDetectors.add(singleDetector);
     }
 
+    /**
+     * {@link MultiDetector#detect(DataBase, ArrayList)} is called for all Itemsets.
+     *
+     * @param multiDetector adds this detector to the list of detectors to detect
+     */
     private void add(MultiDetector multiDetector) {
         multiDetectors.add(multiDetector);
     }
 
     /**
-     * Remove the singleDetector from the list of singleDetectors
-     *
-     * @param singleDetector
+     * @param singleDetector removes this detector from the list of detectors to detect
      */
     private void remove(SingleDetector singleDetector) {
         singleDetectors.remove(singleDetector);
     }
 
-    private void removeDetector(MultiDetector multiDetector) {
+    /**
+     * @param multiDetector removes this detector from the list of detectors to detect
+     */
+    private void remove(MultiDetector multiDetector) {
         multiDetectors.remove(multiDetector);
     }
 
@@ -207,6 +242,8 @@ public class Solver {
     @Override
     public String toString() {
         return "\n|-- ItemsetFinder :" + itemsetFinder
-                + "\n`-- PatternGenerator :" + patternGenerator;
+                + "\n|-- PatternGenerator :" + patternGenerator
+                + "\n|-- SingleDetectors :" + singleDetectors
+                + "\n`-- MultiDetectors :" + multiDetectors;
     }
 }
