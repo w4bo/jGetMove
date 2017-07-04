@@ -1,5 +1,8 @@
 package fr.jgetmove.jgetmove.database;
 
+import fr.jgetmove.jgetmove.debug.Debug;
+import fr.jgetmove.jgetmove.debug.PrettyPrint;
+
 import java.util.HashMap;
 import java.util.Set;
 import java.util.TreeSet;
@@ -7,7 +10,7 @@ import java.util.TreeSet;
 /**
  * Used in ItemsetDetector, holds a {@link Cluster}-{@link Time} matrix and a {@link Cluster}-{@link Transaction} matrix
  */
-public class ClusterMatrix {
+public class ClusterMatrix implements PrettyPrint {
 
     private HashMap<Integer, Integer> clusterTimeMatrix;
     private HashMap<Integer, TreeSet<Integer>> clusterTransactionsMatrix;
@@ -53,12 +56,12 @@ public class ClusterMatrix {
 
     /**
      * Rebinds the cluster-transaction matrix by removing the transactions not present in transactionIds and adding the one which are
-     *
+     * <p>
      * <pre>
      * Lcm::UpdateOccurenceDeriver(const DataBase &database, const vector<int> &transactionList, ClusterMatrix &occurence)
      * </pre>
      *
-     * @param base       Reference database to retrieve the bindings
+     * @param base           Reference database to retrieve the bindings
      * @param transactionIds Transactions which need to be present in the matrix
      */
     public void optimizeMatrix(Base base, Set<Integer> transactionIds) {
@@ -80,9 +83,12 @@ public class ClusterMatrix {
 
     @Override
     public String toString() {
-        String str = "\n|-- ClusterMatrix :" + clusterTransactionsMatrix;
-        str += "\n`-- TimeMatrix :" + clusterTimeMatrix.values();
-        return str;
+        return Debug.indent(toPrettyString());
     }
 
+    @Override
+    public String toPrettyString() {
+        return "\n|-- ClusterMatrix :" + clusterTransactionsMatrix +
+                "\n`-- TimeMatrix :" + clusterTimeMatrix;
+    }
 }

@@ -99,8 +99,8 @@ public class Main {
             singleDetectors.add(new ClosedSwarmDetector(minTime));
 
             Set<MultiDetector> multiDetectors = new HashSet<>();
-            multiDetectors.add(new DivergeantDetector());
-            multiDetectors.add(new ConvergeantDetector());
+            multiDetectors.add(new DivergentDetector());
+            multiDetectors.add(new ConvergentDetector());
 
 
             //singleDetectors.add(new GroupPatternDetector(config.getMinTime(), config.getCommonObjectPercentage()));

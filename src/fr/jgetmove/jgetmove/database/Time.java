@@ -1,5 +1,7 @@
 package fr.jgetmove.jgetmove.database;
 
+import fr.jgetmove.jgetmove.debug.PrettyPrint;
+
 import java.util.HashMap;
 import java.util.Set;
 
@@ -8,16 +10,11 @@ import java.util.Set;
  * <p>
  * Time is managed by DataBase
  */
-public class Time implements Comparable<Time> {
-    private int id;
+public class Time implements Comparable<Time>, PrettyPrint {
+    private final int id;
 
     /**
-     * The block in which the time is, can be null
-     */
-    private BlockBase bloc;
-    /**
      * Hashmap containing the list of clusters (idCluster -> Cluster)
-     * Hashmap contenant la liste des clusters idCluster=>Cluster
      */
     private HashMap<Integer, Cluster> clusters;
 
@@ -43,20 +40,6 @@ public class Time implements Comparable<Time> {
         return id;
     }
 
-
-    /**
-     * @return the <tt>BlockBase</tt> which contains this <tt>Time</tt>
-     */
-    public BlockBase getBloc() {
-        return bloc;
-    }
-
-    /**
-     * @param bloc sets the containing <tt>BlockBase</tt>
-     */
-    public void setBloc(BlockBase bloc) {
-        this.bloc = bloc;
-    }
 
     /**
      * @return the Hashmap of clusters which are contained in this time
@@ -85,6 +68,12 @@ public class Time implements Comparable<Time> {
     @Override
     public String toString() {
         return "{" + id + "=" + String.valueOf(clusters.keySet()) + "}";
+    }
+
+    @Override
+    public String toPrettyString() {
+        return "\n. " + id +
+                "\n`-- Clusters : " + String.valueOf(clusters.keySet());
     }
 
     @Override

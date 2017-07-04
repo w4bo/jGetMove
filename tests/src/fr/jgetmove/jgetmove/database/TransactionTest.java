@@ -46,14 +46,6 @@ class TransactionTest {
     }
 
     @Test
-    void setId() {
-        transaction.setId(2);
-
-        assertEquals(2, transaction.getId());
-
-    }
-
-    @Test
     void compareTo() {
         Transaction less = new Transaction(0);
         Transaction more = new Transaction(2);

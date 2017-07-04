@@ -3,13 +3,13 @@ package fr.jgetmove.jgetmove.detector;
 import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.database.Itemset;
 import fr.jgetmove.jgetmove.debug.Debug;
-import fr.jgetmove.jgetmove.pattern.Convergeant;
+import fr.jgetmove.jgetmove.pattern.Convergent;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
 import java.util.ArrayList;
 
 
-public class ConvergeantDetector implements MultiDetector {
+public class ConvergentDetector implements MultiDetector {
 
     public ArrayList<Pattern> detect(DataBase defaultDataBase, ArrayList<Itemset> itemsets) {
 
@@ -62,8 +62,8 @@ public class ConvergeantDetector implements MultiDetector {
          */
         for (int idCluster : lastClusters) {
             //Lorsqu'on a notre tableau, pour tt les lastclusters
-            //New Convergeant (defaultDataBase, lastClusters[i]);
-            convergeants.add(new Convergeant(defaultDataBase, idCluster));
+            //New Convergent (defaultDataBase, lastClusters[i]);
+            convergeants.add(new Convergent(defaultDataBase, idCluster));
         }
 
         Debug.println("Convergeants", convergeants, Debug.INFO);

@@ -38,14 +38,14 @@ public class GeneratorUtils {
      * int item)
      * </pre>
      *
-     * @param matrix       (database)
+     * @param base         (database)
      * @param transactionIds (transactionList)
      * @param qSets          (q_sets)
      * @param path           (itemsets)
      * @param freq           (item)
      */
     @TraceMethod(displayTitle = true)
-    public static void makeClosure(Base matrix, Set<Integer> transactionIds, ArrayList<Integer> qSets,
+    public static void makeClosure(Base base, Set<Integer> transactionIds, ArrayList<Integer> qSets,
                                    Collection<Integer> path, int freq) {
         Debug.println("transactionIds : " + transactionIds);
         Debug.println("qSets : " + qSets);
@@ -63,10 +63,10 @@ public class GeneratorUtils {
 
         qSets.add(freq);
 
-        SortedSet<Integer> lowerBoundSet = GeneratorUtils.lower_bound(matrix.getClusterIds(), freq + 1);
+        SortedSet<Integer> lowerBoundSet = GeneratorUtils.lower_bound(base.getClusterIds(), freq + 1);
 
         for (int clusterId : lowerBoundSet) {
-            if (GeneratorUtils.CheckItemInclusion(matrix, transactionIds, clusterId)) {
+            if (GeneratorUtils.CheckItemInclusion(base, transactionIds, clusterId)) {
                 qSets.add(clusterId);
             }
         }
@@ -78,18 +78,18 @@ public class GeneratorUtils {
      * Lcm::UpdateTransactionList(const DataBase &database, const vector<int> &transactionList, const vector<int> &q_sets, int item, vector<int> &newTransactionList)
      * </pre>
      *
-     * @param matrix       (database)
+     * @param base         (database)
      * @param transactionIds (transactionList)
-     * @param pathClusterIds          (q_sets)
-     * @param maxClusterId  (item)
+     * @param pathClusterIds (q_sets)
+     * @param maxClusterId   (item)
      * @return (newTransactionList)
      */
-    public static Set<Integer> updateTransactions(Base matrix, Set<Integer> transactionIds,
+    public static Set<Integer> updateTransactions(Base base, Set<Integer> transactionIds,
                                                   ArrayList<Integer> pathClusterIds, int maxClusterId) {
         Set<Integer> newTransactionIds = new HashSet<>();
 
         for (int transactionId : transactionIds) {
-            Transaction transaction = matrix.getTransaction(transactionId);
+            Transaction transaction = base.getTransaction(transactionId);
             boolean canAdd = true;
 
             for (int pathClusterId : pathClusterIds) {
@@ -110,14 +110,14 @@ public class GeneratorUtils {
      * Lcm::UpdateFreqList(const DataBase &database, const vector<int> &transactionList, const vector<int> &gsub, vector<int> &freqList, int freq, vector<int> &newFreq)
      * </pre>
      *
-     * @param matrix         (database)
-     * @param transactionIds   (transactionList)
-     * @param newPathClusters            (gsub)
+     * @param base                    (database)
+     * @param transactionIds            (transactionList)
+     * @param newPathClusters           (gsub)
      * @param oldClustersFrequenceCount (freqList)
-     * @param maxClusterId    (freq)
+     * @param maxClusterId              (freq)
      * @return (newFreq)
      */
-    public static ArrayList<Integer> updateClustersFrequenceCount(Base matrix, Set<Integer> transactionIds,
+    public static ArrayList<Integer> updateClustersFrequenceCount(Base base, Set<Integer> transactionIds,
                                                                   ArrayList<Integer> newPathClusters,
                                                                   ArrayList<Integer> oldClustersFrequenceCount, int maxClusterId) {
         //On ajoute les frequences des itemsets de newPathClusters
@@ -146,7 +146,7 @@ public class GeneratorUtils {
             int freqCount = 0;
 
             for (int transactionId : previousList) {
-                Transaction transaction = matrix.getTransaction(transactionId);
+                Transaction transaction = base.getTransaction(transactionId);
 
                 if (transaction.getClusterIds().contains(newPathClusters.get(clusterIndex))) {
                     freqCount++;
@@ -176,14 +176,14 @@ public class GeneratorUtils {
      * CheckItemInclusion(DataBase,transactionlist,item)
      * Check whether clusterId is included in any of the transactions pointed to transactions
      *
-     * @param matrix       (database)
+     * @param base         (database)
      * @param transactionIds (transactionList) la liste des transactions
      * @param clusterId      (item) clusterId to find
      * @return true if the clusterId is in one of the transactions
      * @deprecated not expressive naming use {@link DataBase#isClusterInTransactions(Set, int)}
      */
-    public static boolean CheckItemInclusion(Base matrix, Set<Integer> transactionIds, int clusterId) {
-        return matrix.isClusterInTransactions(transactionIds, clusterId);
+    public static boolean CheckItemInclusion(Base base, Set<Integer> transactionIds, int clusterId) {
+        return base.isClusterInTransactions(transactionIds, clusterId);
     }
 
     /**
@@ -193,14 +193,14 @@ public class GeneratorUtils {
      * Lcm::PpcTest(database, []itemsets, []transactionList, item, []newTransactionList)
      * </pre>
      *
-     * @param path           (itemsets)
+     * @param itemset           (itemsets)
      * @param maxClusterId   (item)
      * @param transactionIds (newTransactionList)
      * @return vrai si ppctest est réussi
      */
-    public static boolean ppcTest(Base matrix, TreeSet<Integer> path, int maxClusterId, Set<Integer> transactionIds) {
+    public static boolean ppcTest(final Base base, final TreeSet<Integer> itemset, final int maxClusterId, final Set<Integer> transactionIds) {
         for (int clusterId = 0; clusterId < maxClusterId; clusterId++) {
-            if (!path.contains(clusterId) && CheckItemInclusion(matrix, transactionIds, clusterId)) {
+            if (!itemset.contains(clusterId) && base.isClusterInTransactions(transactionIds, clusterId)) {
                 return false;
             }
         }

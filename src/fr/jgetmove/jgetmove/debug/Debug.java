@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * Utilisée afin d'afficher les erreurs
  */
-public class Debug {
+public final class Debug {
     public final static short DEBUG = -1;
     public final static short INFO = 0;
     public final static short WARNING = 1;
@@ -58,21 +58,18 @@ public class Debug {
     /**
      * Affiche l'objet, alias de
      * <pre>
-     *     System.out.println(name + Object)
+     *     System.out.print(Object)
      * </pre>
      *
-     * @param name le nom de la variable
-     * @param o    l'objet a afficher
-     * @deprecated use {@link #println(String, Object, short)}
+     * @param o L'objet a afficher
      */
-    public static void println(String name, Object o) {
-        if (displayDebug) {
-            severity = getSeverityString(DEBUG);
+    public static void print(Object o, short status) {
+        if (displayDebug || status > DEBUG) {
+            severity = getSeverityString(status);
             updateDebugString();
-            System.out.println(concatAll(name, o));
+            System.out.print(concatAll(o));
         }
     }
-
 
     /**
      * Affiche l'objet, alias de
@@ -82,9 +79,9 @@ public class Debug {
      *
      * @param o L'objet a afficher
      */
-    public static void print(Object o, short status) {
-        if (displayDebug) {
-            severity = getSeverityString(DEBUG);
+    public static void print(PrettyPrint o, short status) {
+        if (displayDebug || status > DEBUG) {
+            severity = getSeverityString(status);
             updateDebugString();
             System.out.print(concatAll(o));
         }
@@ -99,6 +96,22 @@ public class Debug {
      * @param o L'objet a afficher
      */
     public static void println(Object o, short status) {
+        if (displayDebug || status > DEBUG) {
+            severity = getSeverityString(status);
+            updateDebugString();
+            System.out.println(concatAll(o));
+        }
+    }
+
+    /**
+     * Affiche l'objet, alias de
+     * <pre>
+     *     System.out.println(Object)
+     * </pre>
+     *
+     * @param o L'objet a afficher
+     */
+    public static void println(PrettyPrint o, short status) {
         if (displayDebug || status > DEBUG) {
             severity = getSeverityString(status);
             updateDebugString();
@@ -125,6 +138,22 @@ public class Debug {
     /**
      * Affiche l'objet, alias de
      * <pre>
+     *     System.out.print(name + Object)
+     * </pre>
+     *
+     * @param o L'objet a afficher
+     */
+    public static void print(String name, PrettyPrint o, short status) {
+        if (displayDebug) {
+            severity = getSeverityString(DEBUG);
+            updateDebugString();
+            System.out.print(concatAll(o));
+        }
+    }
+
+    /**
+     * Affiche l'objet, alias de
+     * <pre>
      *     System.out.println(name + Object)
      * </pre>
      *
@@ -132,6 +161,23 @@ public class Debug {
      * @param o    l'objet a afficher
      */
     public static void println(String name, Object o, short status) {
+        if (displayDebug || status > DEBUG) {
+            severity = getSeverityString(status);
+            updateDebugString();
+            System.out.println(concatAll(name, o));
+        }
+    }
+
+    /**
+     * Affiche l'objet, alias de
+     * <pre>
+     *     System.out.println(name + Object)
+     * </pre>
+     *
+     * @param name le nom de la variable
+     * @param o    l'objet a afficher
+     */
+    public static void println(String name, PrettyPrint o, short status) {
         if (displayDebug || status > DEBUG) {
             severity = getSeverityString(status);
             updateDebugString();
@@ -206,7 +252,7 @@ public class Debug {
 
 
     public static String indent(String multiline) {
-        return multiline.replaceAll("(?m)^", "\t");
+        return multiline.replaceAll("(?m)(\r?\n)", "$1\t");
     }
 
     private static String dateBlock() {
@@ -405,10 +451,26 @@ public class Debug {
     }
 
     private static String concatAll(Object o) {
-        return dateBlock().concat(severity).concat(path).concat(content).concat(o.toString());
+        return concatAll(o.toString());
+    }
+
+    private static String concatAll(PrettyPrint o) {
+        return concatAll(o.toPrettyString());
+    }
+
+    private static String concatAll(String str) {
+        return dateBlock().concat(severity).concat(path).concat(content).concat(str);
     }
 
     private static String concatAll(String name, Object o) {
-        return dateBlock().concat(severity).concat(path).concat(content).concat(name).concat(VARNAME_SEPARATOR).concat(o.toString());
+        return concatAll(name, o.toString());
+    }
+
+    private static String concatAll(String name, PrettyPrint o) {
+        return concatAll(name, o.toPrettyString());
+    }
+
+    private static String concatAll(String name, String value) {
+        return concatAll(name.concat(VARNAME_SEPARATOR).concat(value));
     }
 }

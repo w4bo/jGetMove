@@ -1,5 +1,8 @@
 package fr.jgetmove.jgetmove.database;
 
+import fr.jgetmove.jgetmove.debug.Debug;
+import fr.jgetmove.jgetmove.debug.PrettyPrint;
+
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.TreeSet;
@@ -7,7 +10,7 @@ import java.util.TreeSet;
 /**
  *
  */
-public class Itemset implements Comparable<Itemset> {
+public class Itemset implements Comparable<Itemset>, PrettyPrint {
 
     private final int id;
     private TreeSet<Integer> clusters;
@@ -56,22 +59,22 @@ public class Itemset implements Comparable<Itemset> {
 
     @Override
     public String toString() {
+        return Debug.indent(toPrettyString());
+    }
 
+    @Override
+    public String toPrettyString() {
         return "\n. id : " + id +
                 "\n|-- Clusters : " + clusters +
                 "\n|-- Transactions : " + transactions +
-                "\n`-- Temps : " + times;
+                "\n`-- Times : " + times;
     }
 
 
     @Override
     public int compareTo(Itemset p) {
-        if (clusters.equals(p.clusters)) {
+        if (clusters.equals(p.clusters) && transactions.equals(p.transactions) && times.equals(p.times)) {
             return 0;
-        } else if (clusters.containsAll(p.clusters)) {
-            return 1;
-        } else if (p.clusters.containsAll(clusters)) {
-            return -1;
         }
 
         return id - p.id;

@@ -1,14 +1,14 @@
 package fr.jgetmove.jgetmove.database;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
+import fr.jgetmove.jgetmove.debug.Debug;
+import fr.jgetmove.jgetmove.debug.PrettyPrint;
+
+import java.util.*;
 
 /**
  *
  */
-public class Base {
+public class Base implements PrettyPrint {
 
     protected HashMap<Integer, Time> times;
     protected HashMap<Integer, Cluster> clusters;
@@ -28,18 +28,44 @@ public class Base {
         timeIds = new TreeSet<>();
     }
 
+    /**
+     * @param clustersTransactions link between clusters and transactions 1:x relation
+     * @param clustersTime         link between clusters and its time 1:1 relation
+     */
+    public Base(List<List<Integer>> clustersTransactions, int[] clustersTime) {
+        int clusterId = 0;
+        for (List<Integer> transactions : clustersTransactions) {
+            Cluster cluster = getOrCreateCluster(clusterId);
+            for (int transactionId : transactions) {
+                Transaction transaction = getOrCreateTransaction(transactionId);
 
-    public void add(final Cluster cluster) {
+                cluster.add(transaction);
+                transaction.add(cluster);
+            }
+            ++clusterId;
+        }
+
+
+        for (int clusterIdLoop = 0; clusterIdLoop < clustersTime.length; clusterIdLoop++) {
+            Cluster cluster = getOrCreateCluster(clusterIdLoop);
+            Time time = getOrCreateTime(clustersTime[clusterIdLoop]);
+
+            cluster.setTime(time);
+            time.add(cluster);
+        }
+    }
+
+    public void add(Cluster cluster) {
         clusters.put(cluster.getId(), cluster);
         clusterIds.add(cluster.getId());
     }
 
-    public void add(final Transaction transaction) {
+    public void add(Transaction transaction) {
         transactions.put(transaction.getId(), transaction);
         transactionIds.add(transaction.getId());
     }
 
-    public void add(final Time time) {
+    public void add(Time time) {
         times.put(time.getId(), time);
         timeIds.add(time.getId());
     }
@@ -53,6 +79,18 @@ public class Base {
         }
 
         return cluster;
+    }
+
+
+    public Time getOrCreateTime(final int timeId) {
+        Time time = this.getTime(timeId);
+
+        if (time == null) {
+            time = new Time(timeId);
+            this.add(time);
+        }
+
+        return time;
     }
 
     /**
@@ -73,36 +111,36 @@ public class Base {
         return clusters.get(clusterId);
     }
 
-    public Transaction getTransaction(final int transactionId) {
-        return transactions.get(transactionId);
+    public Time getTime(final int timeId) {
+        return times.get(timeId);
     }
 
-    public Time getTime(int timeId) {
-        return times.get(timeId);
+    public Transaction getTransaction(final int transactionId) {
+        return transactions.get(transactionId);
     }
 
     public HashMap<Integer, Cluster> getClusters() {
         return clusters;
     }
 
-    public HashMap<Integer, Transaction> getTransactions() {
-        return transactions;
-    }
-
     public HashMap<Integer, Time> getTimes() {
         return times;
+    }
+
+    public HashMap<Integer, Transaction> getTransactions() {
+        return transactions;
     }
 
     public TreeSet<Integer> getClusterIds() {
         return clusterIds;
     }
 
-    public TreeSet<Integer> getTransactionIds() {
-        return transactionIds;
-    }
-
     public TreeSet<Integer> getTimeIds() {
         return timeIds;
+    }
+
+    public TreeSet<Integer> getTransactionIds() {
+        return transactionIds;
     }
 
     /**
@@ -166,9 +204,13 @@ public class Base {
 
     @Override
     public String toString() {
-        String str = "\n|-- Clusters :" + clusters.values();
-        str += "\n|-- Transactions :" + transactions.values();
-        str += "\n`-- Temps :" + times.values();
-        return str;
+        return Debug.indent(toPrettyString());
+    }
+
+    @Override
+    public String toPrettyString() {
+        return "\n|-- Clusters :" + String.valueOf(clusters.values()) +
+                "\n|-- Transactions :" + String.valueOf(transactions.values()) +
+                "\n`-- Times :" + String.valueOf(times.values());
     }
 }

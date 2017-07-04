@@ -188,7 +188,7 @@ public class PatternGenerator {
                     newFreqList.clear();
                     newFreqList = GeneratorUtils
                             .updateClustersFrequenceCount(dataBase, dataBase.getTransactionIds(), newPathClusters, clustersFrequenceCount, freqClusterId);
-                   //TODO run(dataBase, newPathClusters, iterTransactionIds, newFreqList, lvl2ClusterId, lvl2TimeId, detectors);
+                    //TODO run(dataBase, newPathClusters, iterTransactionIds, newFreqList, lvl2ClusterId, lvl2TimeId, detectors);
                 }
             }
         }
@@ -232,11 +232,11 @@ public class PatternGenerator {
                 if (timeBased.size() > minTime) {
                     for (Detector singleDetector : singleDetectors) {
                         if (motifs.get(singleDetector) == null) {
-                           // TODO ArrayList<Pattern> patterns = singleDetector.detect(defaultDataBase, timeBased, clusterBased, transactions);
+                            // TODO ArrayList<Pattern> patterns = singleDetector.detect(defaultDataBase, timeBased, clusterBased, transactions);
                             //ArrayList<Pattern> patterns = singleDetector.detect(dataBase, timeBased, clusterBased, transactions);
                             // TODO motifs.put(singleDetector, patterns);
                         } else {
-                           //TODO motifs.get(singleDetector).addAll(singleDetector.detect(defaultDataBase, timeBased, clusterBased, transactions));
+                            //TODO motifs.get(singleDetector).addAll(singleDetector.detect(defaultDataBase, timeBased, clusterBased, transactions));
                             //motifs.get(singleDetector).addAll(singleDetector.detect(dataBase, timeBased, clusterBased, transactions));
 
                         }

@@ -40,7 +40,7 @@ public class ItemsetFinder {
      * and
      * {@link GeneratorUtils#ppcTest(Base, TreeSet, int, Set)}
      */
-    @TraceMethod(displayTitle = true)
+    @Deprecated
     static boolean PPCTest(DataBase dataBase, TreeSet<Integer> clusters, Set<Integer> transactionIds,
                            int freqClusterId, Set<Integer> newTransactionIds) {
         // CalcTransactionList
@@ -60,6 +60,7 @@ public class ItemsetFinder {
         return true;
     }
 
+    @Deprecated
     static void addPathToTransaction(ClusterMatrix clusterMatrix, TreeSet<Integer> itemset, ArrayList<Transaction> transactions, int[] pathId) {
         //TODO : opti ce truc mais en gros ça règle le pb du surplus de transactions par itemsets
         Set<Integer> transactionOfLast = clusterMatrix.getClusterTransactionIds(itemset.last());
@@ -89,19 +90,18 @@ public class ItemsetFinder {
      * [][]level2ItemID, [][]level2TimeID)
      * </pre>
      */
-    @TraceMethod
+    @TraceMethod(displayTitle = true, title = "Finding itemsets")
     TreeSet<Itemset> generate(Base base) {
+        Debug.println("n° clusters", base.getClusterIds().size(), Debug.INFO);
+        Debug.println("n° transactions", base.getTransactionIds().size(), Debug.INFO);
+        Debug.println("n° times", base.getTimeIds().size(), Debug.INFO);
+
+        Debug.println("Finding itemsets from", base, Debug.DEBUG);
+
         ClusterMatrix clusterMatrix = new ClusterMatrix(base);
-        Debug.println("totalItem", base.getClusterIds(), Debug.DEBUG);
 
         ArrayList<Integer> itemset = new ArrayList<>();
         ArrayList<Integer> freqItemset = new ArrayList<>();
-        ArrayList<Transaction> transactions = new ArrayList<>(base.getTransactions().size());
-
-        for (Transaction transaction : base.getTransactions().values()) {
-            transactions.add(new Transaction(transaction.getId()));
-        }
-
         TreeSet<Integer> transactionIds = new TreeSet<>(base.getTransactionIds());
 
 
@@ -109,7 +109,10 @@ public class ItemsetFinder {
         pathId[0] = 0;
 
         run(base, clusterMatrix, itemset, transactionIds, freqItemset, pathId);
-        Debug.println("Transactions", transactions, Debug.DEBUG);
+
+        Debug.println("n° itemsets found", itemsets.size(), Debug.INFO);
+        Debug.println("itemsets", itemsets, Debug.DEBUG);
+
 
         return itemsets;
     }
@@ -139,7 +142,6 @@ public class ItemsetFinder {
         Debug.println("transactionIds ", transactionIds, Debug.DEBUG);
         Debug.println("clustersFrequenceCount ", clustersFrequenceCount, Debug.DEBUG);
 
-        Debug.println("Generating itemsets", Debug.INFO);
         ArrayList<TreeSet<Integer>> itemsetArrayList = generateItemsets(base, toItemsetize);
 
         Debug.println("itemsets", itemsetArrayList, Debug.DEBUG);

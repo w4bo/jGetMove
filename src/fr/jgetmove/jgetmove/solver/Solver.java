@@ -145,7 +145,6 @@ public class Solver {
                         blockTransaction.add(blockCluster);
                     }
                 }
-
                 ++counter;
             }
         }

@@ -9,7 +9,6 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * Contains all the objects, has the job of managing data and saving informations
@@ -36,32 +35,6 @@ public class DataBase extends Base {
         initClusterAndTransaction();
         //Initialisation des temps
         initTimeAndCluster();
-    }
-
-    /**
-     * @param transactions
-     */
-    public DataBase(Collection<Transaction> transactions) {
-        super();
-
-        this.inputObj = null;
-        this.inputTime = null;
-
-        for (Transaction oldTransaction : transactions) {
-            Transaction transaction = new Transaction(oldTransaction.getId());
-            add(transaction);
-            for (Cluster oldCluster : oldTransaction.getClusters().values()) {
-                Cluster cluster = this.getCluster(oldCluster.getId());
-
-                if (cluster == null) {
-                    cluster = new Cluster(oldCluster.getId());
-                    add(cluster);
-                }
-
-                cluster.add(transaction);
-                transaction.add(cluster);
-            }
-        }
     }
 
     /**
@@ -136,9 +109,6 @@ public class DataBase extends Base {
     }
 
 
-
-
-
     /**
      * @param clusterId l'identifiant du cluster
      * @return le Time du cluster
@@ -193,12 +163,9 @@ public class DataBase extends Base {
         return links;
     }
 
-
-
     @Override
-    public String toString() {
-        String str = "\n|-- Fichiers : " + inputObj + "; " + inputTime +
-                super.toString();
-        return str;
+    public String toPrettyString() {
+        return "\n|-- Fichiers : " + inputObj + "; " + inputTime +
+                super.toPrettyString();
     }
 }

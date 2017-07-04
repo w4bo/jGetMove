@@ -10,13 +10,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class Divergeant implements Pattern{
+public class Convergent implements Pattern {
 
     public DataBase defaultDataBase;
     public int idCluster;
     public HashMap<Integer, Transaction> TransactionsOfIdCluster;
 
-    public Divergeant(DataBase defaultDataBase, int idCluster) {
+    public Convergent(DataBase defaultDataBase, int idCluster) {
         this.defaultDataBase = defaultDataBase;
         this.idCluster = idCluster;
         this.TransactionsOfIdCluster = defaultDataBase.getClusterTransactions(idCluster);
@@ -31,18 +31,16 @@ public class Divergeant implements Pattern{
     }
 
     public String toString(){
-        return "Divergeants:\n" + " Cluster : [" + idCluster + "]";
+        return "Convergeants:\n" + " Cluster : [" + idCluster + "]";
     }
 
     public List<JsonObject> getLinksToJson(int index) {
         ArrayList<JsonObject> jsonLinks = new ArrayList<>();
         for (int idTransaction : TransactionsOfIdCluster.keySet()) {
             ArrayList<Integer> clusterSet = getTransactionsClusters(idTransaction);
-            System.out.println("CLUSTERSET : " + clusterSet);
             List<Integer> clusters;
-            if(clusterSet.get(0) != idCluster){
-                clusters = clusterSet.subList(clusterSet.indexOf(idCluster),clusterSet.size());
-                System.out.println("CLUSTERS : " + clusters);
+            if(clusterSet.get(clusterSet.size()-1) != idCluster){
+                clusters = clusterSet.subList(0,clusterSet.indexOf(idCluster) + 1);
             } else {
                 clusters = clusterSet;
             }

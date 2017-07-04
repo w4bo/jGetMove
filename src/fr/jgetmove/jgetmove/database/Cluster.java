@@ -1,11 +1,13 @@
 package fr.jgetmove.jgetmove.database;
 
+import fr.jgetmove.jgetmove.debug.PrettyPrint;
+
 import java.util.HashMap;
 
 /**
  * Groups a set of clusters in a specific time
  */
-public class Cluster {
+public class Cluster implements PrettyPrint {
 
     private int id;
 
@@ -78,4 +80,10 @@ public class Cluster {
         return "{" + id + "=" + String.valueOf(transactions.keySet()) + "}";
     }
 
+    @Override
+    public String toPrettyString() {
+        return "\n. " + id +
+                "\n|-- Time : " + time.getId() +
+                "\n`-- Transactions : " + String.valueOf(transactions.keySet());
+    }
 }

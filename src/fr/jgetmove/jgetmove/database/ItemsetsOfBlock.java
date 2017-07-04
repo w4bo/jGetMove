@@ -1,6 +1,7 @@
 package fr.jgetmove.jgetmove.database;
 
 import fr.jgetmove.jgetmove.debug.Debug;
+import fr.jgetmove.jgetmove.debug.PrettyPrint;
 
 import java.util.ArrayList;
 import java.util.TreeSet;
@@ -8,7 +9,7 @@ import java.util.TreeSet;
 /**
  *
  */
-public class ItemsetsOfBlock {
+public class ItemsetsOfBlock implements PrettyPrint {
     private final ArrayList<Itemset> itemsetArrayList;
     private final TreeSet<Itemset> itemsets;
     private int id;
@@ -29,9 +30,13 @@ public class ItemsetsOfBlock {
 
     @Override
     public String toString() {
-        String str = "\n. id : " + id;
-        str += "\n`-- itemsets :" + Debug.indent(itemsets.toString());
-        return str;
+        return Debug.indent(toPrettyString());
+    }
+
+    @Override
+    public String toPrettyString() {
+        return "\n. id : " + id +
+                "\n`-- itemsets :" + itemsets;
     }
 
     public ArrayList<Itemset> getItemsetArrayList() {

@@ -3,12 +3,12 @@ package fr.jgetmove.jgetmove.detector;
 import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.database.Itemset;
 import fr.jgetmove.jgetmove.debug.Debug;
-import fr.jgetmove.jgetmove.pattern.Divergeant;
+import fr.jgetmove.jgetmove.pattern.Divergent;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
 import java.util.ArrayList;
 
-public class DivergeantDetector implements MultiDetector {
+public class DivergentDetector implements MultiDetector {
 
     public ArrayList<Pattern> detect(DataBase defaultDataBase, ArrayList<Itemset> itemsets) {
 
@@ -60,8 +60,8 @@ public class DivergeantDetector implements MultiDetector {
          */
         for (int idCluster : firstClusters) {
             //Lorsqu'on a notre tableau, pour tt les lastclusters
-            //New Convergeant (defaultDataBase, lastClusters[i]);
-            divergeants.add(new Divergeant(defaultDataBase, idCluster));
+            //New Convergent (defaultDataBase, lastClusters[i]);
+            divergeants.add(new Divergent(defaultDataBase, idCluster));
         }
 
         Debug.println("Divergeants", divergeants, Debug.INFO);
