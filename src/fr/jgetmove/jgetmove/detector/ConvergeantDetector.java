@@ -2,6 +2,7 @@ package fr.jgetmove.jgetmove.detector;
 
 import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.database.Itemset;
+import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.pattern.Convergeant;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
@@ -18,17 +19,24 @@ public class ConvergeantDetector implements MultiDetector {
         int nbItemsets = itemsets.size();
         boolean[][] itemsetMatrice = new boolean[nbItemsets][nbClusters];
         int indexItemset = 0;
+        int nbTrue = 0;
         /*
         Construction de la Matrice [Itemset][Clusters]
          */
         for (Itemset itemset : itemsets) {
             for (int idCluster : itemset.getClusters()) {
-                if (itemset.getClusters().size() < 2) {
+                if (itemset.getClusters().size() > 1) {
                     itemsetMatrice[indexItemset][idCluster] = true;
+                    nbTrue++;
                 }
             }
-            indexItemset++;
+            if(nbTrue > 0){
+                //Condition qui permet de ne pas incrémenter l'index si on était sur un itemset qui ne comportait qu'un seul cluster
+                indexItemset++;
+                nbTrue = 0;
+            }
         }
+
         /*
         Ajout des clusters à la liste lastClusters
          */
@@ -42,7 +50,9 @@ public class ConvergeantDetector implements MultiDetector {
                 }
                 if (itemsetIds.size() > 1) {
                     int idlastCluster = subDetect(itemsetMatrice, clusterId, itemsetIds, nbClusters);
-                    lastClusters.add(idlastCluster);
+                    if(!lastClusters.contains(idlastCluster)) {
+                        lastClusters.add(idlastCluster);
+                    }
                 }
             }
 
@@ -55,6 +65,8 @@ public class ConvergeantDetector implements MultiDetector {
             //New Convergeant (defaultDataBase, lastClusters[i]);
             convergeants.add(new Convergeant(defaultDataBase, idCluster));
         }
+
+        Debug.println("Convergeants", convergeants, Debug.INFO);
         return convergeants;
     }
 

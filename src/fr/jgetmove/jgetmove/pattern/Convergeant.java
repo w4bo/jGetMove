@@ -30,15 +30,25 @@ public class Convergeant implements Pattern{
         return clusterSet;
     }
 
+    public String toString(){
+        return "Convergeants:\n" + " Cluster : [" + idCluster + "]";
+    }
+
     public List<JsonObject> getLinksToJson(int index) {
         ArrayList<JsonObject> jsonLinks = new ArrayList<>();
         for (int idTransaction : TransactionsOfIdCluster.keySet()) {
             ArrayList<Integer> clusterSet = getTransactionsClusters(idTransaction);
-            for (int i = 1; i < clusterSet.size(); i++){
+            List<Integer> clusters;
+            if(clusterSet.get(clusterSet.size()-1) != idCluster){
+                clusters = clusterSet.subList(0,clusterSet.indexOf(idCluster) + 1);
+            } else {
+                clusters = clusterSet;
+            }
+            for (int i = 1; i < clusters.size(); i++){
                 jsonLinks.add(Json.createObjectBuilder()
                         .add("id", index)
-                        .add("source", clusterSet.get(i-1))
-                        .add("target", clusterSet.get(i-1))
+                        .add("source", clusters.get(i-1))
+                        .add("target", clusters.get(i))
                         .add("value", 1)
                         .add("label", idTransaction)
                         .build());
