@@ -17,8 +17,8 @@ public final class Debug {
 
     private final static String DEBUG_STRING = "\033[0;32m[DEBUG]\033[0m ";
     private final static String INFO_STRING = "\033[0;34m[INFO ]\033[0m ";
-    private final static String WARNING_STRING = "\033[0;33m[WARNG]\033[0m ";
-    private final static String ERROR_STRING = "\033[0;31m[ERROR]\033[0m ";
+    private final static String WARNING_STRING = "\033[0;33m[WARNG] ";//\033[0m ";
+    private final static String ERROR_STRING = "\033[0;31m[ERROR] ";//"\033[0m ";
 
     private final static String DEFAULT_SEPARATOR = "|";
     private final static String MORE = "\\";
