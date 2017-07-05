@@ -52,7 +52,7 @@ class GeneratorUtilsTest {
             ArrayList<Integer> qSets = new ArrayList<>();
             ArrayList<Integer> itemset = new ArrayList<>();
 
-            GeneratorUtils.makeClosure(dataBase, transactionIds, qSets, itemset, 0);
+            GeneratorUtils.makeClosure(dataBase, transactionIds, itemset, 0);
 
             ArrayList<Integer> qSetsCheck = new ArrayList<>();
             qSetsCheck.add(0);
@@ -68,7 +68,7 @@ class GeneratorUtilsTest {
             qSets.clear();
             itemset.clear();
 
-            GeneratorUtils.makeClosure(dataBase, transactionIds, qSets, itemset, 1);
+            GeneratorUtils.makeClosure(dataBase, transactionIds, itemset, 1);
 
             qSetsCheck.clear();
             qSetsCheck.add(1);
@@ -85,7 +85,7 @@ class GeneratorUtilsTest {
             qSets.clear();
             itemset.clear();
 
-            GeneratorUtils.makeClosure(dataBase, transactionIds, qSets, itemset, 4);
+            GeneratorUtils.makeClosure(dataBase, transactionIds, itemset, 4);
 
             qSetsCheck.clear();
             qSetsCheck.add(4);
@@ -190,22 +190,6 @@ class GeneratorUtilsTest {
 
     }
 
-    @Test
-    @Disabled
-    void lower_bound() {
-
-        TreeSet<Integer> treeSet = new TreeSet<>();
-        treeSet.add(1);
-        treeSet.add(2);
-        treeSet.add(3);
-        treeSet.add(4);
-        treeSet.add(5);
-        treeSet.add(6);
-
-        assertEquals(3, GeneratorUtils.lower_bound(treeSet, 4).size());
-    }
-
-
     /**
      * @see DataBase#isClusterInTransactions(Set, int)
      */
@@ -231,6 +215,21 @@ class GeneratorUtilsTest {
 
             assertTrue(GeneratorUtils.ppcTest(dataBase, itemset, 2, transactionIds));
             assertFalse(GeneratorUtils.ppcTest(dataBase, itemset, 5, transactionIds));
+
+
+            dataBase = new DataBase(new Input("tests/assets/itemset_check.dat"), new Input("tests/assets/itemset_check_time_index.dat"));
+
+            itemset = new TreeSet<>();
+
+            transactionIds = new TreeSet<>();
+            transactionIds.add(0);
+            transactionIds.add(1);
+
+            // new ppcTest structure
+            Set<Integer> filteredTransactionIds = dataBase.getFilteredTransactionIdsIfHaveCluster(transactionIds, 0);
+            boolean generatorUtils = GeneratorUtils.ppcTest(dataBase, itemset, 0, filteredTransactionIds);
+
+            assertEquals(generatorUtils, true);
         } catch (IOException | MalformedTimeIndexException | ClusterNotExistException e) {
             e.printStackTrace();
         }

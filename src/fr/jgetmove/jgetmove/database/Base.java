@@ -3,7 +3,11 @@ package fr.jgetmove.jgetmove.database;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.PrettyPrint;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  *
@@ -32,23 +36,22 @@ public class Base implements PrettyPrint {
      * @param clustersTransactions link between clusters and transactions 1:x relation
      * @param clustersTime         link between clusters and its time 1:1 relation
      */
-    public Base(List<List<Integer>> clustersTransactions, int[] clustersTime) {
-        int clusterId = 0;
-        for (List<Integer> transactions : clustersTransactions) {
-            Cluster cluster = getOrCreateCluster(clusterId);
-            for (int transactionId : transactions) {
+    public Base(HashMap<Integer, Set<Integer>> clustersTransactions, HashMap<Integer, Integer> clustersTime) {
+        this();
+
+        for (Entry<Integer, Set<Integer>> entry : clustersTransactions.entrySet()) {
+            Cluster cluster = getOrCreateCluster(entry.getKey());
+            for (int transactionId : entry.getValue()) {
                 Transaction transaction = getOrCreateTransaction(transactionId);
 
                 cluster.add(transaction);
                 transaction.add(cluster);
             }
-            ++clusterId;
         }
 
-
-        for (int clusterIdLoop = 0; clusterIdLoop < clustersTime.length; clusterIdLoop++) {
-            Cluster cluster = getOrCreateCluster(clusterIdLoop);
-            Time time = getOrCreateTime(clustersTime[clusterIdLoop]);
+        for (Entry<Integer, Integer> entry : clustersTime.entrySet()) {
+            Cluster cluster = getOrCreateCluster(entry.getKey());
+            Time time = getOrCreateTime(entry.getValue());
 
             cluster.setTime(time);
             time.add(cluster);

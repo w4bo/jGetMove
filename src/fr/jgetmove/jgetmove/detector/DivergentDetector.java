@@ -7,10 +7,11 @@ import fr.jgetmove.jgetmove.pattern.Divergent;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class DivergentDetector implements MultiDetector {
 
-    public ArrayList<Pattern> detect(DataBase defaultDataBase, ArrayList<Itemset> itemsets) {
+    public ArrayList<Pattern> detect(DataBase defaultDataBase, List<Itemset> itemsets) {
 
         ArrayList<Pattern> divergeants = new ArrayList<>();
         ArrayList<Integer> firstClusters = new ArrayList<>();

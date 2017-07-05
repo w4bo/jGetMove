@@ -7,11 +7,12 @@ import fr.jgetmove.jgetmove.pattern.Convergent;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class ConvergentDetector implements MultiDetector {
 
-    public ArrayList<Pattern> detect(DataBase defaultDataBase, ArrayList<Itemset> itemsets) {
+    public ArrayList<Pattern> detect(DataBase defaultDataBase, List<Itemset> itemsets) {
 
         ArrayList<Pattern> convergeants = new ArrayList<>();
         ArrayList<Integer> lastClusters = new ArrayList<>();

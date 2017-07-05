@@ -38,24 +38,24 @@ public class GeneratorUtils {
      * int item)
      * </pre>
      *
-     * @param base         (database)
+     * @param base           (database)
      * @param transactionIds (transactionList)
-     * @param qSets          (q_sets)
-     * @param path           (itemsets)
+     * @param itemset        (itemsets)
      * @param freq           (item)
      */
     @TraceMethod(displayTitle = true)
-    public static void makeClosure(Base base, Set<Integer> transactionIds, ArrayList<Integer> qSets,
-                                   Collection<Integer> path, int freq) {
-        Debug.println("transactionIds : " + transactionIds);
-        Debug.println("qSets : " + qSets);
-        Debug.println("itemset : " + path);
-        Debug.println("freq : " + freq);
-        Debug.println("");
+    public static ArrayList<Integer> makeClosure(Base base, Set<Integer> transactionIds,
+                                                 Collection<Integer> itemset, int freq) {
+        Debug.println("transactionIds", transactionIds, Debug.DEBUG);
+        ArrayList<Integer> qSets = new ArrayList<>();
+        Debug.println("itemset", itemset, Debug.DEBUG);
+        Debug.println("freq", freq, Debug.DEBUG);
 
-        for (int clusterId : path) {
+        for (int clusterId : itemset) {
             if (clusterId < freq) {
-                qSets.add(clusterId);
+                // TODO le bon trichage
+                if (base.getClusterTimeId(clusterId) != base.getClusterTimeId(freq))
+                    qSets.add(clusterId);
             }
         }
 
@@ -63,14 +63,15 @@ public class GeneratorUtils {
 
         qSets.add(freq);
 
-        SortedSet<Integer> lowerBoundSet = GeneratorUtils.lower_bound(base.getClusterIds(), freq + 1);
-
+        SortedSet<Integer> lowerBoundSet = base.getClusterIds().tailSet(freq + 1);
         for (int clusterId : lowerBoundSet) {
-            if (GeneratorUtils.CheckItemInclusion(base, transactionIds, clusterId)) {
-                qSets.add(clusterId);
+            if (base.isClusterInTransactions(transactionIds, clusterId)) {
+                // TODO le bon trichage
+                if (base.getClusterTimeId(clusterId) != base.getClusterTimeId(freq))
+                    qSets.add(clusterId);
             }
         }
-        Debug.println("qSets : " + qSets);
+        return qSets;
     }
 
     /**
@@ -78,22 +79,22 @@ public class GeneratorUtils {
      * Lcm::UpdateTransactionList(const DataBase &database, const vector<int> &transactionList, const vector<int> &q_sets, int item, vector<int> &newTransactionList)
      * </pre>
      *
-     * @param base         (database)
+     * @param base           (database)
      * @param transactionIds (transactionList)
-     * @param pathClusterIds (q_sets)
+     * @param itemset (q_sets)
      * @param maxClusterId   (item)
      * @return (newTransactionList)
      */
     public static Set<Integer> updateTransactions(Base base, Set<Integer> transactionIds,
-                                                  ArrayList<Integer> pathClusterIds, int maxClusterId) {
+                                                  ArrayList<Integer> itemset, int maxClusterId) {
         Set<Integer> newTransactionIds = new HashSet<>();
 
         for (int transactionId : transactionIds) {
             Transaction transaction = base.getTransaction(transactionId);
             boolean canAdd = true;
 
-            for (int pathClusterId : pathClusterIds) {
-                if (pathClusterId >= maxClusterId && !transaction.getClusterIds().contains(pathClusterId)) {
+            for (int clusterId : itemset) {
+                if (clusterId >= maxClusterId && !transaction.getClusterIds().contains(clusterId)) {
                     canAdd = false;
                 }
             }
@@ -110,7 +111,7 @@ public class GeneratorUtils {
      * Lcm::UpdateFreqList(const DataBase &database, const vector<int> &transactionList, const vector<int> &gsub, vector<int> &freqList, int freq, vector<int> &newFreq)
      * </pre>
      *
-     * @param base                    (database)
+     * @param base                      (database)
      * @param transactionIds            (transactionList)
      * @param newPathClusters           (gsub)
      * @param oldClustersFrequenceCount (freqList)
@@ -161,22 +162,10 @@ public class GeneratorUtils {
     }
 
     /**
-     * Gets the lower_bound of an array
-     *
-     * @param array find the lower_bound from
-     * @param key   the item to compare
-     * @return an array beginning from key
-     * @deprecated use {@link TreeSet#tailSet(Object)}
-     */
-    public static SortedSet<Integer> lower_bound(TreeSet<Integer> array, int key) {
-        return array.tailSet(key);
-    }
-
-    /**
      * CheckItemInclusion(DataBase,transactionlist,item)
      * Check whether clusterId is included in any of the transactions pointed to transactions
      *
-     * @param base         (database)
+     * @param base           (database)
      * @param transactionIds (transactionList) la liste des transactions
      * @param clusterId      (item) clusterId to find
      * @return true if the clusterId is in one of the transactions
@@ -193,7 +182,7 @@ public class GeneratorUtils {
      * Lcm::PpcTest(database, []itemsets, []transactionList, item, []newTransactionList)
      * </pre>
      *
-     * @param itemset           (itemsets)
+     * @param itemset        (itemsets)
      * @param maxClusterId   (item)
      * @param transactionIds (newTransactionList)
      * @return vrai si ppctest est réussi

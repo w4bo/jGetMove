@@ -3,7 +3,6 @@ package fr.jgetmove.jgetmove.database;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.PrettyPrint;
 
-import java.util.ArrayList;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -17,29 +16,12 @@ public class Itemset implements Comparable<Itemset>, PrettyPrint {
     private TreeSet<Integer> transactions;
     private TreeSet<Integer> times;
 
-    Itemset(final int id) {
-        this.id = id;
-        clusters = new TreeSet<>();
-        transactions = new TreeSet<>();
-        times = new TreeSet<>();
-    }
-
     public Itemset(final int id, final Set<Integer> transactions, final Set<Integer> clusters, final Set<Integer> times) {
         this.id = id;
         this.clusters = new TreeSet<>(clusters);
         this.transactions = new TreeSet<>(transactions);
         this.times = new TreeSet<>(times);
     }
-
-    public void add(final int clusterId, final int timeId, final ArrayList<Integer> transactions) {
-        if (timeId > times.last()) {
-            this.transactions = new TreeSet<>(transactions);
-        }
-
-        times.add(timeId);
-        clusters.add(clusterId);
-    }
-
 
     public TreeSet<Integer> getClusters() {
         return clusters;

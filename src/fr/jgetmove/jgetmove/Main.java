@@ -4,7 +4,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import fr.jgetmove.jgetmove.config.DefaultConfig;
 import fr.jgetmove.jgetmove.database.DataBase;
-import fr.jgetmove.jgetmove.database.ItemsetsOfBlock;
+import fr.jgetmove.jgetmove.database.Itemset;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.detector.*;
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
@@ -12,7 +12,7 @@ import fr.jgetmove.jgetmove.exception.MalformedTimeIndexException;
 import fr.jgetmove.jgetmove.io.Input;
 import fr.jgetmove.jgetmove.io.Output;
 import fr.jgetmove.jgetmove.pattern.Pattern;
-import fr.jgetmove.jgetmove.solver.ItemsetFinder;
+import fr.jgetmove.jgetmove.solver.ItemsetsFinder;
 import fr.jgetmove.jgetmove.solver.PatternGenerator;
 import fr.jgetmove.jgetmove.solver.Solver;
 
@@ -73,7 +73,7 @@ public class Main {
              * Initialise the config parameters
              */
             double commonObjectPercentage = 0;
-            DefaultConfig config = new DefaultConfig(minSupport, maxPattern, minTime, commonObjectPercentage);
+            DefaultConfig config = new DefaultConfig(minSupport, maxPattern, minTime, blockSize, commonObjectPercentage);
             /*
              * Create Input from the file test.dat et testtimeindex.dat
              */
@@ -89,9 +89,9 @@ public class Main {
             Debug.println(dataBase, Debug.INFO);
 
             /*
-             * Init ItemsetFinder and singleDetectors
+             * Init ItemsetsFinder and singleDetectors
              */
-            ItemsetFinder itemsetFinder = new ItemsetFinder(config);
+            ItemsetsFinder itemsetsFinder = new ItemsetsFinder(config);
             PatternGenerator patternGenerator = new PatternGenerator(config);
 
             Set<SingleDetector> singleDetectors = new HashSet<>();
@@ -106,14 +106,14 @@ public class Main {
             //singleDetectors.add(new GroupPatternDetector(config.getMinTime(), config.getCommonObjectPercentage()));
 
             /*
-             * Create solver from itemsetFinder, patternGenerator, singleDetectors and start the generation
+             * Create solver from itemsetsFinder, patternGenerator, singleDetectors and start the generation
              */
-            Solver solver = new Solver(itemsetFinder, patternGenerator, singleDetectors, multiDetectors, blockSize);
+            Solver solver = new Solver(itemsetsFinder, patternGenerator, singleDetectors, multiDetectors, config);
 
             Debug.printTitle("Solver Initialisation", Debug.INFO);
             Debug.println(solver, Debug.INFO);
 
-            ArrayList<ItemsetsOfBlock> results = solver.findItemsets(dataBase);
+            HashMap<Integer, ArrayList<Itemset>> results = solver.findItemsets(dataBase);
             HashMap<Detector, ArrayList<Pattern>> patterns = solver.detectPatterns(dataBase, results);
 
             /*
