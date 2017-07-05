@@ -1,23 +1,36 @@
 package fr.jgetmove.jgetmove.debug;
 
 import java.lang.reflect.Method;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Objects;
 
 /**
  * Utilisée afin d'afficher les erreurs
  */
-public class Debug {
+public final class Debug {
+    public final static short DEBUG = -1;
+    public final static short INFO = 0;
+    public final static short WARNING = 1;
+    public final static short ERROR = 2;
+
+    private final static String DEBUG_STRING = "\033[0;32m[DEBUG]\033[0m ";
+    private final static String INFO_STRING = "\033[0;34m[INFO ]\033[0m ";
+    private final static String WARNING_STRING = "\033[0;33m[WARNG] ";//\033[0m ";
+    private final static String ERROR_STRING = "\033[0;31m[ERROR] ";//"\033[0m ";
+
     private final static String DEFAULT_SEPARATOR = "|";
     private final static String MORE = "\\";
     private final static String LESS = "/";
     private final static String METHOD_SEPARATOR = "+";
     private final static String METHOD_PREFIX = "--:";
-    private final static String METHOD_SUFFIX = " :--";
+    private final static String METHOD_SUFFIX = ":--";
     private final static String METHOD_FULL_DISPLAY_SEPARATOR = "·";
     private final static String VARNAME_SEPARATOR = ": ";
 
     private static boolean displayDebug = false;
+    private static String severity = "";
     private static String path = "";
     private static String content = "";
     private static ArrayList<Integer> customStackPositions = new ArrayList<>();
@@ -28,13 +41,47 @@ public class Debug {
     /**
      * Affiche l'objet, alias de
      * <pre>
+     *     System.out.println(Object)
+     * </pre>
+     *
+     * @param o L'objet a afficher
+     * @deprecated use {@link #println(Object, short)}
+     */
+    public static void println(Object o) {
+        if (displayDebug) {
+            severity = getSeverityString(DEBUG);
+            updateDebugString();
+            System.out.println(concatAll(o));
+        }
+    }
+
+    /**
+     * Affiche l'objet, alias de
+     * <pre>
      *     System.out.print(Object)
      * </pre>
      *
      * @param o L'objet a afficher
      */
-    public static void print(Object o) {
-        if (displayDebug) {
+    public static void print(Object o, short status) {
+        if (displayDebug || status > DEBUG) {
+            severity = getSeverityString(status);
+            updateDebugString();
+            System.out.print(concatAll(o));
+        }
+    }
+
+    /**
+     * Affiche l'objet, alias de
+     * <pre>
+     *     System.out.print(Object)
+     * </pre>
+     *
+     * @param o L'objet a afficher
+     */
+    public static void print(PrettyPrint o, short status) {
+        if (displayDebug || status > DEBUG) {
+            severity = getSeverityString(status);
             updateDebugString();
             System.out.print(concatAll(o));
         }
@@ -48,10 +95,59 @@ public class Debug {
      *
      * @param o L'objet a afficher
      */
-    public static void println(Object o) {
-        if (displayDebug) {
+    public static void println(Object o, short status) {
+        if (displayDebug || status > DEBUG) {
+            severity = getSeverityString(status);
             updateDebugString();
             System.out.println(concatAll(o));
+        }
+    }
+
+    /**
+     * Affiche l'objet, alias de
+     * <pre>
+     *     System.out.println(Object)
+     * </pre>
+     *
+     * @param o L'objet a afficher
+     */
+    public static void println(PrettyPrint o, short status) {
+        if (displayDebug || status > DEBUG) {
+            severity = getSeverityString(status);
+            updateDebugString();
+            System.out.println(concatAll(o));
+        }
+    }
+
+    /**
+     * Affiche l'objet, alias de
+     * <pre>
+     *     System.out.print(name + Object)
+     * </pre>
+     *
+     * @param o L'objet a afficher
+     */
+    public static void print(String name, Object o, short status) {
+        if (displayDebug) {
+            severity = getSeverityString(DEBUG);
+            updateDebugString();
+            System.out.print(concatAll(o));
+        }
+    }
+
+    /**
+     * Affiche l'objet, alias de
+     * <pre>
+     *     System.out.print(name + Object)
+     * </pre>
+     *
+     * @param o L'objet a afficher
+     */
+    public static void print(String name, PrettyPrint o, short status) {
+        if (displayDebug) {
+            severity = getSeverityString(DEBUG);
+            updateDebugString();
+            System.out.print(concatAll(o));
         }
     }
 
@@ -64,52 +160,42 @@ public class Debug {
      * @param name le nom de la variable
      * @param o    l'objet a afficher
      */
-    public static void println(String name, Object o) {
-        if (displayDebug) {
+    public static void println(String name, Object o, short status) {
+        if (displayDebug || status > DEBUG) {
+            severity = getSeverityString(status);
             updateDebugString();
             System.out.println(concatAll(name, o));
         }
     }
 
-    public static void printTitle(String title) {
-        if (displayDebug) {
+    /**
+     * Affiche l'objet, alias de
+     * <pre>
+     *     System.out.println(name + Object)
+     * </pre>
+     *
+     * @param name le nom de la variable
+     * @param o    l'objet a afficher
+     */
+    public static void println(String name, PrettyPrint o, short status) {
+        if (displayDebug || status > DEBUG) {
+            severity = getSeverityString(status);
+            updateDebugString();
+            System.out.println(concatAll(name, o));
+        }
+    }
+
+    public static void printTitle(String title, short status) {
+        if (displayDebug || status > DEBUG) {
+            severity = getSeverityString(status);
             updateDebugString();
             System.out.println(concatAll(createTitle(title)));
         }
     }
 
-    private static String concatAll(String name, Object o) {
-        return path.concat(content).concat(name).concat(VARNAME_SEPARATOR).concat(multiline(o));
-    }
-
-    /**
-     * Affiche l'objet, alias de
-     * <pre>
-     *     System.err.print(Object)
-     * </pre>
-     *
-     * @param o L'objet a afficher
-     */
-    public static void err(Object o) {
-        if (displayDebug) {
-            updateDebugString();
-            System.err.print(concatAll(o));
-        }
-    }
-
-    /**
-     * Affiche l'objet, alias de
-     * <pre>
-     *     System.err.print(Object)
-     * </pre>
-     *
-     * @param o L'objet a afficher
-     */
-    public static void errln(Object o) {
-        if (displayDebug) {
-            updateDebugString();
-            System.err.println(concatAll(o));
-        }
+    public static String now() {
+        DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM);
+        return df.format(new Date()) + "," + System.currentTimeMillis() % 1000;
     }
 
     /**
@@ -138,6 +224,54 @@ public class Debug {
         stack(letter, title, 3);
     }
 
+    /**
+     * Affiche le nom de la methode courante.
+     */
+    public static void displayTitle() {
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        StackTraceElement stackTraceElement = stackTrace[2];
+        content = "";
+        updatePath(stackTrace, 2);
+
+        String methodName = getMethodName(stackTraceElement, true);
+
+        if (methodName != null) {
+            System.out.println(concatAll(createTitle(methodName)));
+            updateLastMethodName(stackTraceElement.getMethodName());
+        }
+    }
+
+    /**
+     *
+     */
+    public static void unstack() {
+        if (customStackPositions.size() > 0) {
+            customStackPositions.remove(customStackPositions.size() - 1);
+        }
+    }
+
+
+    public static String indent(String multiline) {
+        return multiline.replaceAll("(?m)(\r?\n)", "$1\t");
+    }
+
+    private static String dateBlock() {
+        return "\033[0;37m[" + now() + "]\033[0m";
+    }
+
+    private static String getSeverityString(short severity) {
+        switch (severity) {
+            case DEBUG:
+                return DEBUG_STRING;
+            case WARNING:
+                return WARNING_STRING;
+            case ERROR:
+                return ERROR_STRING;
+            default:
+            case INFO:
+                return INFO_STRING;
+        }
+    }
 
     /**
      * Ajoute un stack personalisé
@@ -158,7 +292,7 @@ public class Debug {
             String methodName = getMethodName(stackTraceElement);
 
             if (methodName != null) {
-                System.out.print(concatAll(createTitle(methodName)));
+                System.out.println(concatAll(createTitle(methodName)));
                 originalPathSize = lastPathSize;
             }
 
@@ -171,35 +305,9 @@ public class Debug {
         lastPathSize = path.length();
 
         if (title != null) {
-            System.out.print(concatAll(createTitle(title)));
+            System.out.println(concatAll(createTitle(title)));
         }
 
-    }
-
-    /**
-     *
-     */
-    public static void unstack() {
-        if (customStackPositions.size() > 0) {
-            customStackPositions.remove(customStackPositions.size() - 1);
-        }
-    }
-
-    /**
-     * Affiche le nom de la methode courante.
-     */
-    public static void displayTitle() {
-        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-        StackTraceElement stackTraceElement = stackTrace[2];
-        content = "";
-        updatePath(stackTrace, 2);
-
-        String methodName = getMethodName(stackTraceElement, true);
-
-        if (methodName != null) {
-            System.out.print(concatAll(createTitle(methodName)));
-            updateLastMethodName(stackTraceElement.getMethodName());
-        }
     }
 
     private static void updateDebugString() {
@@ -208,17 +316,17 @@ public class Debug {
         content = "";
         updatePath(stackTrace, 3);
 
-        String methodName = getMethodName(stackTraceElement, true);
+        String methodName = getMethodName(stackTraceElement);
 
         if (methodName != null && !lastMethodName.equals(stackTraceElement.getMethodName())) {
-            content = createTitle(methodName);
+            content = createTitle(methodName).concat(System.getProperty("line.separator"));
             sizeDirection = 0;
             updateLastMethodName(stackTraceElement.getMethodName());
         }
 
         if (path.length() > 0) {
             if (content.length() > 0) {
-                content = content.concat(path);
+                content = content.concat(dateBlock()).concat(severity).concat(path);
             }
             content = content.concat(" ").concat(pathLine(sizeDirection, DEFAULT_SEPARATOR)).concat(" ");
         }
@@ -337,24 +445,32 @@ public class Debug {
      * @return le titre sera prefixé et suffixé par {@link #METHOD_PREFIX} et {@link #METHOD_SUFFIX}
      */
     private static String createTitle(String title) {
-        return " ".concat(pathLine(sizeDirection, METHOD_SEPARATOR)).concat(METHOD_PREFIX).concat(" ")
-                .concat(title)
-                .concat(METHOD_SUFFIX).concat(pathLine(sizeDirection, METHOD_SEPARATOR))
-                .concat(System.getProperty("line.separator"));
+        return " ".concat(pathLine(sizeDirection, METHOD_SEPARATOR)).concat(METHOD_PREFIX)
+                .concat(" \033[4m").concat(title).concat("\033[0m ")
+                .concat(METHOD_SUFFIX).concat(pathLine(sizeDirection, METHOD_SEPARATOR));
     }
 
     private static String concatAll(Object o) {
-        return path.concat(content).concat(multiline(o));
+        return concatAll(o.toString());
     }
 
-    private static String multiline(Object o) {
-        String replacement = "$1";
+    private static String concatAll(PrettyPrint o) {
+        return concatAll(o.toPrettyString());
+    }
 
-        if (content.length() > 0) {
-            replacement = replacement.concat(path).concat(" ").concat(pathLine(sizeDirection, DEFAULT_SEPARATOR))
-                    .concat(" ");
-        }
+    private static String concatAll(String str) {
+        return dateBlock().concat(severity).concat(path).concat(content).concat(str);
+    }
 
-        return o.toString().replaceAll("(\\r?\\n)", replacement);
+    private static String concatAll(String name, Object o) {
+        return concatAll(name, o.toString());
+    }
+
+    private static String concatAll(String name, PrettyPrint o) {
+        return concatAll(name, o.toPrettyString());
+    }
+
+    private static String concatAll(String name, String value) {
+        return concatAll(name.concat(VARNAME_SEPARATOR).concat(value));
     }
 }
