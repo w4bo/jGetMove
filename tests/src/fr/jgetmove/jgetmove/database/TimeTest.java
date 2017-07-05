@@ -44,14 +44,6 @@ class TimeTest {
         assertEquals(1, time.getId());
     }
 
-    @Test
-    void setAndGetBlock() {
-        Block block = new Block(1);
-
-        time.setBloc(block);
-        assertEquals(block, time.getBloc());
-    }
-
 
     @Test
     void setClusters() {

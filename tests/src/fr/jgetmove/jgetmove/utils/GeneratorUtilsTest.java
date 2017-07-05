@@ -1,6 +1,6 @@
 package fr.jgetmove.jgetmove.utils;
 
-import fr.jgetmove.jgetmove.database.Database;
+import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.exception.MalformedTimeIndexException;
 import fr.jgetmove.jgetmove.io.Input;
@@ -36,15 +36,15 @@ class GeneratorUtilsTest {
         sameFrequent.add(1);
         sameFrequent.add(1);
 
-        assertEquals(4, GeneratorUtils.getDifferentFromLastCluster(clusterIds, frequent));
-        assertEquals(1, GeneratorUtils.getDifferentFromLastCluster(clusterIds, sameFrequent));
-        assertEquals(0, GeneratorUtils.getDifferentFromLastCluster(new ArrayList<>(), sameFrequent));
+        assertEquals(4, GeneratorUtils.getDifferentFromLastCluster(frequent, clusterIds.get(0)));
+        assertEquals(1, GeneratorUtils.getDifferentFromLastCluster(sameFrequent, clusterIds.get(0)));
+        assertEquals(0, GeneratorUtils.getDifferentFromLastCluster(sameFrequent, 0));
     }
 
     @Test
     void makeClosure() {
         try {
-            Database database = new Database(new Input("tests/assets/itemset_check.dat"), new Input("tests/assets/itemset_check_time_index.dat"), 0);
+            DataBase dataBase = new DataBase(new Input("tests/assets/itemset_check.dat"), new Input("tests/assets/itemset_check_time_index.dat"));
 
             TreeSet<Integer> transactionIds = new TreeSet<>();
             transactionIds.add(0);
@@ -52,7 +52,7 @@ class GeneratorUtilsTest {
             ArrayList<Integer> qSets = new ArrayList<>();
             ArrayList<Integer> itemset = new ArrayList<>();
 
-            GeneratorUtils.makeClosure(database, transactionIds, qSets, itemset, 0);
+            GeneratorUtils.makeClosure(dataBase, transactionIds, itemset, 0);
 
             ArrayList<Integer> qSetsCheck = new ArrayList<>();
             qSetsCheck.add(0);
@@ -68,7 +68,7 @@ class GeneratorUtilsTest {
             qSets.clear();
             itemset.clear();
 
-            GeneratorUtils.makeClosure(database, transactionIds, qSets, itemset, 1);
+            GeneratorUtils.makeClosure(dataBase, transactionIds, itemset, 1);
 
             qSetsCheck.clear();
             qSetsCheck.add(1);
@@ -85,7 +85,7 @@ class GeneratorUtilsTest {
             qSets.clear();
             itemset.clear();
 
-            GeneratorUtils.makeClosure(database, transactionIds, qSets, itemset, 4);
+            GeneratorUtils.makeClosure(dataBase, transactionIds, itemset, 4);
 
             qSetsCheck.clear();
             qSetsCheck.add(4);
@@ -100,7 +100,7 @@ class GeneratorUtilsTest {
     void updateTransactions() {
 
         try {
-            Database database = new Database(new Input("tests/assets/itemset_check.dat"), new Input("tests/assets/itemset_check_time_index.dat"), 0);
+            DataBase dataBase = new DataBase(new Input("tests/assets/itemset_check.dat"), new Input("tests/assets/itemset_check_time_index.dat"));
             Set<Integer> transactionIds = new TreeSet<>();
             transactionIds.add(0);
             transactionIds.add(1);
@@ -110,7 +110,7 @@ class GeneratorUtilsTest {
             qSets.add(2);
             qSets.add(4);
 
-            Set<Integer> updated = GeneratorUtils.updateTransactions(database, transactionIds, qSets, 0);
+            Set<Integer> updated = GeneratorUtils.updateTransactions(dataBase, transactionIds, qSets, 0);
 
             assertEquals(1, updated.size());
             assertTrue(updated.contains(0));
@@ -121,7 +121,7 @@ class GeneratorUtilsTest {
             qSets.add(3);
             qSets.add(4);
 
-            updated = GeneratorUtils.updateTransactions(database, transactionIds, qSets, 1);
+            updated = GeneratorUtils.updateTransactions(dataBase, transactionIds, qSets, 1);
 
             assertEquals(1, updated.size());
             assertTrue(updated.contains(1));
@@ -130,7 +130,7 @@ class GeneratorUtilsTest {
             qSets.clear();
             qSets.add(4);
 
-            updated = GeneratorUtils.updateTransactions(database, transactionIds, qSets, 1);
+            updated = GeneratorUtils.updateTransactions(dataBase, transactionIds, qSets, 1);
 
             assertEquals(2, updated.size());
             assertTrue(updated.contains(0));
@@ -144,9 +144,9 @@ class GeneratorUtilsTest {
 
     @Test
     void updateFreqList() {
-        Database database = null;
+        DataBase dataBase = null;
         try {
-            database = new Database(new Input("tests/assets/itemset_check.dat"), new Input("tests/assets/itemset_check_time_index.dat"), 0);
+            dataBase = new DataBase(new Input("tests/assets/itemset_check.dat"), new Input("tests/assets/itemset_check_time_index.dat"));
         } catch (IOException | ClusterNotExistException | MalformedTimeIndexException e) {
             e.printStackTrace();
         }
@@ -161,7 +161,7 @@ class GeneratorUtilsTest {
 
         ArrayList<Integer> frequentClusters = new ArrayList<>();
 
-        ArrayList<Integer> updated = GeneratorUtils.updateFreqList(database, transactionIds, qSets, frequentClusters, 0);
+        ArrayList<Integer> updated = GeneratorUtils.updateClustersFrequenceCount(dataBase, transactionIds, qSets, frequentClusters, 0);
 
         assertEquals(3, updated.size());
         assertEquals(1, (int) updated.get(0));
@@ -174,7 +174,7 @@ class GeneratorUtilsTest {
         qSets.add(3);
         qSets.add(4);
 
-        updated = GeneratorUtils.updateFreqList(database, transactionIds, qSets, frequentClusters, 1);
+        updated = GeneratorUtils.updateClustersFrequenceCount(dataBase, transactionIds, qSets, frequentClusters, 1);
 
         assertEquals(3, updated.size());
         assertEquals(1, (int) updated.get(0));
@@ -183,34 +183,18 @@ class GeneratorUtilsTest {
 
         qSets.clear();
         qSets.add(4);
-        updated = GeneratorUtils.updateFreqList(database, transactionIds, qSets, frequentClusters, 4);
+        updated = GeneratorUtils.updateClustersFrequenceCount(dataBase, transactionIds, qSets, frequentClusters, 4);
 
         assertEquals(1, updated.size());
         assertEquals(2, (int) updated.get(0));
 
     }
 
-    @Test
-    @Disabled
-    void lower_bound() {
-
-        TreeSet<Integer> treeSet = new TreeSet<>();
-        treeSet.add(1);
-        treeSet.add(2);
-        treeSet.add(3);
-        treeSet.add(4);
-        treeSet.add(5);
-        treeSet.add(6);
-
-        assertEquals(3, GeneratorUtils.lower_bound(treeSet, 4).size());
-    }
-
-
-    @Test
-    @Disabled
     /**
-     *  @see Database#isClusterInTransactions(Set, int)
+     * @see DataBase#isClusterInTransactions(Set, int)
      */
+    @Test
+    @Disabled
     void checkItemInclusion() {
         // already done in database
     }
@@ -218,9 +202,10 @@ class GeneratorUtilsTest {
     @Test
     void ppcTest() {
         try {
-            Database database = new Database(new Input("tests/assets/itemset_check.dat"), new Input("tests/assets/itemset_check_time_index.dat"), 0);
+            DataBase dataBase = new DataBase(new Input("tests/assets/itemset_check.dat"),
+                    new Input("tests/assets/itemset_check_time_index.dat"));
 
-            ArrayList<Integer> itemset = new ArrayList<>();
+            TreeSet<Integer> itemset = new TreeSet<>();
             itemset.add(0);
             itemset.add(1);
 
@@ -228,8 +213,23 @@ class GeneratorUtilsTest {
             transactionIds.add(0);
             transactionIds.add(1);
 
-            assertTrue(GeneratorUtils.ppcTest(database, itemset, 2, transactionIds));
-            assertFalse(GeneratorUtils.ppcTest(database, itemset, 5, transactionIds));
+            assertTrue(GeneratorUtils.ppcTest(dataBase, itemset, 2, transactionIds));
+            assertFalse(GeneratorUtils.ppcTest(dataBase, itemset, 5, transactionIds));
+
+
+            dataBase = new DataBase(new Input("tests/assets/itemset_check.dat"), new Input("tests/assets/itemset_check_time_index.dat"));
+
+            itemset = new TreeSet<>();
+
+            transactionIds = new TreeSet<>();
+            transactionIds.add(0);
+            transactionIds.add(1);
+
+            // new ppcTest structure
+            Set<Integer> filteredTransactionIds = dataBase.getFilteredTransactionIdsIfHaveCluster(transactionIds, 0);
+            boolean generatorUtils = GeneratorUtils.ppcTest(dataBase, itemset, 0, filteredTransactionIds);
+
+            assertEquals(generatorUtils, true);
         } catch (IOException | MalformedTimeIndexException | ClusterNotExistException e) {
             e.printStackTrace();
         }

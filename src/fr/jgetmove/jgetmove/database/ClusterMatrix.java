@@ -1,5 +1,8 @@
 package fr.jgetmove.jgetmove.database;
 
+import fr.jgetmove.jgetmove.debug.Debug;
+import fr.jgetmove.jgetmove.debug.PrettyPrint;
+
 import java.util.HashMap;
 import java.util.Set;
 import java.util.TreeSet;
@@ -7,27 +10,27 @@ import java.util.TreeSet;
 /**
  * Used in ItemsetDetector, holds a {@link Cluster}-{@link Time} matrix and a {@link Cluster}-{@link Transaction} matrix
  */
-public class ClusterMatrix {
+public class ClusterMatrix implements PrettyPrint {
 
     private HashMap<Integer, Integer> clusterTimeMatrix;
     private HashMap<Integer, TreeSet<Integer>> clusterTransactionsMatrix;
 
 
     /**
-     * Initializes the cluster by tacking the relations of the database as a reference
+     * Initializes the cluster by tacking the relations of the block as a reference
      *
-     * @param database Initial matrix reference
+     * @param base Initial base reference
      */
-    public ClusterMatrix(Database database) {
+    public ClusterMatrix(Base base) {
         clusterTimeMatrix = new HashMap<>();
         clusterTransactionsMatrix = new HashMap<>();
 
-        for (Transaction transaction : database.getTransactions().values()) {
+        for (Transaction transaction : base.getTransactions().values()) {
             for (int clusterId : transaction.getClusterIds()) {
 
                 if (!clusterTransactionsMatrix.containsKey(clusterId)) {
                     clusterTransactionsMatrix.put(clusterId, new TreeSet<>());
-                    clusterTimeMatrix.put(clusterId, database.getClusterTimeId(clusterId));
+                    clusterTimeMatrix.put(clusterId, base.getClusterTimeId(clusterId));
                 }
 
                 clusterTransactionsMatrix.get(clusterId).add(transaction.getId());
@@ -53,20 +56,24 @@ public class ClusterMatrix {
 
     /**
      * Rebinds the cluster-transaction matrix by removing the transactions not present in transactionIds and adding the one which are
+     * <p>
+     * <pre>
+     * Lcm::UpdateOccurenceDeriver(const DataBase &database, const vector<int> &transactionList, ClusterMatrix &occurence)
+     * </pre>
      *
-     * @param database       Reference database to retrieve the bindings
+     * @param base           Reference database to retrieve the bindings
      * @param transactionIds Transactions which need to be present in the matrix
      */
-    public void optimizeMatrix(Database database, Set<Integer> transactionIds) {
+    public void optimizeMatrix(Base base, Set<Integer> transactionIds) {
         clusterTransactionsMatrix.forEach((clusterId, transactions) -> transactions.clear());
         for (int transactionId : transactionIds) {
-            Transaction transaction = database.getTransaction(transactionId);
+            Transaction transaction = base.getTransaction(transactionId);
             Set<Integer> clusterIds = transaction.getClusterIds();
 
             for (int clusterId : clusterIds) {
                 if (!clusterTransactionsMatrix.containsKey(clusterId)) {
                     clusterTransactionsMatrix.put(clusterId, new TreeSet<>());
-                    clusterTimeMatrix.put(clusterId, database.getClusterTimeId(clusterId));
+                    clusterTimeMatrix.put(clusterId, base.getClusterTimeId(clusterId));
                 }
 
                 clusterTransactionsMatrix.get(clusterId).add(transactionId);
@@ -76,9 +83,12 @@ public class ClusterMatrix {
 
     @Override
     public String toString() {
-        String str = "\n|-- ClusterMatrix :" + clusterTransactionsMatrix;
-        str += "\n`-- TimeMatrix :" + clusterTimeMatrix.values();
-        return str;
+        return Debug.indent(toPrettyString());
     }
 
+    @Override
+    public String toPrettyString() {
+        return "\n|-- ClusterMatrix :" + clusterTransactionsMatrix +
+                "\n`-- TimeMatrix :" + clusterTimeMatrix;
+    }
 }

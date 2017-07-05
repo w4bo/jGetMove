@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 /**
  * TODO: Complete when the blocks are implemented
  */
-class BlockTest {
+class BlockBaseTest {
     @Test
     void add() {
     }

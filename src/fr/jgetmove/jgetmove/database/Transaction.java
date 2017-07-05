@@ -1,12 +1,14 @@
 package fr.jgetmove.jgetmove.database;
 
+import fr.jgetmove.jgetmove.debug.PrettyPrint;
+
 import java.util.HashMap;
 import java.util.TreeSet;
 
 /**
  * Object contenant l'ensemble des clusters dans lequel il est présent.
  */
-public class Transaction implements Comparable<Transaction> {
+public class Transaction implements Comparable<Transaction>, PrettyPrint {
     /**
      * id de la transaction
      */
@@ -64,13 +66,6 @@ public class Transaction implements Comparable<Transaction> {
     }
 
     /**
-     * @param id of the transaction
-     */
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    /**
      * @return the Cluster HashMap
      */
     public HashMap<Integer, Cluster> getClusters() {
@@ -87,6 +82,12 @@ public class Transaction implements Comparable<Transaction> {
     @Override
     public String toString() {
         return "{" + id + "=" + String.valueOf(clusterIds) + "}";
+    }
+
+    @Override
+    public String toPrettyString() {
+        return "\n. " + id +
+                "\n`-- Clusters : " + String.valueOf(clusterIds);
     }
 
     @Override

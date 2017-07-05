@@ -1,30 +1,27 @@
 package fr.jgetmove.jgetmove.database;
 
+import fr.jgetmove.jgetmove.debug.PrettyPrint;
+
 import java.util.HashMap;
 import java.util.Set;
 
 /**
  * Represents a fixed time in the timeline, contains a set of clusters, contained in a block and has a unique identifier
  * <p>
- * Time is managed by Database
+ * Time is managed by DataBase
  */
-public class Time implements Comparable<Time> {
-    private int id;
+public class Time implements Comparable<Time>, PrettyPrint {
+    private final int id;
 
     /**
-     * The block in which the time is, can be null
-     */
-    private Block bloc;
-    /**
      * Hashmap containing the list of clusters (idCluster -> Cluster)
-     * Hashmap contenant la liste des clusters idCluster=>Cluster
      */
     private HashMap<Integer, Cluster> clusters;
 
     /**
      * @param id identifier
      */
-    Time(int id) {
+    public Time(int id) {
         this.id = id;
         clusters = new HashMap<>();
     }
@@ -43,20 +40,6 @@ public class Time implements Comparable<Time> {
         return id;
     }
 
-
-    /**
-     * @return the <tt>Block</tt> which contains this <tt>Time</tt>
-     */
-    public Block getBloc() {
-        return bloc;
-    }
-
-    /**
-     * @param bloc sets the containing <tt>Block</tt>
-     */
-    public void setBloc(Block bloc) {
-        this.bloc = bloc;
-    }
 
     /**
      * @return the Hashmap of clusters which are contained in this time
@@ -85,6 +68,12 @@ public class Time implements Comparable<Time> {
     @Override
     public String toString() {
         return "{" + id + "=" + String.valueOf(clusters.keySet()) + "}";
+    }
+
+    @Override
+    public String toPrettyString() {
+        return "\n. " + id +
+                "\n`-- Clusters : " + String.valueOf(clusters.keySet());
     }
 
     @Override

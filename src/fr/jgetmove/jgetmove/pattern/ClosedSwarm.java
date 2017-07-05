@@ -30,6 +30,7 @@ public class ClosedSwarm extends Swarm {
      * @param transactionOfItemset list of all transactions in the swarm
      * @param timesOfItemset       list of all times in the swarm
      */
+    // TODO: 03/07/2017 : change time to cluster
     public ClosedSwarm(Set<Transaction> transactionOfItemset, Set<Time> timesOfItemset) {
         transactions = transactionOfItemset;
         times = timesOfItemset;
