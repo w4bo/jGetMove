@@ -165,6 +165,7 @@ public class Solver {
      */
     public HashMap<Detector, ArrayList<Pattern>> detectPatterns(DataBase dataBase, HashMap<Integer, ArrayList<Itemset>> results) {
         Debug.printTitle("DetectPatterns", Debug.INFO);
+        Debug.println("Block doesn't work properly please be careful", Debug.ERROR);
         /*
         // here we will be merging itemsets with each others across blocks so the basic principle is that we will be invoking itemsetsFinder on a different level
         // the equivalence are done like this
@@ -211,8 +212,10 @@ public class Solver {
                 mergedTransactions.addAll(itemset.getTransactions());
 
             }
-            Itemset itemset = new Itemset(itemsets.size(), mergedTransactions, mergedClusters, mergedTimes);
-            itemsets.add(itemset);
+            if(mergedClusters.size() >= config.getMinTime()){
+                Itemset itemset = new Itemset(itemsets.size(), mergedTransactions, mergedClusters, mergedTimes);
+                itemsets.add(itemset);
+            }
         }
 
 
@@ -223,14 +226,14 @@ public class Solver {
         //patternGenerator.generate(dataBase, results);
         for (SingleDetector singleDetector : singleDetectors) {
             patterns.put(singleDetector, new ArrayList<>());
-            for (Itemset itemset : results.get(0)) {
+            for (Itemset itemset : results.get(1)) {
                 patterns.get(singleDetector).addAll(singleDetector.detect(dataBase, itemset));
 
             }
         }
 
         for (MultiDetector multiDetector : multiDetectors) {
-            patterns.put(multiDetector, multiDetector.detect(dataBase, results.get(0)));
+            patterns.put(multiDetector, multiDetector.detect(dataBase, results.get(1)));
         }
 
         Debug.println("Patterns", patterns, Debug.DEBUG);

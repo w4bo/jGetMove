@@ -199,32 +199,32 @@ public class ItemsetsFinder {
     private void run(Base base, ClusterMatrix clusterMatrix, ArrayList<Integer> toItemsetize,
                      Set<Integer> transactionIds, ArrayList<Integer> clustersFrequenceCount, int[] itemsetId) {
         Debug.println("ClusterMatrix", clusterMatrix, Debug.DEBUG);
-        Debug.println("Transactions ", transactionIds, Debug.DEBUG);
+        Debug.println("Transactions", transactionIds, Debug.DEBUG);
         Debug.println("ClustersFrequenceCount", clustersFrequenceCount, Debug.DEBUG);
 
-        ArrayList<TreeSet<Integer>> itemsetArrayList = generateItemsets(base, toItemsetize);
+        ArrayList<TreeSet<Integer>> possibleItemsets = generateItemsets(base, toItemsetize);
 
-        Debug.println("Itemsets", itemsetArrayList, Debug.DEBUG);
+        Debug.println("Itemsets", possibleItemsets, Debug.DEBUG);
 
-        for (TreeSet<Integer> itemsetTreeSet : itemsetArrayList) {
+        for (TreeSet<Integer> itemsetClusters : possibleItemsets) {
             int calcurateCoreI;
 
-            //if (itemsetTreeSet.size() > 0) { // code c complient
-            if (itemsetTreeSet.size() > minTime) {
+            //if (itemsetClusters.size() > 0) { // code c complient
+            if (itemsetClusters.size() > minTime) {
 
-                TreeSet<Integer> pathTransactions = clusterMatrix.getClusterTransactionIds(itemsetTreeSet.last());
+                TreeSet<Integer> itemsetTransactions = clusterMatrix.getClusterTransactionIds(itemsetClusters.last());
 
-                TreeSet<Integer> pathTimes = new TreeSet<>();
-                for (Integer clusterId : itemsetTreeSet) {
-                    pathTimes.add(clusterMatrix.getClusterTimeId(clusterId));
+                TreeSet<Integer> itemsetTimes = new TreeSet<>();
+                for (Integer clusterId : itemsetClusters) {
+                    itemsetTimes.add(clusterMatrix.getClusterTimeId(clusterId));
                 }
-                Itemset itemset = new Itemset(itemsetId[0], pathTransactions, itemsetTreeSet, pathTimes);
+                Itemset itemset = new Itemset(itemsetId[0], itemsetTransactions, itemsetClusters, itemsetTimes);
 
                 if (this.itemsets.add(itemset)) {
                     itemsetId[0]++;
                 }
 
-                calcurateCoreI = GeneratorUtils.getDifferentFromLastCluster(clustersFrequenceCount, itemsetTreeSet.first());
+                calcurateCoreI = GeneratorUtils.getDifferentFromLastCluster(clustersFrequenceCount, itemsetClusters.first());
             } else {
                 calcurateCoreI = 0;
             }
@@ -238,7 +238,7 @@ public class ItemsetsFinder {
 
             for (int clusterId : clustersTailSet) {
                 if (clusterMatrix.getClusterTransactionIds(clusterId).size() >= minSupport &&
-                        !itemsetTreeSet.contains(clusterId)) {
+                        !itemsetClusters.contains(clusterId)) {
                     freqItemset.add(clusterId);
                 }
             }
@@ -250,20 +250,20 @@ public class ItemsetsFinder {
             for (int maxClusterId : freqItemset) {
                 Set<Integer> newTransactionIds = base.getFilteredTransactionIdsIfHaveCluster(transactionIds, maxClusterId);
 
-                if (GeneratorUtils.ppcTest(base, itemsetTreeSet, maxClusterId, newTransactionIds)) {
-                    ArrayList<Integer> newItemsetClusters = GeneratorUtils.makeClosure(base, newTransactionIds, itemsetTreeSet, maxClusterId);
-                    Debug.println("NewItemsetClusters", newItemsetClusters, Debug.DEBUG);
+                if (GeneratorUtils.ppcTest(base, itemsetClusters, maxClusterId, newTransactionIds)) {
+                    ArrayList<Integer> potentialItemsets = GeneratorUtils.makeClosure(base, newTransactionIds, itemsetClusters, maxClusterId);
+                    Debug.println("NewItemsetClusters", potentialItemsets, Debug.DEBUG);
 
-                    if (maxPattern == 0 || newItemsetClusters.size() <= maxPattern) {
+                    if (maxPattern == 0 || potentialItemsets.size() <= maxPattern) {
                         Set<Integer> updatedTransactionIds = GeneratorUtils
-                                .updateTransactions(base, transactionIds, newItemsetClusters, maxClusterId);
-                        ArrayList<Integer> newclustersFrequenceCount = GeneratorUtils
-                                .updateClustersFrequenceCount(base, transactionIds, newItemsetClusters, clustersFrequenceCount,
+                                .updateTransactions(base, transactionIds, potentialItemsets, maxClusterId);
+                        ArrayList<Integer> potentialClustersFrequenceCount = GeneratorUtils
+                                .updateClustersFrequenceCount(base, transactionIds, potentialItemsets, clustersFrequenceCount,
                                         maxClusterId);
 
                         clusterMatrix.optimizeMatrix(base, updatedTransactionIds);
 
-                        run(base, clusterMatrix, newItemsetClusters, updatedTransactionIds, newclustersFrequenceCount, itemsetId);
+                        run(base, clusterMatrix, potentialItemsets, updatedTransactionIds, potentialClustersFrequenceCount, itemsetId);
 
                     }
                 }
