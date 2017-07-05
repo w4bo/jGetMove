@@ -41,9 +41,52 @@ public class Itemset implements Comparable<Itemset>, PrettyPrint {
     }
 
     @Override
+    public int compareTo(Itemset p) {
+        if (clusters.equals(p.clusters) && transactions.equals(p.transactions)) {
+            return 0;
+        }
+
+        if (clusters.size() == p.clusters.size()) {
+            Iterator<Integer> iterator = clusters.iterator();
+            Iterator<Integer> pIterator = p.clusters.iterator();
+
+            while (iterator.hasNext() && pIterator.hasNext()) {
+                int clusterId = iterator.next();
+                int pClusterId = pIterator.next();
+
+                if (clusterId != pClusterId) {
+                    return clusterId - pClusterId;
+                }
+            }
+        } else {
+            return clusters.size() - p.clusters.size();
+        }
+
+        if (transactions.size() == p.transactions.size()) {
+            Iterator<Integer> transactionIt = transactions.iterator();
+            Iterator<Integer> pTransactionIt = p.transactions.iterator();
+
+            while (transactionIt.hasNext() && pTransactionIt.hasNext()) {
+                int transactionId = transactionIt.next();
+                int pTransactionId = pTransactionIt.next();
+
+                if (transactionId != pTransactionId) {
+                    return transactionId - pTransactionId;
+                }
+            }
+        } else {
+            return transactions.size() - p.transactions.size();
+        }
+
+        return 0;
+    }
+
+
+    @Override
     public String toString() {
         return Debug.indent(toPrettyString());
     }
+
 
     @Override
     public String toPrettyString() {
@@ -51,50 +94,5 @@ public class Itemset implements Comparable<Itemset>, PrettyPrint {
                 "\n|-- Clusters : " + clusters +
                 "\n|-- Transactions : " + transactions +
                 "\n`-- Times : " + times;
-    }
-
-
-    @Override
-    public int compareTo(Itemset p) {
-        if (clusters.equals(p.clusters) && transactions.equals(p.transactions)) {
-            return 0;
-        }
-        Iterator<Integer> clusterIt = clusters.iterator();
-        Iterator<Integer> pClusterIt = p.clusters.iterator();
-        while (clusterIt.hasNext() && pClusterIt.hasNext()) {
-            int clusterId = clusterIt.next();
-            int pClusterId = pClusterIt.next();
-            if (clusterId == pClusterId) {
-                continue;
-            }
-
-            return clusterId - pClusterId;
-        }
-
-        if (clusterIt.hasNext()) {
-            return 1;
-        } else if (pClusterIt.hasNext()) {
-            return -1;
-        }
-
-        Iterator<Integer> transactionIt = transactions.iterator();
-        Iterator<Integer> pTransactionIt = p.transactions.iterator();
-        while (transactionIt.hasNext() && pTransactionIt.hasNext()) {
-            int transactionId = transactionIt.next();
-            int pTransactionId = pTransactionIt.next();
-            if (transactionId == pTransactionId) {
-                continue;
-            }
-
-            return transactionId - pTransactionId;
-        }
-
-        if (transactionIt.hasNext()) {
-            return 1;
-        } else if (pTransactionIt.hasNext()) {
-            return -1;
-        }
-
-        return 0;
     }
 }
