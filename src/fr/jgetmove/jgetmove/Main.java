@@ -23,6 +23,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * @version 0.2.0
+ */
 public class Main {
 
     @Parameter(names = {"-d", "--debug"}, description = "Debug mode")
@@ -98,7 +101,7 @@ public class Main {
             singleDetectors.add(new ConvoyDetector(minTime));
             singleDetectors.add(new ClosedSwarmDetector(minTime));
             //TODO Change GroupPatternDetector singleDetector -> multiDetector
-            singleDetectors.add(new GroupPatternDetector(minTime,commonObjectPercentage));
+            singleDetectors.add(new GroupPatternDetector(minTime, commonObjectPercentage));
 
             Set<MultiDetector> multiDetectors = new HashSet<>();
             multiDetectors.add(new DivergentDetector());
