@@ -36,6 +36,7 @@ public class Convergent implements Pattern {
 
     public List<JsonObject> getLinksToJson(int index) {
         ArrayList<JsonObject> jsonLinks = new ArrayList<>();
+        //TODO ClusterSet n'est pas trié dans l'ordre croissant des ID, du coup ça fausse le résulat graphique ...
         for (int idTransaction : TransactionsOfIdCluster.keySet()) {
             ArrayList<Integer> clusterSet = getTransactionsClusters(idTransaction);
             List<Integer> clusters;

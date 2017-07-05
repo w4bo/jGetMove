@@ -37,8 +37,11 @@ public class ClosedSwarmDetector implements SingleDetector {
             for (int time : itemset.getTimes()) {
                 timesOfPattern.add(defaultDataBase.getTime(time));
             }
-
-            closedSwarm.add(new ClosedSwarm(transactionsOfPattern, timesOfPattern));
+            if(transactionsOfPattern.size() < 2){
+                return closedSwarm;
+            } else {
+                closedSwarm.add(new ClosedSwarm(transactionsOfPattern, timesOfPattern));
+            }
             Debug.println("ClosedSwarm", closedSwarm, Debug.INFO);
         }
         return closedSwarm;

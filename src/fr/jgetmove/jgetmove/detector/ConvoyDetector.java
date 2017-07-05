@@ -47,22 +47,23 @@ public class ConvoyDetector implements SingleDetector {
         ArrayList<Pattern> convoys = new ArrayList<>();
         ArrayList<Integer> clusters = new ArrayList<>(itemset.getClusters());
         ArrayList<Integer> times = new ArrayList<>(itemset.getTimes());
-        ArrayList<Integer> transactionsOfItemset = new ArrayList<>(); //Minimal transactions of an itemset
+        ArrayList<Integer> transactionsOfItemset = new ArrayList<>(itemset.getTransactions()); //Minimal transactions of an itemset
         ArrayList<Integer> transactionsOfAClusterOfItemset;
-
         int lastTime = times.get(0);
         int currentTime;
-        int sizeMin = 77777777; //Ivre, il resta appuyer sur la touche "7" pendant 2 secondes
+        int sizeMin = transactionsOfItemset.size(); //Ivre, il resta appuyer sur la touche "7" pendant 2 secondes
         int size;
         ArrayList<ArrayList<Integer>> tabTimesSet = new ArrayList<>(); //Ensemble des temps consécutifs des temps de l'itemset
         ArrayList<Integer> timesSet = new ArrayList<>(); //un ensemble consécutif de temps de l'itemset
 
+        if(transactionsOfItemset.size() < 2){
+            return convoys;
+        }
         for (int i = 0; i < times.size(); i++){
             //Cette boucle determine les transactions de l'itemset + l'ensemble des temps consécutifs de l'itemsets
             currentTime = times.get(i);
             transactionsOfAClusterOfItemset = new ArrayList<>(defaultDataBase.getClusterTransactions(clusters.get(i)).keySet());
             size = transactionsOfAClusterOfItemset.size();
-
             if(size == sizeMin && !(transactionsOfItemset.equals(transactionsOfAClusterOfItemset))){
                 //Si on a ce cas par exemple [2,3] et [3,5] TofItemset = [3] mais on doit pas rentrer dedans si [2,3] et [2,3]
                 transactionsOfItemset.retainAll(transactionsOfAClusterOfItemset);

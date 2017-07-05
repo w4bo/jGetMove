@@ -97,6 +97,8 @@ public class Main {
             Set<SingleDetector> singleDetectors = new HashSet<>();
             singleDetectors.add(new ConvoyDetector(minTime));
             singleDetectors.add(new ClosedSwarmDetector(minTime));
+            //TODO Change GroupPatternDetector singleDetector -> multiDetector
+            singleDetectors.add(new GroupPatternDetector(minTime,commonObjectPercentage));
 
             Set<MultiDetector> multiDetectors = new HashSet<>();
             multiDetectors.add(new DivergentDetector());

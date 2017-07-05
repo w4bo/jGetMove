@@ -36,16 +36,17 @@ public class Divergent implements Pattern {
 
     public List<JsonObject> getLinksToJson(int index) {
         ArrayList<JsonObject> jsonLinks = new ArrayList<>();
+        //TODO ClusterSet n'est pas trié dans l'ordre croissant des ID, du coup ça fausse le résulat graphique ...
         for (int idTransaction : TransactionsOfIdCluster.keySet()) {
             ArrayList<Integer> clusterSet = getTransactionsClusters(idTransaction);
-            System.out.println("CLUSTERSET : " + clusterSet);
             List<Integer> clusters;
             if(clusterSet.get(0) != idCluster){
                 clusters = clusterSet.subList(clusterSet.indexOf(idCluster),clusterSet.size());
-                System.out.println("CLUSTERS : " + clusters);
             } else {
                 clusters = clusterSet;
             }
+            System.out.println("OOKT " + clusterSet);
+            System.out.println("OOKT " + clusters);
             for (int i = 1; i < clusters.size(); i++){
                 jsonLinks.add(Json.createObjectBuilder()
                         .add("id", index)

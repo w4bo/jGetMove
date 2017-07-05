@@ -109,8 +109,9 @@ public class GroupPatternDetector implements SingleDetector {
             for (int time : itemset.getTimes()) {
                 timesOfPattern.add(defaultDataBase.getTime(time));
             }
-
-            patterns.add(new GroupPattern(transactionsOfPattern, timesOfPattern));
+            if (transactionsOfPattern.size() > 1){
+                patterns.add(new GroupPattern(transactionsOfPattern, timesOfPattern));
+            }
             Debug.println("GPattern", patterns, Debug.INFO);
         }
         return patterns;
