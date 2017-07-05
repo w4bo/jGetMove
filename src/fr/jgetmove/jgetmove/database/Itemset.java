@@ -3,6 +3,7 @@ package fr.jgetmove.jgetmove.database;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.PrettyPrint;
 
+import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -55,10 +56,45 @@ public class Itemset implements Comparable<Itemset>, PrettyPrint {
 
     @Override
     public int compareTo(Itemset p) {
-        if (clusters.equals(p.clusters) && transactions.equals(p.transactions) && times.equals(p.times)) {
+        if (clusters.equals(p.clusters) && transactions.equals(p.transactions)) {
             return 0;
         }
+        Iterator<Integer> clusterIt = clusters.iterator();
+        Iterator<Integer> pClusterIt = p.clusters.iterator();
+        while (clusterIt.hasNext() && pClusterIt.hasNext()) {
+            int clusterId = clusterIt.next();
+            int pClusterId = pClusterIt.next();
+            if (clusterId == pClusterId) {
+                continue;
+            }
 
-        return id - p.id;
+            return clusterId - pClusterId;
+        }
+
+        if (clusterIt.hasNext()) {
+            return 1;
+        } else if (pClusterIt.hasNext()) {
+            return -1;
+        }
+
+        Iterator<Integer> transactionIt = transactions.iterator();
+        Iterator<Integer> pTransactionIt = p.transactions.iterator();
+        while (transactionIt.hasNext() && pTransactionIt.hasNext()) {
+            int transactionId = transactionIt.next();
+            int pTransactionId = pTransactionIt.next();
+            if (transactionId == pTransactionId) {
+                continue;
+            }
+
+            return transactionId - pTransactionId;
+        }
+
+        if (transactionIt.hasNext()) {
+            return 1;
+        } else if (pTransactionIt.hasNext()) {
+            return -1;
+        }
+
+        return 0;
     }
 }
