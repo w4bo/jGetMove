@@ -11,6 +11,6 @@ import java.util.ArrayList;
  */
 public interface SingleDetector extends Detector {
 
-    ArrayList<Pattern> detect(final DataBase defaultDataBase, final Itemset itemset);
+    ArrayList<Pattern> detect(DataBase defaultDataBase, Itemset itemset);
 
 }

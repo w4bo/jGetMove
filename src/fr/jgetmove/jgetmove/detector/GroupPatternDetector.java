@@ -97,6 +97,7 @@ public class GroupPatternDetector implements SingleDetector {
                 }
             }
         }
+
         if ((numOverlapTimePoint / defaultDataBase.getTimeIds().size()) >= commonObjectPercentage) {
             Debug.println("New Group Pattern", Debug.DEBUG);
             Set<Time> timesOfPattern = new HashSet<>();
@@ -112,8 +113,13 @@ public class GroupPatternDetector implements SingleDetector {
             if (transactionsOfPattern.size() > 1){
                 patterns.add(new GroupPattern(transactionsOfPattern, timesOfPattern));
             }
-            Debug.println("GPattern", patterns, Debug.INFO);
         }
+
         return patterns;
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName();
     }
 }

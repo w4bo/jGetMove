@@ -15,6 +15,6 @@ public class BlockBase extends Base {
 
     @Override
     public String toPrettyString() {
-        return "\n. id : " + id + super.toString();
+        return "\n. id : " + id + super.toPrettyString();
     }
 }

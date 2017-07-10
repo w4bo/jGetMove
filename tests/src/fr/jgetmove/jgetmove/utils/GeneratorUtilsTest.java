@@ -36,9 +36,9 @@ class GeneratorUtilsTest {
         sameFrequent.add(1);
         sameFrequent.add(1);
 
-        assertEquals(4, GeneratorUtils.getDifferentFromLastCluster(frequent, clusterIds.get(0)));
-        assertEquals(1, GeneratorUtils.getDifferentFromLastCluster(sameFrequent, clusterIds.get(0)));
-        assertEquals(0, GeneratorUtils.getDifferentFromLastCluster(sameFrequent, 0));
+        assertEquals(4, GeneratorUtils.getDifferentFromLastItem(frequent, clusterIds));
+        assertEquals(1, GeneratorUtils.getDifferentFromLastItem(sameFrequent, clusterIds));
+        //assertEquals(0, GeneratorUtils.getDifferentFromLastItem(sameFrequent, 0));
     }
 
     @Test
@@ -49,10 +49,10 @@ class GeneratorUtilsTest {
             TreeSet<Integer> transactionIds = new TreeSet<>();
             transactionIds.add(0);
 
-            ArrayList<Integer> qSets = new ArrayList<>();
-            ArrayList<Integer> itemset = new ArrayList<>();
+            ArrayList<Integer> qSets;
+            TreeSet<Integer> itemset = new TreeSet<>();
 
-            GeneratorUtils.makeClosure(dataBase, transactionIds, itemset, 0);
+            qSets = GeneratorUtils.makeClosure(dataBase, transactionIds, itemset, 0);
 
             ArrayList<Integer> qSetsCheck = new ArrayList<>();
             qSetsCheck.add(0);
@@ -68,7 +68,7 @@ class GeneratorUtilsTest {
             qSets.clear();
             itemset.clear();
 
-            GeneratorUtils.makeClosure(dataBase, transactionIds, itemset, 1);
+            qSets = GeneratorUtils.makeClosure(dataBase, transactionIds, itemset, 1);
 
             qSetsCheck.clear();
             qSetsCheck.add(1);
@@ -85,7 +85,7 @@ class GeneratorUtilsTest {
             qSets.clear();
             itemset.clear();
 
-            GeneratorUtils.makeClosure(dataBase, transactionIds, itemset, 4);
+            qSets = GeneratorUtils.makeClosure(dataBase, transactionIds, itemset, 4);
 
             qSetsCheck.clear();
             qSetsCheck.add(4);
@@ -191,7 +191,7 @@ class GeneratorUtilsTest {
     }
 
     /**
-     * @see DataBase#isClusterInTransactions(Set, int)
+     * @see DataBase#areTransactionsInCluster(Set, int)
      */
     @Test
     @Disabled
@@ -213,8 +213,8 @@ class GeneratorUtilsTest {
             transactionIds.add(0);
             transactionIds.add(1);
 
-            assertTrue(GeneratorUtils.ppcTest(dataBase, itemset, 2, transactionIds));
-            assertFalse(GeneratorUtils.ppcTest(dataBase, itemset, 5, transactionIds));
+            assertTrue(GeneratorUtils.ppcTest(dataBase, itemset, transactionIds, 2));
+            assertFalse(GeneratorUtils.ppcTest(dataBase, itemset, transactionIds, 5));
 
 
             dataBase = new DataBase(new Input("tests/assets/itemset_check.dat"), new Input("tests/assets/itemset_check_time_index.dat"));
@@ -227,7 +227,7 @@ class GeneratorUtilsTest {
 
             // new ppcTest structure
             Set<Integer> filteredTransactionIds = dataBase.getFilteredTransactionIdsIfHaveCluster(transactionIds, 0);
-            boolean generatorUtils = GeneratorUtils.ppcTest(dataBase, itemset, 0, filteredTransactionIds);
+            boolean generatorUtils = GeneratorUtils.ppcTest(dataBase, itemset, filteredTransactionIds, 0);
 
             assertEquals(generatorUtils, true);
         } catch (IOException | MalformedTimeIndexException | ClusterNotExistException e) {

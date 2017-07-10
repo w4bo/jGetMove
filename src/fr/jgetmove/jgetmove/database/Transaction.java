@@ -80,8 +80,8 @@ public class Transaction implements Comparable<Transaction>, PrettyPrint {
     }
 
     @Override
-    public String toString() {
-        return "{" + id + "=" + String.valueOf(clusterIds) + "}";
+    public int compareTo(Transaction transaction) {
+        return id - transaction.id;
     }
 
     @Override
@@ -91,7 +91,7 @@ public class Transaction implements Comparable<Transaction>, PrettyPrint {
     }
 
     @Override
-    public int compareTo(Transaction transaction) {
-        return id - transaction.id;
+    public String toString() {
+        return "{" + id + "=" + String.valueOf(clusterIds) + "}";
     }
 }

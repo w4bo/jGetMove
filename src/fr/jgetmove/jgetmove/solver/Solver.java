@@ -3,6 +3,7 @@ package fr.jgetmove.jgetmove.solver;
 import fr.jgetmove.jgetmove.config.DefaultConfig;
 import fr.jgetmove.jgetmove.database.*;
 import fr.jgetmove.jgetmove.debug.Debug;
+import fr.jgetmove.jgetmove.debug.PrettyPrint;
 import fr.jgetmove.jgetmove.detector.Detector;
 import fr.jgetmove.jgetmove.detector.MultiDetector;
 import fr.jgetmove.jgetmove.detector.SingleDetector;
@@ -19,9 +20,9 @@ import java.util.*;
  * <p>
  * It's used to call {@link ItemsetsFinder} to detect all the itemsets per block
  * <p>
- * IIt's used to call {@link PatternGenerator} to merge them in a single array of itemsets used for detecting different patterns with their given detectors.
+ * It's used to call {@link PatternGenerator} to merge them in a single array of itemsets used for detecting different patterns with their given detectors.
  */
-public class Solver {
+public class Solver implements PrettyPrint {
 
     /**
      * Config shared accross the application
@@ -32,11 +33,6 @@ public class Solver {
      * ItemsetsFinder that will handle the creation of itemsets
      */
     private ItemsetsFinder itemsetsFinder;
-
-    /**
-     * PatternGenerator handles the block merging and calls the detection
-     */
-    private PatternGenerator patternGenerator;
 
     /**
      * List of detectors called foreach itemset
@@ -56,16 +52,14 @@ public class Solver {
     /**
      * Prepares the solver with all the elements used to detect patterns.
      *
-     * @param itemsetsFinder   DI, has for function to find all the itemsets of the database
-     * @param patternGenerator DI, has for function to join blocks and detect all patterns
-     * @param singleDetectors  initializes all the singleDetectors to use
-     * @param multiDetectors   initializes all the multiDetectors to use
-     * @param config           configuration
+     * @param itemsetsFinder  DI, has for function to find all the itemsets of the database
+     * @param singleDetectors initializes all the singleDetectors to use
+     * @param multiDetectors  initializes all the multiDetectors to use
+     * @param config          configuration
      */
-    public Solver(ItemsetsFinder itemsetsFinder, PatternGenerator patternGenerator,
+    public Solver(ItemsetsFinder itemsetsFinder,
                   Set<SingleDetector> singleDetectors, Set<MultiDetector> multiDetectors, DefaultConfig config) {
         this.itemsetsFinder = itemsetsFinder;
-        this.patternGenerator = patternGenerator;
         this.singleDetectors = singleDetectors;
         this.multiDetectors = multiDetectors;
         this.config = config;
@@ -74,13 +68,11 @@ public class Solver {
     /**
      * Prepares the solver with all the elements used to detect patterns.
      *
-     * @param itemsetsFinder   DI, has for function to find all the itemsets of the database
-     * @param patternGenerator DI, has for function to join blocks and detect all patterns from the itemsets.
-     * @param config           configuration
+     * @param itemsetsFinder DI, has for function to find all the itemsets of the database
+     * @param config         configuration
      */
-    public Solver(ItemsetsFinder itemsetsFinder, PatternGenerator patternGenerator, DefaultConfig config) {
+    public Solver(ItemsetsFinder itemsetsFinder, DefaultConfig config) {
         this.itemsetsFinder = itemsetsFinder;
-        this.patternGenerator = patternGenerator;
         singleDetectors = new HashSet<>();
         multiDetectors = new HashSet<>();
         this.config = config;
@@ -95,34 +87,47 @@ public class Solver {
      *
      * @return ArrayList of blocks containing it's id and all the itemsets detected in the block
      */
-    public HashMap<Integer, ArrayList<Itemset>> findItemsets(DataBase dataBase) {
-        Debug.printTitle("Find Itemsets", Debug.INFO);
+    public ArrayList<ArrayList<Itemset>> findItemsets(DataBase dataBase) {
+        Debug.printTitle("Itemsets Finder", Debug.INFO);
 
-        HashMap<Integer, ArrayList<Itemset>> results = new HashMap<>();
+        ArrayList<ArrayList<Itemset>> blockItemsets = new ArrayList<>();
 
-        int id = 1;
+        int blockId = 0;
 
-        if (config.getBlockSize() > 0) {
-
+        if (config.getBlockSize() > 0) { // if blockSize is set
             BlockBase blockBase;
             Iterator<Integer> lastTime = dataBase.getTimeIds().iterator();
 
-            while ((blockBase = createBlock(id, dataBase, lastTime)) != null) {
+            while ((blockBase = createBlock(blockId, dataBase, lastTime)) != null) {
                 // if there is more than one block, min time is ignored for the glory of mankind (or because it could break the block fusion later on).
-                ArrayList<Itemset> result = itemsetsFinder.generate(blockBase, 0);
-                results.put(id, result);
-                ++id;
+                // generating the itemsets
+                ArrayList<Itemset> itemsets = itemsetsFinder.generate(blockBase, 0);
+                // putting the itemsets in the block
+                blockItemsets.add(itemsets);
+                ++blockId; // incrementing blockId
             }
-        } else {
+        } else { // if blockSize is not set
+            // One block for all of this
             ArrayList<Itemset> result = itemsetsFinder.generate(dataBase, config.getMinTime());
-            results.put(id, result);
+            // aaand putting the itemsets in the first block
+            blockItemsets.add(blockId, result);
         }
 
-        Debug.println("Blocks", results, Debug.DEBUG);
-        Debug.println("n° of Blocks", results.size(), Debug.INFO);
-        return results;
+        Debug.println("Blocks", blockItemsets, Debug.DEBUG);
+        Debug.println("n° of Blocks", blockItemsets.size(), Debug.INFO);
+        return blockItemsets;
     }
 
+    /**
+     * Creates and returns an new {@link BlockBase} if and only if there it's possible to create another {@link BlockBase} from the {@link DataBase}.
+     * <p>
+     * If the lastTime iterator is
+     *
+     * @param id       the id of the block to create
+     * @param dataBase to create the Blocks from
+     * @param lastTime the time from where the block need to begin
+     * @return null or the created Block
+     */
     private BlockBase createBlock(int id, DataBase dataBase, Iterator<Integer> lastTime) {
         BlockBase blockBase = null;
 
@@ -163,81 +168,87 @@ public class Solver {
      *
      * @return a HashMap SingleDetector -> ArrayList< Motif>
      */
-    public HashMap<Detector, ArrayList<Pattern>> detectPatterns(DataBase dataBase, HashMap<Integer, ArrayList<Itemset>> results) {
-        Debug.printTitle("DetectPatterns", Debug.INFO);
-        Debug.println("Block doesn't work properly please be careful", Debug.ERROR);
-        /*
-        // here we will be merging itemsets with each others across blocks so the basic principle is that we will be invoking itemsetsFinder on a different level
-        // the equivalence are done like this
-        // block -> time
-        // itemset -> cluster
-        // transaction -> transaction
-        HashMap<Integer, Set<Integer>> clustersTransactions = new HashMap<>();
-        HashMap<Integer, Pair<Integer, Integer>> equivalenceTable = new HashMap<>();
-        HashMap<Integer, Integer> clustersTime = new HashMap<>();
+    public HashMap<Detector, ArrayList<Pattern>> detectPatterns(DataBase dataBase, ArrayList<ArrayList<Itemset>> results) {
+        Debug.printTitle("Detecting Patterns", Debug.INFO);
+        Debug.println("MultiClustering doesn't work properly, please be careful", Debug.ERROR);
 
-        // custom clusterId(itemsetId) because the times(blocks) are independent with each other and itemsetId begins at 0 for each block
-        int clusterId = 0;
-        for (Map.Entry<Integer, ArrayList<Itemset>> block : results.entrySet()) {
-            int timeId = block.getKey();
+        ArrayList<Itemset> itemsets = new ArrayList<>();
+        // setting a perf itemset-merged checker
+        ArrayList<ArrayList<Integer>> blockItemsetIndex = new ArrayList<>(results.size());
+        for (ArrayList<Itemset> result : results) {
+            ArrayList<Integer> itemsetIndex = new ArrayList<>(result.size());
+            for (int i = 0; i < result.size(); i++) {
+                itemsetIndex.add(i);
+            }
 
-            for (Itemset itemset : block.getValue()) {
-                clustersTime.put(clusterId, timeId);
-                equivalenceTable.put(clusterId, new Pair<>(timeId, itemset.getId()));
-                clustersTransactions.put(clusterId, itemset.getTransactions());
-                ++clusterId;
+            blockItemsetIndex.add(itemsetIndex);
+        }
+
+        int itemsetId = 0;
+        for (int blockId = 0, size = blockItemsetIndex.size() - 1; blockId < size; blockId++) {
+            for (Integer itemsetIndex : blockItemsetIndex.get(blockId)) {
+                Itemset tomerge = results.get(blockId).get(itemsetIndex);
+
+                Set<Integer> mergedClusters = new HashSet<>(tomerge.getClusters());
+                Set<Integer> mergedTimes = new HashSet<>(tomerge.getTimes());
+                Set<Integer> mergedTransactions = new HashSet<>(tomerge.getTransactions());
+
+                for (int itBlockId = blockId + 1, itSize = blockItemsetIndex.size(); itBlockId < itSize; ++itBlockId) {
+                    for (Iterator<Integer> iterator = blockItemsetIndex.get(itBlockId).iterator(); iterator.hasNext(); ) {
+                        Itemset toFuseItemset = results.get(itBlockId).get(iterator.next());
+
+                        if (tomerge.getTransactions().equals(toFuseItemset.getTransactions())) {
+                            mergedClusters.addAll(toFuseItemset.getClusters());
+                            mergedTimes.addAll(toFuseItemset.getTimes());
+                            // not fusing transactions because they are the same
+
+                            iterator.remove();
+                        }
+                    }
+                }
+
+                if (mergedClusters.size() > config.getMinTime()) {
+                    itemsets.add(new Itemset(itemsetId, mergedTransactions, mergedClusters, mergedTimes));
+                    ++itemsetId;
+                }
+
             }
         }
 
-        Base itemsetBase = new Base(clustersTransactions, clustersTime);
-        ArrayList<Itemset> supersets = itemsetsFinder.generate(itemsetBase, 0);
-
-        // now we know which itemsets are together (each cluster of the superset is an itemset) we need to retrieve them with the equivalence table and flatten the results il a single list of itemsets
-
-        List<Itemset> itemsets = new LinkedList<>();
-        for (Itemset superset : supersets) {
-            Set<Integer> mergedClusters = new HashSet<>();
-            Set<Integer> mergedTimes = new HashSet<>();
-            Set<Integer> mergedTransactions = new HashSet<>();
-            for (int rawItemsetId : superset.getClusters()) {
-                Pair<Integer, Integer> pair = equivalenceTable.get(rawItemsetId);
-                int blockId = pair.getKey();
-                int itemsetId = pair.getValue();
-
-                Itemset itemset = results.get(blockId).get(itemsetId);
-
-
-                mergedClusters.addAll(itemset.getClusters());
-                mergedTimes.addAll(itemset.getTimes());
-                mergedTransactions.addAll(itemset.getTransactions());
-
-            }
-            if(mergedClusters.size() >= config.getMinTime()){
-                Itemset itemset = new Itemset(itemsets.size(), mergedTransactions, mergedClusters, mergedTimes);
-                itemsets.add(itemset);
+        for (int itemsetIndex : blockItemsetIndex.get(blockItemsetIndex.size() - 1)) {
+            Itemset itemset = results.get(results.size() - 1).get(itemsetIndex);
+            if (itemset.getClusters().size() > config.getMinTime()) {
+                itemsets.add(new Itemset(itemsetId, itemset.getTransactions(), itemset.getClusters(), itemset.getTimes()));
+                ++itemsetId;
             }
         }
-
 
         Debug.println("Itemsets", itemsets, Debug.DEBUG);
         Debug.println("n° of itemsets", itemsets.size(), Debug.INFO);
-        */
+
         HashMap<Detector, ArrayList<Pattern>> patterns = new HashMap<>(singleDetectors.size() + multiDetectors.size());
         //patternGenerator.generate(dataBase, results);
+
+
         for (SingleDetector singleDetector : singleDetectors) {
             patterns.put(singleDetector, new ArrayList<>());
-            for (Itemset itemset : results.get(1)) {
-                patterns.get(singleDetector).addAll(singleDetector.detect(dataBase, itemset));
-
+            ArrayList<Pattern> detectorPatterns = patterns.get(singleDetector);
+            for (Itemset itemset : itemsets) {
+                detectorPatterns.addAll(singleDetector.detect(dataBase, itemset));
             }
+
+            Debug.println(singleDetector.toString(), detectorPatterns, Debug.DEBUG);
+            Debug.println(singleDetector.toString(), detectorPatterns.size() + " patterns found", Debug.INFO);
+
         }
 
         for (MultiDetector multiDetector : multiDetectors) {
-            patterns.put(multiDetector, multiDetector.detect(dataBase, results.get(1)));
+            patterns.put(multiDetector, multiDetector.detect(dataBase, itemsets));
+
+            Debug.println(multiDetector.toString(), patterns.get(multiDetector), Debug.DEBUG);
+            Debug.println(multiDetector.toString(), patterns.get(multiDetector).size() + " patterns found", Debug.INFO);
         }
 
-        Debug.println("Patterns", patterns, Debug.DEBUG);
-        Debug.println("n° of patterns", patterns.size(), Debug.INFO);
         return patterns;
     }
 
@@ -301,10 +312,14 @@ public class Solver {
     }
 
     @Override
-    public String toString() {
+    public String toPrettyString() {
         return "\n|-- ItemsetsFinder :" + itemsetsFinder
-                + "\n|-- PatternGenerator :" + patternGenerator
                 + "\n|-- SingleDetectors :" + singleDetectors
                 + "\n`-- MultiDetectors :" + multiDetectors;
+    }
+
+    @Override
+    public String toString() {
+        return "\nSolver :" + Debug.indent(toPrettyString());
     }
 }

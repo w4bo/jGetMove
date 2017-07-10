@@ -14,6 +14,9 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+/**
+ * Finds the itemsets
+ */
 public class ItemsetsFinder {
 
     private int minSupport;
@@ -45,7 +48,7 @@ public class ItemsetsFinder {
 
         if (toItemsetize.size() == 0) {
             ArrayList<TreeSet<Integer>> generatedItemsets = new ArrayList<>();
-            generatedItemsets.add(new TreeSet<>(toItemsetize));
+            generatedItemsets.add(new TreeSet<>());
             return generatedItemsets;
         }
 
@@ -148,7 +151,7 @@ public class ItemsetsFinder {
      * [][]level2ItemID, [][]level2TimeID)
      * </pre>
      */
-    @TraceMethod(displayTitle = true, title = "Finding itemsets")
+    @TraceMethod
     ArrayList<Itemset> generate(Base base, final int minTime) {
         Debug.println("Base", base, Debug.DEBUG);
         Debug.println("n° of Clusters", base.getClusterIds().size(), Debug.INFO);
@@ -190,84 +193,118 @@ public class ItemsetsFinder {
      *
      * @param base                   (default database)
      * @param clusterMatrix          (database, , itemID, timeID) La database &agrave; analyser
-     * @param toItemsetize           (itemsets) une liste representant les id
+     * @param clusterIds             (itemsets) une liste representant les id
      * @param transactionIds         (transactionList)
      * @param clustersFrequenceCount (freqList) une liste representant les clusterIds frequents
      * @param itemsetId              (pathId)
      */
     @TraceMethod(displayTitle = true)
-    private void run(Base base, ClusterMatrix clusterMatrix, ArrayList<Integer> toItemsetize,
+    private void run(Base base, ClusterMatrix clusterMatrix, ArrayList<Integer> clusterIds,
                      Set<Integer> transactionIds, ArrayList<Integer> clustersFrequenceCount, int[] itemsetId) {
         Debug.println("ClusterMatrix", clusterMatrix, Debug.DEBUG);
         Debug.println("Transactions", transactionIds, Debug.DEBUG);
+        Debug.println("ClusterIds", clusterIds, Debug.DEBUG);
         Debug.println("ClustersFrequenceCount", clustersFrequenceCount, Debug.DEBUG);
 
-        ArrayList<TreeSet<Integer>> possibleItemsets = generateItemsets(base, toItemsetize);
+        // generating all the possible itemsets from the list of clusters
+        ArrayList<TreeSet<Integer>> itemsets = generateItemsets(base, clusterIds);
 
-        Debug.println("Itemsets", possibleItemsets, Debug.DEBUG);
+        Debug.println("Itemsets", itemsets, Debug.DEBUG);
 
-        for (TreeSet<Integer> itemsetClusters : possibleItemsets) {
+        // foreach possible itemsets
+        for (TreeSet<Integer> itemsetClusters : itemsets) {
+            Debug.println("Itemset", itemsetClusters, Debug.DEBUG);
+
             int calcurateCoreI;
 
-            //if (itemsetClusters.size() > 0) { // code c complient
+            // if the itemset is not empty :)
             if (itemsetClusters.size() > minTime) {
-
-                TreeSet<Integer> itemsetTransactions = clusterMatrix.getClusterTransactionIds(itemsetClusters.last());
-
-                TreeSet<Integer> itemsetTimes = new TreeSet<>();
-                for (Integer clusterId : itemsetClusters) {
-                    itemsetTimes.add(clusterMatrix.getClusterTimeId(clusterId));
-                }
-                Itemset itemset = new Itemset(itemsetId[0], itemsetTransactions, itemsetClusters, itemsetTimes);
-
-                if (this.itemsets.add(itemset)) {
-                    itemsetId[0]++;
+                if (saveItemset(itemsetId[0], clusterMatrix, itemsetClusters)) {
+                    itemsetId[0]++; // if the itemset is a new one
                 }
 
-                calcurateCoreI = GeneratorUtils.getDifferentFromLastCluster(clustersFrequenceCount, itemsetClusters.first());
-            } else {
+                // we calcurates its calcuration ?
+                calcurateCoreI = GeneratorUtils.getDifferentFromLastItem(clustersFrequenceCount, clusterIds);
+
+            } else { // if it's empty we can't calcurate it :(
                 calcurateCoreI = 0;
             }
 
-            // still wondering what corei is used for ...
+            // still wondering what corei is used for ... (and this calcurating stuff is for, maybe for YoRHa)
             Debug.println("Core i : " + calcurateCoreI, Debug.DEBUG);
 
+            // knowing the coreI of this itemset, we restrain the search space by getting all the clusters over it (including coreI)
             SortedSet<Integer> clustersTailSet = base.getClusterIds().tailSet(calcurateCoreI);
 
-            ArrayList<Integer> freqItemset = new ArrayList<>();
+            // once we have this, we need to find the possible future clusters of the future itemsets
+            ArrayList<Integer> maxClusterIdsOfItemsets = new ArrayList<>();
 
+            // if the cluster is not in the already added in the itemset
+            // and has more than the minimal amount of transactions
             for (int clusterId : clustersTailSet) {
-                if (clusterMatrix.getClusterTransactionIds(clusterId).size() >= minSupport &&
-                        !itemsetClusters.contains(clusterId)) {
-                    freqItemset.add(clusterId);
+                if (!clusterIds.contains(clusterId) && clusterMatrix.getClusterTransactionIds(clusterId).size() >= minSupport) {
+                    maxClusterIdsOfItemsets.add(clusterId);
                 }
             }
 
             // freq_i
             Debug.println("ClusterTailSet", clustersTailSet, Debug.DEBUG);
-            Debug.println("Frequent", freqItemset, Debug.DEBUG);
+            // we have our future possible clusters that can be in a future itemset
+            Debug.println("maxClusterIdsOfItemsets", maxClusterIdsOfItemsets, Debug.DEBUG);
 
-            for (int maxClusterId : freqItemset) {
+            // once we have them, we test for each of them
+            for (int maxClusterId : maxClusterIdsOfItemsets) {
+                // we retrieve the new transactions from the database
                 Set<Integer> newTransactionIds = base.getFilteredTransactionIdsIfHaveCluster(transactionIds, maxClusterId);
 
-                if (GeneratorUtils.ppcTest(base, itemsetClusters, maxClusterId, newTransactionIds)) {
-                    ArrayList<Integer> potentialItemsets = GeneratorUtils.makeClosure(base, newTransactionIds, itemsetClusters, maxClusterId);
-                    Debug.println("NewItemsetClusters", potentialItemsets, Debug.DEBUG);
+                Debug.println("NewTransactionIds", newTransactionIds, Debug.DEBUG);
 
-                    if (maxPattern == 0 || potentialItemsets.size() <= maxPattern) {
-                        Set<Integer> updatedTransactionIds = GeneratorUtils
-                                .updateTransactions(base, transactionIds, potentialItemsets, maxClusterId);
-                        ArrayList<Integer> potentialClustersFrequenceCount = GeneratorUtils
-                                .updateClustersFrequenceCount(base, transactionIds, potentialItemsets, clustersFrequenceCount,
+                if (GeneratorUtils.ppcTest(base, itemsetClusters, newTransactionIds, maxClusterId)) {
+                    // if the itemset is the most englobing itemset possible from clusterId 0 ->maxClusterId
+                    ArrayList<Integer> futureClusterIds = GeneratorUtils.makeClosure(base, newTransactionIds, itemsetClusters, maxClusterId);
+                    // then we try to extend it to a larger itemset
+
+                    Debug.println("futureClusterIds", futureClusterIds, Debug.DEBUG);
+
+                    if (maxPattern == 0 || futureClusterIds.size() <= maxPattern) {
+                        Set<Integer> futureTransactionIds = GeneratorUtils
+                                .updateTransactions(base, transactionIds, futureClusterIds, maxClusterId);
+                        ArrayList<Integer> futureClustersFrequenceCount = GeneratorUtils
+                                .updateClustersFrequenceCount(base, transactionIds, futureClusterIds, clustersFrequenceCount,
                                         maxClusterId);
 
-                        clusterMatrix.optimizeMatrix(base, updatedTransactionIds);
+                        clusterMatrix.optimizeMatrix(base, futureTransactionIds);
 
-                        run(base, clusterMatrix, potentialItemsets, updatedTransactionIds, potentialClustersFrequenceCount, itemsetId);
+                        run(base, clusterMatrix, futureClusterIds, futureTransactionIds, futureClustersFrequenceCount, itemsetId);
 
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Creates and adds the itemset. Will return <tt>true</tt> if the itemset wasn't already saved.
+     *
+     * @param itemsetId       the id of the new itemset
+     * @param clusterMatrix   will be used to retrieve the list of transactions and times
+     * @param itemsetClusters clusters of the itemset
+     * @return <tt>true</tt> if the saved itemset is'nt already added, will return <tt>false</tt> if the itemset was already saved.
+     * @see Itemset#compareTo(Itemset) to understand how the verification is made.
+     */
+    private boolean saveItemset(final int itemsetId, ClusterMatrix clusterMatrix, TreeSet<Integer> itemsetClusters) {
+        // then the itemset is possible
+        // the
+        TreeSet<Integer> itemsetTransactions = clusterMatrix.getClusterTransactionIds(itemsetClusters.last());
+
+        TreeSet<Integer> itemsetTimes = new TreeSet<>();
+        for (Integer clusterId : itemsetClusters) {
+            itemsetTimes.add(clusterMatrix.getClusterTimeId(clusterId));
+        }
+        // so we add it to the final list
+        Itemset itemset = new Itemset(itemsetId, itemsetTransactions, itemsetClusters, itemsetTimes);
+
+        // unless he's already in there. if so we don't add it
+        return this.itemsets.add(itemset);
     }
 }

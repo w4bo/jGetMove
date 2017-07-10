@@ -2,7 +2,6 @@ package fr.jgetmove.jgetmove.detector;
 
 import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.database.Itemset;
-import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.pattern.Divergent;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
@@ -65,7 +64,6 @@ public class DivergentDetector implements MultiDetector {
             divergeants.add(new Divergent(defaultDataBase, idCluster));
         }
 
-        Debug.println("Divergeants", divergeants, Debug.INFO);
         return divergeants;
     }
 
@@ -90,5 +88,10 @@ public class DivergentDetector implements MultiDetector {
             }
         }
         return clusterId;
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName();
     }
 }

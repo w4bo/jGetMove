@@ -2,7 +2,6 @@ package fr.jgetmove.jgetmove.detector;
 
 import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.database.Itemset;
-import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.pattern.Convergent;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
@@ -67,7 +66,6 @@ public class ConvergentDetector implements MultiDetector {
             convergeants.add(new Convergent(defaultDataBase, idCluster));
         }
 
-        Debug.println("Convergeants", convergeants, Debug.INFO);
         return convergeants;
     }
 
@@ -92,5 +90,10 @@ public class ConvergentDetector implements MultiDetector {
             }
         }
         return clusterId;
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName();
     }
 }

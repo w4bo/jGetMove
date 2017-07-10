@@ -15,18 +15,18 @@ public class GeneratorUtils {
      * </pre>
      *
      * @param frequentClusterIds (freqList) !not empty
-     * @param defaultValue       default value to return if frequentclusterIds are the same
+     * @param clusterIds         default value to return if frequentclusterIds are the same
      * @return le dernier élement different du dernier clusterId de frequentClusterIds, si frequentClusterIds est trop petit, renvoie le premier element de clusterIds, sinon renvoi 0 si clusterIds est vide
      */
-    public static int getDifferentFromLastCluster(ArrayList<Integer> frequentClusterIds, int defaultValue) {
-        int current = frequentClusterIds.get(frequentClusterIds.size() - 1);
+    public static int getDifferentFromLastItem(ArrayList<Integer> frequentClusterIds, ArrayList<Integer> clusterIds) {
+        int last = frequentClusterIds.get(frequentClusterIds.size() - 1);
 
         for (int i = frequentClusterIds.size() - 1; i >= 0; i--) {
-            if (current != frequentClusterIds.get(i))
-                return frequentClusterIds.get(i);
+            if (last != frequentClusterIds.get(i))
+                return clusterIds.get(i);
         }
 
-        return defaultValue;
+        return clusterIds.get(0);
     }
 
     /**
@@ -38,67 +38,76 @@ public class GeneratorUtils {
      * int item)
      * </pre>
      *
-     * @param base           (database)
-     * @param transactionIds (transactionList)
-     * @param itemset        (itemsets)
-     * @param freq           (item)
+     * @param base             (database)
+     * @param transactionIds   (transactionList)
+     * @param itemset          (itemsets)
+     * @param currentClusterId (item)
      */
     @TraceMethod(displayTitle = true)
     public static ArrayList<Integer> makeClosure(Base base, Set<Integer> transactionIds,
-                                                 Collection<Integer> itemset, int freq) {
+                                                 TreeSet<Integer> itemset, int currentClusterId) {
         Debug.println("transactionIds", transactionIds, Debug.DEBUG);
-        ArrayList<Integer> qSets = new ArrayList<>();
+        ArrayList<Integer> newItemset = new ArrayList<>();
         Debug.println("itemset", itemset, Debug.DEBUG);
-        Debug.println("freq", freq, Debug.DEBUG);
+        Debug.println("currentClusterId", currentClusterId, Debug.DEBUG);
 
-        for (int clusterId : itemset) {
-            if (clusterId < freq) {
-                // TODO le bon trichage
-                if (base.getClusterTimeId(clusterId) != base.getClusterTimeId(freq))
-                    qSets.add(clusterId);
+        // all the clusters in the itemset have these
+        /*for (int clusterId : itemset) {
+            if (clusterId < currentClusterId) {
+                newItemset.add(clusterId);
             }
-        }
+        }*/
 
-        //qSets.addAll(itemset);
+        newItemset.addAll(itemset.headSet(currentClusterId));
 
-        qSets.add(freq);
+        // this also has these
+        newItemset.add(currentClusterId);
 
-        SortedSet<Integer> lowerBoundSet = base.getClusterIds().tailSet(freq + 1);
+        SortedSet<Integer> lowerBoundSet = base.getClusterIds().tailSet(currentClusterId + 1);
+        // the future have this only if the transactions are in the clusterId
         for (int clusterId : lowerBoundSet) {
-            if (base.isClusterInTransactions(transactionIds, clusterId)) {
-                // TODO le bon trichage
-                if (base.getClusterTimeId(clusterId) != base.getClusterTimeId(freq))
-                    qSets.add(clusterId);
+            if (base.areTransactionsInCluster(transactionIds, clusterId)) {
+                newItemset.add(clusterId);
             }
         }
-        return qSets;
+
+        return newItemset;
     }
 
     /**
+     * Returns an updated list of transactions which are present in the clusters. These clusters need to be greater than needToCheckFromClusterId. If they are lower, they are not checked and the transaction is automatically added.
+     * <p>
      * <pre>
      * Lcm::UpdateTransactionList(const DataBase &database, const vector<int> &transactionList, const vector<int> &q_sets, int item, vector<int> &newTransactionList)
      * </pre>
      *
-     * @param base           (database)
-     * @param transactionIds (transactionList)
-     * @param itemset (q_sets)
-     * @param maxClusterId   (item)
+     * @param base                     (database)
+     * @param transactionIds           (transactionList) the transactions which are checked
+     * @param itemset                  (q_sets) an array containing the clusterIds which are checked
+     * @param needToCheckFromClusterId (item) the minimal clusterId from where we need to check if the transaction is contained in the cluster
      * @return (newTransactionList)
      */
     public static Set<Integer> updateTransactions(Base base, Set<Integer> transactionIds,
-                                                  ArrayList<Integer> itemset, int maxClusterId) {
+                                                  ArrayList<Integer> itemset, int needToCheckFromClusterId) {
         Set<Integer> newTransactionIds = new HashSet<>();
 
+        // foreach transaction in transactionIds
         for (int transactionId : transactionIds) {
             Transaction transaction = base.getTransaction(transactionId);
             boolean canAdd = true;
 
-            for (int clusterId : itemset) {
-                if (clusterId >= maxClusterId && !transaction.getClusterIds().contains(clusterId)) {
+            for (int itemsetClusterId : itemset) {// foreach cluster of the itemset
+                if (itemsetClusterId >= needToCheckFromClusterId && !transaction.getClusterIds().contains(itemsetClusterId)) {
+                    // if the cluster is greater than the needToCheckFromClusterId AND the transaction is not in it
+                    // then we can't add it, otherwise (if the itemsetClusterId is lower then no problem it works ?
+
                     canAdd = false;
+                    break;
                 }
             }
-            if (canAdd) {
+            // if the itemset has a greater clusterIds and if the transaction isn't in it then we don't add it ...
+            // otherwise open bar :D
+            if (canAdd) { // then we can add this transaction as it respects the protocol :D
                 newTransactionIds.add(transactionId);
             }
         }
@@ -113,21 +122,23 @@ public class GeneratorUtils {
      *
      * @param base                      (database)
      * @param transactionIds            (transactionList)
-     * @param newPathClusters           (gsub)
+     * @param newItemsetClusters        (gsub)
      * @param oldClustersFrequenceCount (freqList)
      * @param maxClusterId              (freq)
      * @return (newFreq)
      */
     public static ArrayList<Integer> updateClustersFrequenceCount(Base base, Set<Integer> transactionIds,
-                                                                  ArrayList<Integer> newPathClusters,
+                                                                  ArrayList<Integer> newItemsetClusters,
                                                                   ArrayList<Integer> oldClustersFrequenceCount, int maxClusterId) {
-        //On ajoute les frequences des itemsets de newPathClusters
+        //On ajoute les frequences des itemsets de newItemsetClusters
         ArrayList<Integer> clustersFrequenceCount = new ArrayList<>();
 
         int clusterIndex = 0;
+
         if (oldClustersFrequenceCount.size() > 0) {
-            for (; clusterIndex < newPathClusters.size(); clusterIndex++) {
-                if (newPathClusters.get(clusterIndex) >= maxClusterId) break;
+
+            for (; clusterIndex < newItemsetClusters.size(); clusterIndex++) {
+                if (newItemsetClusters.get(clusterIndex) >= maxClusterId) break;
                 clustersFrequenceCount.add(oldClustersFrequenceCount.get(clusterIndex));
             }
         }
@@ -139,23 +150,23 @@ public class GeneratorUtils {
         //              ajouter transaction dans newnewList
         //      ajouter compteur a newFreqlist
         //      newlist = newnewlist
-        ArrayList<Integer> previousList = new ArrayList<>(transactionIds);
+        ArrayList<Integer> currentTransactionCount = new ArrayList<>(transactionIds);
 
-        for (; clusterIndex < newPathClusters.size(); clusterIndex++) {
-            ArrayList<Integer> lastList = new ArrayList<>();
+        for (; clusterIndex < newItemsetClusters.size(); clusterIndex++) {
+            ArrayList<Integer> transactionsCount = new ArrayList<>();
 
-            int freqCount = 0;
+            int transactionCount = 0;
 
-            for (int transactionId : previousList) {
+            for (int transactionId : currentTransactionCount) {
                 Transaction transaction = base.getTransaction(transactionId);
 
-                if (transaction.getClusterIds().contains(newPathClusters.get(clusterIndex))) {
-                    freqCount++;
-                    lastList.add(transactionId);
+                if (transaction.getClusterIds().contains(newItemsetClusters.get(clusterIndex))) {
+                    ++transactionCount;
+                    transactionsCount.add(transactionId);
                 }
             }
-            clustersFrequenceCount.add(freqCount);
-            previousList = lastList;
+            clustersFrequenceCount.add(transactionCount);
+            currentTransactionCount = transactionsCount;
         }
 
         return clustersFrequenceCount;
@@ -169,30 +180,35 @@ public class GeneratorUtils {
      * @param transactionIds (transactionList) la liste des transactions
      * @param clusterId      (item) clusterId to find
      * @return true if the clusterId is in one of the transactions
-     * @deprecated not expressive naming use {@link DataBase#isClusterInTransactions(Set, int)}
+     * @deprecated not expressive naming use {@link DataBase#areTransactionsInCluster(Set, int)}
      */
     public static boolean CheckItemInclusion(Base base, Set<Integer> transactionIds, int clusterId) {
-        return base.isClusterInTransactions(transactionIds, clusterId);
+        return base.areTransactionsInCluster(transactionIds, clusterId);
     }
 
     /**
-     * Teste si p(i-1) == q(i-1)
+     * Checks if the itemset is the most englobing one. Has all the clusters that have these transaction
+     * <p>
+     * clusters lower than the maxClusterId
+     * <p>
      * <p>
      * <pre>
      * Lcm::PpcTest(database, []itemsets, []transactionList, item, []newTransactionList)
      * </pre>
      *
-     * @param itemset        (itemsets)
-     * @param maxClusterId   (item)
-     * @param transactionIds (newTransactionList)
+     * @param itemset        (itemsets) itemset to check
+     * @param maxClusterId   (item) upperbound of the clusterId
+     * @param transactionIds (newTransactionList) transactions to check
      * @return vrai si ppctest est réussi
      */
-    public static boolean ppcTest(final Base base, final TreeSet<Integer> itemset, final int maxClusterId, final Set<Integer> transactionIds) {
-        for (int clusterId = 0; clusterId < maxClusterId; clusterId++) {
-            if (!itemset.contains(clusterId) && base.isClusterInTransactions(transactionIds, clusterId)) {
+    public static boolean ppcTest(Base base, TreeSet<Integer> itemset, Set<Integer> transactionIds, final int maxClusterId) {
+        // checks if the itemset is the biggest one in the range.
+        for (int clusterId = base.getClusterIds().first(); clusterId < maxClusterId; clusterId++) {
+            if (!itemset.contains(clusterId) && base.areTransactionsInCluster(transactionIds, clusterId)) {
                 return false;
             }
         }
+
         return true;
     }
 

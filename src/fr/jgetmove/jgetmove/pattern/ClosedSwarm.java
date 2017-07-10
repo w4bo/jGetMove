@@ -2,6 +2,8 @@ package fr.jgetmove.jgetmove.pattern;
 
 import fr.jgetmove.jgetmove.database.Time;
 import fr.jgetmove.jgetmove.database.Transaction;
+import fr.jgetmove.jgetmove.debug.Debug;
+import fr.jgetmove.jgetmove.debug.PrettyPrint;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -12,7 +14,7 @@ import java.util.Set;
 /**
  * Class that represent a closed swarm pattern
  */
-public class ClosedSwarm extends Swarm {
+public class ClosedSwarm extends Swarm implements PrettyPrint {
 
     /**
      * List of transactions in the closed swarm
@@ -52,10 +54,6 @@ public class ClosedSwarm extends Swarm {
      */
     public Set<Time> getTimes() {
         return times;
-    }
-
-    public String toString() {
-        return "Closed Swarm :\n" + " transactions : [" + transactions + "]" + "times : " + times;
     }
 
     public String printGetTransactions() {
@@ -115,4 +113,13 @@ public class ClosedSwarm extends Swarm {
         return jsonLinks;
     }
 
+    @Override
+    public String toPrettyString() {
+        return "\n|-- transactions : " + transactions +
+                "\n`-- times : " + times;
+    }
+
+    public String toString() {
+        return "\nClosed Swarm :" + Debug.indent(toPrettyString());
+    }
 }

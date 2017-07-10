@@ -66,8 +66,8 @@ public class Time implements Comparable<Time>, PrettyPrint {
 
 
     @Override
-    public String toString() {
-        return "{" + id + "=" + String.valueOf(clusters.keySet()) + "}";
+    public int compareTo(Time time) {
+        return id - time.id;
     }
 
     @Override
@@ -77,7 +77,7 @@ public class Time implements Comparable<Time>, PrettyPrint {
     }
 
     @Override
-    public int compareTo(Time time) {
-        return id - time.id;
+    public String toString() {
+        return "{" + id + "=" + String.valueOf(clusters.keySet()) + "}";
     }
 }

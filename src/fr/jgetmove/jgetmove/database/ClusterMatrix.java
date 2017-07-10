@@ -82,13 +82,13 @@ public class ClusterMatrix implements PrettyPrint {
     }
 
     @Override
-    public String toString() {
-        return Debug.indent(toPrettyString());
-    }
-
-    @Override
     public String toPrettyString() {
         return "\n|-- ClusterMatrix :" + clusterTransactionsMatrix +
                 "\n`-- TimeMatrix :" + clusterTimeMatrix;
+    }
+
+    @Override
+    public String toString() {
+        return Debug.indent(toPrettyString());
     }
 }

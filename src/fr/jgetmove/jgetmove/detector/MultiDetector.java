@@ -11,5 +11,5 @@ import java.util.List;
  *
  */
 public interface MultiDetector extends Detector {
-    ArrayList<Pattern> detect(final DataBase defaultDataBase, final List<Itemset> itemset);
+    ArrayList<Pattern> detect(DataBase defaultDataBase, List<Itemset> itemset);
 }

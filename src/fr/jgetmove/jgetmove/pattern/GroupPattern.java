@@ -2,6 +2,8 @@ package fr.jgetmove.jgetmove.pattern;
 
 import fr.jgetmove.jgetmove.database.Time;
 import fr.jgetmove.jgetmove.database.Transaction;
+import fr.jgetmove.jgetmove.debug.Debug;
+import fr.jgetmove.jgetmove.debug.PrettyPrint;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -9,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class GroupPattern implements Pattern {
+public class GroupPattern implements Pattern, PrettyPrint {
     /**
      * Liste des transactions présents dans le GroupPattern
      */
@@ -67,10 +69,6 @@ public class GroupPattern implements Pattern {
     }
 
 
-    public String toString() {
-        return "GroupPattern:\n" + " transactions : [" + transactions + "]" + "times : " + times;
-    }
-
     public String printGetTransactions() {
         StringBuilder s = new StringBuilder();
         for (Transaction transaction : this.getTransactions()) {
@@ -119,5 +117,16 @@ public class GroupPattern implements Pattern {
         }
 
         return jsonLinks;
+    }
+
+    @Override
+    public String toPrettyString() {
+        return "\n|-- Transactions : " + transactions +
+                "\n`-- Times : " + times;
+    }
+
+    @Override
+    public String toString() {
+        return "\nGroup Pattern :" + Debug.indent(toPrettyString());
     }
 }
