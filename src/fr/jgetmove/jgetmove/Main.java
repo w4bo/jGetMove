@@ -12,6 +12,7 @@ import fr.jgetmove.jgetmove.exception.MalformedTimeIndexException;
 import fr.jgetmove.jgetmove.io.Input;
 import fr.jgetmove.jgetmove.io.Output;
 import fr.jgetmove.jgetmove.pattern.Pattern;
+import fr.jgetmove.jgetmove.solver.BlockMerger;
 import fr.jgetmove.jgetmove.solver.ItemsetsFinder;
 import fr.jgetmove.jgetmove.solver.Solver;
 
@@ -98,8 +99,9 @@ public class Main {
             DataBase dataBase = new DataBase(inputObj, inputTime);
             Debug.println("Database", dataBase, Debug.INFO);
 
-            //Init ItemsetsFinder
+            //Init ItemsetsFinder and BlockMerger
             ItemsetsFinder itemsetsFinder = new ItemsetsFinder(config);
+            BlockMerger blockMerger = new BlockMerger(config);
 
             // Initializes the detectors
             // Single detectors
@@ -116,7 +118,7 @@ public class Main {
 
             //Create solver, injecting the necessary objects (DI)
             Debug.printTitle("Solver Initialisation", Debug.INFO);
-            Solver solver = new Solver(itemsetsFinder, singleDetectors, multiDetectors, config);
+            Solver solver = new Solver(itemsetsFinder, blockMerger, singleDetectors, multiDetectors, config);
             Debug.println(solver, Debug.INFO);
 
 
@@ -129,7 +131,7 @@ public class Main {
             Debug.println("It took " + (System.nanoTime() - then) + "ns to find the itemsets", Debug.INFO);
             // merges the blocs (and so itemsets) and detect patterns from the result
             then = System.nanoTime();
-            HashMap<Detector, ArrayList<Pattern>> patterns = solver.detectPatterns(dataBase, results);
+            HashMap<Detector, ArrayList<Pattern>> patterns = solver.blockMerge(dataBase, results);
             Debug.println("It took " + (System.nanoTime() - then) + "ns to find generate the patterns", Debug.INFO);
             /*
              * JSON Output process

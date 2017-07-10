@@ -20,7 +20,7 @@ import java.util.*;
  * <p>
  * It's used to call {@link ItemsetsFinder} to detect all the itemsets per block
  * <p>
- * It's used to call {@link PatternGenerator} to merge them in a single array of itemsets used for detecting different patterns with their given detectors.
+ * It's used to call {@link BlockMerger} to merge them in a single array of itemsets used for detecting different patterns with their given detectors.
  */
 public class Solver implements PrettyPrint {
 
@@ -33,6 +33,11 @@ public class Solver implements PrettyPrint {
      * ItemsetsFinder that will handle the creation of itemsets
      */
     private ItemsetsFinder itemsetsFinder;
+
+    /**
+     * blockMerger will handle the fusion of the blocks
+     */
+    private BlockMerger blockMerger;
 
     /**
      * List of detectors called foreach itemset
@@ -53,13 +58,15 @@ public class Solver implements PrettyPrint {
      * Prepares the solver with all the elements used to detect patterns.
      *
      * @param itemsetsFinder  DI, has for function to find all the itemsets of the database
+     * @param blockMerger     DI, has for funtion to merge all the blocks created by the itemsetsFinder
      * @param singleDetectors initializes all the singleDetectors to use
      * @param multiDetectors  initializes all the multiDetectors to use
      * @param config          configuration
      */
-    public Solver(ItemsetsFinder itemsetsFinder,
+    public Solver(ItemsetsFinder itemsetsFinder, BlockMerger blockMerger,
                   Set<SingleDetector> singleDetectors, Set<MultiDetector> multiDetectors, DefaultConfig config) {
         this.itemsetsFinder = itemsetsFinder;
+        this.blockMerger = blockMerger;
         this.singleDetectors = singleDetectors;
         this.multiDetectors = multiDetectors;
         this.config = config;
@@ -164,64 +171,16 @@ public class Solver implements PrettyPrint {
     }
 
     /**
-     * Call PatternGenerator and launches the pattern detection system
+     * Call BlockMerger and launches the pattern detection system
      *
      * @return a HashMap SingleDetector -> ArrayList< Motif>
      */
-    public HashMap<Detector, ArrayList<Pattern>> detectPatterns(DataBase dataBase, ArrayList<ArrayList<Itemset>> results) {
+    public HashMap<Detector, ArrayList<Pattern>> blockMerge(DataBase dataBase, ArrayList<ArrayList<Itemset>> results) {
         Debug.printTitle("Detecting Patterns", Debug.INFO);
         Debug.println("MultiClustering doesn't work properly, please be careful", Debug.ERROR);
 
-        ArrayList<Itemset> itemsets = new ArrayList<>();
-        // setting a perf itemset-merged checker
-        ArrayList<ArrayList<Integer>> blockItemsetIndex = new ArrayList<>(results.size());
-        for (ArrayList<Itemset> result : results) {
-            ArrayList<Integer> itemsetIndex = new ArrayList<>(result.size());
-            for (int i = 0; i < result.size(); i++) {
-                itemsetIndex.add(i);
-            }
+        ArrayList<Itemset> itemsets = blockMerger.fuse(results, dataBase.getTransactionIds().size());
 
-            blockItemsetIndex.add(itemsetIndex);
-        }
-
-        int itemsetId = 0;
-        for (int blockId = 0, size = blockItemsetIndex.size() - 1; blockId < size; blockId++) {
-            for (Integer itemsetIndex : blockItemsetIndex.get(blockId)) {
-                Itemset tomerge = results.get(blockId).get(itemsetIndex);
-
-                Set<Integer> mergedClusters = new HashSet<>(tomerge.getClusters());
-                Set<Integer> mergedTimes = new HashSet<>(tomerge.getTimes());
-                Set<Integer> mergedTransactions = new HashSet<>(tomerge.getTransactions());
-
-                for (int itBlockId = blockId + 1, itSize = blockItemsetIndex.size(); itBlockId < itSize; ++itBlockId) {
-                    for (Iterator<Integer> iterator = blockItemsetIndex.get(itBlockId).iterator(); iterator.hasNext(); ) {
-                        Itemset toFuseItemset = results.get(itBlockId).get(iterator.next());
-
-                        if (tomerge.getTransactions().equals(toFuseItemset.getTransactions())) {
-                            mergedClusters.addAll(toFuseItemset.getClusters());
-                            mergedTimes.addAll(toFuseItemset.getTimes());
-                            // not fusing transactions because they are the same
-
-                            iterator.remove();
-                        }
-                    }
-                }
-
-                if (mergedClusters.size() > config.getMinTime()) {
-                    itemsets.add(new Itemset(itemsetId, mergedTransactions, mergedClusters, mergedTimes));
-                    ++itemsetId;
-                }
-
-            }
-        }
-
-        for (int itemsetIndex : blockItemsetIndex.get(blockItemsetIndex.size() - 1)) {
-            Itemset itemset = results.get(results.size() - 1).get(itemsetIndex);
-            if (itemset.getClusters().size() > config.getMinTime()) {
-                itemsets.add(new Itemset(itemsetId, itemset.getTransactions(), itemset.getClusters(), itemset.getTimes()));
-                ++itemsetId;
-            }
-        }
 
         Debug.println("Itemsets", itemsets, Debug.DEBUG);
         Debug.println("n° of itemsets", itemsets.size(), Debug.INFO);
