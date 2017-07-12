@@ -294,7 +294,6 @@ public class ItemsetsFinder {
      */
     private boolean saveItemset(final int itemsetId, ClusterMatrix clusterMatrix, TreeSet<Integer> itemsetClusters) {
         // then the itemset is possible
-        // the
         TreeSet<Integer> itemsetTransactions = clusterMatrix.getClusterTransactionIds(itemsetClusters.last());
 
         TreeSet<Integer> itemsetTimes = new TreeSet<>();

@@ -40,32 +40,35 @@ public class Itemset implements Comparable<Itemset>, PrettyPrint {
     }
 
     @Override
-    public int compareTo(Itemset p) {
-        if (clusters.equals(p.clusters) && transactions.equals(p.transactions)) {
+    public int compareTo(Itemset itemset) {
+        if (clusters.equals(itemset.clusters) && transactions.equals(itemset.transactions)) {
             return 0;
         }
 
-        //  if (clusters.size() == p.clusters.size()) {
-        Iterator<Integer> iterator = clusters.iterator();
-        Iterator<Integer> pIterator = p.clusters.iterator();
 
-        while (iterator.hasNext() && pIterator.hasNext()) {
-            int clusterId = iterator.next();
-            int pClusterId = pIterator.next();
-
-            if (clusterId != pClusterId) {
-                return clusterId - pClusterId;
-            }
+        if (transactions.equals(itemset.transactions)) {
+            itemset.times.addAll(times);
+            itemset.clusters.addAll(clusters);
+            times.addAll(itemset.times);
+            clusters.addAll(itemset.clusters);
+            return 0;
         }
-
-        if (iterator.hasNext()) {
+        if (transactions.containsAll(itemset.transactions)) {
+            itemset.times.addAll(times);
+            itemset.clusters.addAll(clusters);
             return 1;
-        } else if (pIterator.hasNext()) {
-            return 0;
+
         }
+
+        if (itemset.transactions.containsAll(transactions)) {
+            times.addAll(itemset.times);
+            clusters.addAll(itemset.clusters);
+            return -1;
+        }
+
 
         Iterator<Integer> transactionIt = transactions.iterator();
-        Iterator<Integer> pTransactionIt = p.transactions.iterator();
+        Iterator<Integer> pTransactionIt = itemset.transactions.iterator();
 
         while (transactionIt.hasNext() && pTransactionIt.hasNext()) {
             int transactionId = transactionIt.next();
@@ -76,13 +79,21 @@ public class Itemset implements Comparable<Itemset>, PrettyPrint {
             }
         }
 
-        if (transactionIt.hasNext()) {
-            return 1;
-        } else if (pIterator.hasNext()) {
-            return 0;
-        }
-
         return 0;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+
+        if (!(o instanceof Itemset))
+            return false;
+
+
+        Itemset i = (Itemset) o;
+
+        return (clusters.equals(i.clusters) && transactions.equals(i.transactions));
     }
 
 

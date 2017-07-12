@@ -78,7 +78,7 @@ public class GroupPattern implements Pattern, PrettyPrint {
         return s.substring(0, s.length() - 1);
     }
 
-    public List<JsonObject> getLinksToJson(int index) {
+    public List<JsonObject> getJsonLinks(int index) {
         ArrayList<Time> timeArrayList = new ArrayList<>(times);
         timeArrayList.sort(null);
         ArrayList<Transaction> transactionArrayList = new ArrayList<>(transactions);
