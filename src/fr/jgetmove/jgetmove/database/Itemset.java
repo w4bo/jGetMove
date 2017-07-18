@@ -45,28 +45,6 @@ public class Itemset implements Comparable<Itemset>, PrettyPrint {
             return 0;
         }
 
-
-        if (transactions.equals(itemset.transactions)) {
-            itemset.times.addAll(times);
-            itemset.clusters.addAll(clusters);
-            times.addAll(itemset.times);
-            clusters.addAll(itemset.clusters);
-            return 0;
-        }
-        if (transactions.containsAll(itemset.transactions)) {
-            itemset.times.addAll(times);
-            itemset.clusters.addAll(clusters);
-            return 1;
-
-        }
-
-        if (itemset.transactions.containsAll(transactions)) {
-            times.addAll(itemset.times);
-            clusters.addAll(itemset.clusters);
-            return -1;
-        }
-
-
         Iterator<Integer> transactionIt = transactions.iterator();
         Iterator<Integer> pTransactionIt = itemset.transactions.iterator();
 
@@ -78,6 +56,31 @@ public class Itemset implements Comparable<Itemset>, PrettyPrint {
                 return transactionId - pTransactionId;
             }
         }
+
+        if (transactionIt.hasNext()) {
+            return 1;
+        } else if (pTransactionIt.hasNext()) {
+            return -1;
+        }
+
+        Iterator<Integer> clusterIt = clusters.iterator();
+        Iterator<Integer> pClusterIt = itemset.clusters.iterator();
+
+        while (clusterIt.hasNext() && pClusterIt.hasNext()) {
+            int clusterId = clusterIt.next();
+            int pClusterId = pClusterIt.next();
+
+            if (clusterId != pClusterId) {
+                return clusterId - pClusterId;
+            }
+        }
+
+        if (clusterIt.hasNext()) {
+            return 1;
+        } else if (pClusterIt.hasNext()) {
+            return -1;
+        }
+
 
         return 0;
     }

@@ -14,6 +14,7 @@ import fr.jgetmove.jgetmove.io.Output;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 import fr.jgetmove.jgetmove.solver.BlockMerger;
 import fr.jgetmove.jgetmove.solver.ItemsetsFinder;
+import fr.jgetmove.jgetmove.solver.OptimizedItemsetsFinder;
 import fr.jgetmove.jgetmove.solver.Solver;
 
 import javax.json.JsonObjectBuilder;
@@ -100,7 +101,7 @@ public class Main {
             Debug.println("Database", dataBase, Debug.INFO);
 
             //Init ItemsetsFinder and BlockMerger
-            ItemsetsFinder itemsetsFinder = new ItemsetsFinder(config);
+            ItemsetsFinder itemsetsFinder = new OptimizedItemsetsFinder(config);
             BlockMerger blockMerger = new BlockMerger(config);
 
             // Initializes the detectors
@@ -109,12 +110,12 @@ public class Main {
             singleDetectors.add(new ConvoyDetector(minTime));
             singleDetectors.add(new ClosedSwarmDetector(minTime));
             //TODO Change GroupPatternDetector singleDetector -> multiDetector
-            singleDetectors.add(new GroupPatternDetector(minTime, commonObjectPercentage));
 
             // multi detectors
             Set<MultiDetector> multiDetectors = new HashSet<>();
             multiDetectors.add(new DivergentDetector());
             multiDetectors.add(new ConvergentDetector());
+            multiDetectors.add(new GroupPatternDetector(minTime, commonObjectPercentage));
 
             //Create solver, injecting the necessary objects (DI)
             Debug.printTitle("Solver Initialisation", Debug.INFO);

@@ -49,7 +49,7 @@ public class Solver implements PrettyPrint {
     /**
      * List of detectors called once, passing all the itemsets
      *
-     * @see MultiDetector#detect(DataBase, List)
+     * @see MultiDetector#detect(DataBase, Collection)
      */
     private Set<MultiDetector> multiDetectors;
 
