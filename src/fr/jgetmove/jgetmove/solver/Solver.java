@@ -203,7 +203,7 @@ public class Solver implements PrettyPrint {
         }
 
         Base itemsetBase = new Base(clustersTransactions, clustersTime);
-        ArrayList<Itemset> supersets = itemsetsFinder.generate(itemsetBase, 0);
+        ArrayList<Itemset> supersets = blockMerger.generate(itemsetBase);
 
         // now we know which itemsets are together (each cluster of the superset is an itemset) we need to retrieve them with the equivalence table and flatten the results il a single list of itemsets
 
@@ -222,7 +222,7 @@ public class Solver implements PrettyPrint {
 
                 mergedClusters.addAll(itemset.getClusters());
                 mergedTimes.addAll(itemset.getTimes());
-                mergedTransactions.addAll(itemset.getTransactions());
+                mergedTransactions.addAll(superset.getTransactions());
 
             }
             if (mergedClusters.size() >= config.getMinTime()) {

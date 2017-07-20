@@ -45,44 +45,31 @@ public class Itemset implements Comparable<Itemset>, PrettyPrint {
             return 0;
         }
 
-        Iterator<Integer> transactionIt = transactions.iterator();
-        Iterator<Integer> pTransactionIt = itemset.transactions.iterator();
+        Integer transactionComparator = compareIterators(transactions.iterator(), itemset.transactions.iterator());
+        if (transactionComparator != null) return transactionComparator;
 
-        while (transactionIt.hasNext() && pTransactionIt.hasNext()) {
-            int transactionId = transactionIt.next();
-            int pTransactionId = pTransactionIt.next();
+        Integer clusterComparator = compareIterators(clusters.iterator(), itemset.clusters.iterator());
+        if (clusterComparator != null) return clusterComparator;
+
+        return 0;
+    }
+
+    private Integer compareIterators(Iterator<Integer> first, Iterator<Integer> second) {
+        while (first.hasNext() && second.hasNext()) {
+            int transactionId = first.next();
+            int pTransactionId = second.next();
 
             if (transactionId != pTransactionId) {
                 return transactionId - pTransactionId;
             }
         }
 
-        if (transactionIt.hasNext()) {
+        if (first.hasNext()) {
             return 1;
-        } else if (pTransactionIt.hasNext()) {
+        } else if (second.hasNext()) {
             return -1;
         }
-
-        Iterator<Integer> clusterIt = clusters.iterator();
-        Iterator<Integer> pClusterIt = itemset.clusters.iterator();
-
-        while (clusterIt.hasNext() && pClusterIt.hasNext()) {
-            int clusterId = clusterIt.next();
-            int pClusterId = pClusterIt.next();
-
-            if (clusterId != pClusterId) {
-                return clusterId - pClusterId;
-            }
-        }
-
-        if (clusterIt.hasNext()) {
-            return 1;
-        } else if (pClusterIt.hasNext()) {
-            return -1;
-        }
-
-
-        return 0;
+        return null;
     }
 
     @Override
@@ -96,7 +83,7 @@ public class Itemset implements Comparable<Itemset>, PrettyPrint {
 
         Itemset i = (Itemset) o;
 
-        return (clusters.equals(i.clusters) && transactions.equals(i.transactions));
+        return clusters.equals(i.clusters) && transactions.equals(i.transactions);
     }
 
 

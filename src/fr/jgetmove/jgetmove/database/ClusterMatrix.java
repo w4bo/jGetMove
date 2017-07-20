@@ -4,8 +4,8 @@ import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.PrettyPrint;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * Used in ItemsetDetector, holds a {@link Cluster}-{@link Time} matrix and a {@link Cluster}-{@link Transaction} matrix
@@ -13,7 +13,7 @@ import java.util.TreeSet;
 public class ClusterMatrix implements PrettyPrint {
 
     private HashMap<Integer, Integer> clusterTimeMatrix;
-    private HashMap<Integer, TreeSet<Integer>> clusterTransactionsMatrix;
+    private HashMap<Integer, HashSet<Integer>> clusterTransactionsMatrix;
 
 
     /**
@@ -29,7 +29,7 @@ public class ClusterMatrix implements PrettyPrint {
             for (int clusterId : transaction.getClusterIds()) {
 
                 if (!clusterTransactionsMatrix.containsKey(clusterId)) {
-                    clusterTransactionsMatrix.put(clusterId, new TreeSet<>());
+                    clusterTransactionsMatrix.put(clusterId, new HashSet<>());
                     clusterTimeMatrix.put(clusterId, base.getClusterTimeId(clusterId));
                 }
 
@@ -42,7 +42,7 @@ public class ClusterMatrix implements PrettyPrint {
      * @param clusterId the identifier of the cluster
      * @return the time id of the given cluster
      */
-    public int getClusterTimeId(int clusterId) {
+    public int getTimeId(int clusterId) {
         return clusterTimeMatrix.get(clusterId);
     }
 
@@ -50,7 +50,7 @@ public class ClusterMatrix implements PrettyPrint {
      * @param clusterId cluster's identifier
      * @return returns all the transactions of a cluster as a treeset
      */
-    public TreeSet<Integer> getClusterTransactionIds(int clusterId) {
+    public HashSet<Integer> getTransactionIds(int clusterId) {
         return clusterTransactionsMatrix.get(clusterId);
     }
 
@@ -72,7 +72,7 @@ public class ClusterMatrix implements PrettyPrint {
 
             for (int clusterId : clusterIds) {
                 if (!clusterTransactionsMatrix.containsKey(clusterId)) {
-                    clusterTransactionsMatrix.put(clusterId, new TreeSet<>());
+                    clusterTransactionsMatrix.put(clusterId, new HashSet<>());
                     clusterTimeMatrix.put(clusterId, base.getClusterTimeId(clusterId));
                 }
 

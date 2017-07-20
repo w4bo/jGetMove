@@ -9,10 +9,7 @@ import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.TraceMethod;
 import fr.jgetmove.jgetmove.utils.GeneratorUtils;
 
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Finds the itemsets
@@ -192,7 +189,6 @@ public class ItemsetsFinder {
      * @param clusterIds             (itemsets) une liste representant les id
      * @param transactionIds         (transactionList)
      * @param clustersFrequenceCount (freqList) une liste representant les clusterIds frequents
-     * @param itemsetId              (pathId)
      */
     @TraceMethod(displayTitle = true)
     void run(Base base, ClusterMatrix clusterMatrix, ArrayList<Integer> clusterIds,
@@ -236,7 +232,7 @@ public class ItemsetsFinder {
             // if the cluster is not in the already added in the itemset
             // and has more than the minimal amount of transactions
             for (int clusterId : clustersTailSet) {
-                if (!clusterIds.contains(clusterId) && clusterMatrix.getClusterTransactionIds(clusterId).size() >= minSupport) {
+                if (!clusterIds.contains(clusterId) && clusterMatrix.getTransactionIds(clusterId).size() >= minSupport) {
                     maxClusterIdsOfItemsets.add(clusterId);
                 }
             }
@@ -287,11 +283,11 @@ public class ItemsetsFinder {
      */
     boolean saveItemset(ClusterMatrix clusterMatrix, TreeSet<Integer> itemsetClusters) {
         // then the itemset is possible
-        TreeSet<Integer> itemsetTransactions = clusterMatrix.getClusterTransactionIds(itemsetClusters.last());
+        HashSet<Integer> itemsetTransactions = clusterMatrix.getTransactionIds(itemsetClusters.last());
 
         TreeSet<Integer> itemsetTimes = new TreeSet<>();
         for (Integer clusterId : itemsetClusters) {
-            itemsetTimes.add(clusterMatrix.getClusterTimeId(clusterId));
+            itemsetTimes.add(clusterMatrix.getTimeId(clusterId));
         }
         // so we add it to the final list
         Itemset itemset = new Itemset(itemsets.size(), itemsetTransactions, itemsetClusters, itemsetTimes);

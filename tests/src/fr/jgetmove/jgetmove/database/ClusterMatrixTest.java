@@ -31,31 +31,31 @@ class ClusterMatrixTest {
 
     @Test
     void getClusterTimeId() {
-        assertEquals(1, clusterMatrix.getClusterTimeId(0));
-        assertEquals(1, clusterMatrix.getClusterTimeId(1));
-        assertEquals(2, clusterMatrix.getClusterTimeId(2));
-        assertEquals(2, clusterMatrix.getClusterTimeId(3));
-        assertEquals(3, clusterMatrix.getClusterTimeId(4));
+        assertEquals(1, clusterMatrix.getTimeId(0));
+        assertEquals(1, clusterMatrix.getTimeId(1));
+        assertEquals(2, clusterMatrix.getTimeId(2));
+        assertEquals(2, clusterMatrix.getTimeId(3));
+        assertEquals(3, clusterMatrix.getTimeId(4));
     }
 
     @Test
     void getClusterTransactionIds() {
-        assertTrue(clusterMatrix.getClusterTransactionIds(0).contains(0));
-        assertEquals(1, clusterMatrix.getClusterTransactionIds(0).size());
+        assertTrue(clusterMatrix.getTransactionIds(0).contains(0));
+        assertEquals(1, clusterMatrix.getTransactionIds(0).size());
 
-        assertTrue(clusterMatrix.getClusterTransactionIds(1).contains(1));
-        assertEquals(1, clusterMatrix.getClusterTransactionIds(1).size());
+        assertTrue(clusterMatrix.getTransactionIds(1).contains(1));
+        assertEquals(1, clusterMatrix.getTransactionIds(1).size());
 
-        assertTrue(clusterMatrix.getClusterTransactionIds(0).contains(0));
-        assertEquals(1, clusterMatrix.getClusterTransactionIds(2).size());
+        assertTrue(clusterMatrix.getTransactionIds(0).contains(0));
+        assertEquals(1, clusterMatrix.getTransactionIds(2).size());
 
-        assertTrue(clusterMatrix.getClusterTransactionIds(1).contains(1));
+        assertTrue(clusterMatrix.getTransactionIds(1).contains(1));
 
-        assertEquals(1, clusterMatrix.getClusterTransactionIds(3).size());
+        assertEquals(1, clusterMatrix.getTransactionIds(3).size());
 
-        assertTrue(clusterMatrix.getClusterTransactionIds(0).contains(0));
-        assertTrue(clusterMatrix.getClusterTransactionIds(1).contains(1));
-        assertEquals(2, clusterMatrix.getClusterTransactionIds(4).size());
+        assertTrue(clusterMatrix.getTransactionIds(0).contains(0));
+        assertTrue(clusterMatrix.getTransactionIds(1).contains(1));
+        assertEquals(2, clusterMatrix.getTransactionIds(4).size());
     }
 
     @Test
@@ -66,18 +66,18 @@ class ClusterMatrixTest {
         set.add(1);
         clusterMatrix.optimizeMatrix(dataBase, set);
 
-        assertEquals(0, clusterMatrix.getClusterTransactionIds(0).size());
+        assertEquals(0, clusterMatrix.getTransactionIds(0).size());
 
-        assertTrue(clusterMatrix.getClusterTransactionIds(1).contains(1));
-        assertEquals(1, clusterMatrix.getClusterTransactionIds(1).size());
+        assertTrue(clusterMatrix.getTransactionIds(1).contains(1));
+        assertEquals(1, clusterMatrix.getTransactionIds(1).size());
 
-        assertEquals(0, clusterMatrix.getClusterTransactionIds(2).size());
+        assertEquals(0, clusterMatrix.getTransactionIds(2).size());
 
-        assertTrue(clusterMatrix.getClusterTransactionIds(1).contains(1));
-        assertEquals(1, clusterMatrix.getClusterTransactionIds(3).size());
+        assertTrue(clusterMatrix.getTransactionIds(1).contains(1));
+        assertEquals(1, clusterMatrix.getTransactionIds(3).size());
 
-        assertTrue(clusterMatrix.getClusterTransactionIds(1).contains(1));
-        assertEquals(1, clusterMatrix.getClusterTransactionIds(4).size());
+        assertTrue(clusterMatrix.getTransactionIds(1).contains(1));
+        assertEquals(1, clusterMatrix.getTransactionIds(4).size());
 
     }
 }
