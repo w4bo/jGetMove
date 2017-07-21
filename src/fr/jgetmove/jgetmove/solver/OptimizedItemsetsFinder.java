@@ -18,7 +18,6 @@ public class OptimizedItemsetsFinder extends ItemsetsFinder {
         super(config);
     }
 
-
     /**
      * {@inheritDoc}
      */
@@ -39,73 +38,46 @@ public class OptimizedItemsetsFinder extends ItemsetsFinder {
         // important if has multiple blocks it needs to be cleaned.
         this.itemsets.clear();
 
+        HashSet<Set<Integer>> doneTransactionSets = new HashSet<>(base.getClusters().size());
+
         for (Cluster cluster : base.getClusters().values()) {
+            // checking wether the transactions of the current cluster are (a part of/the same as) the transations of headClusters
+            if (doneTransactionSets.contains(cluster.getTransactions().keySet())) continue;
+
             clusterMatrix.optimizeMatrix(base, cluster.getTransactions().keySet());
 
-            SortedSet<Integer> headClusters = base.getClusterIds().headSet(cluster.getId());
-            HashSet<HashSet<Integer>> headClusterTransactions = new HashSet<>(headClusters.size());
-
-            boolean pass = false;
-            int currentClusterSize = cluster.getTransactions().size();
-
-            // TODO : transform to iterator to avoid creating headclusters and tailclusters
-            for (int clusterId : headClusters) {
-                HashSet<Integer> clusterTransactions = clusterMatrix.getTransactionIds(clusterId);
-
-                if (clusterTransactions.size() == currentClusterSize) {
-                    pass = true;
-                    break;
-                }
-
-                headClusterTransactions.add(clusterTransactions);
-            }
-
-            if (pass || currentClusterSize < minSupport) {
-                continue;
-            }
             Debug.printTitle("Current Cluster:" + cluster.getId(), Debug.DEBUG);
             Debug.println("ClusterMatrix", clusterMatrix, Debug.DEBUG);
 
-            SortedSet<Integer> tailClusters = base.getClusterIds().tailSet(cluster.getId());
-            HashMap<HashSet<Integer>, TreeSet<Integer>> tailClusterTransaction = new HashMap<>(tailClusters.size());
+            HashMap<HashSet<Integer>, TreeSet<Integer>> tailClusterTransaction = new HashMap<>(clusterMatrix.getClusterIds().size());
 
-            for (int clusterId : tailClusters) {
+            HashSet<HashSet<Integer>> doneForNextIteration = new HashSet<>(clusterMatrix.getClusterIds().size());
+            for (int clusterId : clusterMatrix.getClusterIds()) {
                 HashSet<Integer> transactions = clusterMatrix.getTransactionIds(clusterId);
 
-                if (transactions.size() < minSupport) {
-                    continue;
-                }
-
-                pass = false;
-                for (HashSet<Integer> headTransactions : headClusterTransactions) {
-                    if (headTransactions.containsAll(transactions)) {
-                        pass = true;
-                    }
-                }
-                if (pass) {
-                    continue;
-                }
+                if (transactions.size() < minSupport) continue;
+                if (doneTransactionSets.contains(transactions)) continue;
+                doneForNextIteration.add(transactions);
 
                 tailClusterTransaction.computeIfAbsent(transactions, key -> new TreeSet<>()).add(clusterId);
             }
+            doneTransactionSets.addAll(doneForNextIteration);
 
-            Debug.println("tailClusterTransaction", tailClusterTransaction, Debug.DEBUG);
+            Debug.println("TailClusterTransaction", tailClusterTransaction, Debug.DEBUG);
 
             for (Map.Entry<HashSet<Integer>, TreeSet<Integer>> entry : tailClusterTransaction.entrySet()) {
                 HashSet<Integer> transactions = entry.getKey();
                 TreeSet<Integer> clusters = entry.getValue();
 
-                for (Map.Entry<HashSet<Integer>, TreeSet<Integer>> entryIter : tailClusterTransaction.entrySet()) {
-                    HashSet<Integer> transactionsIter = entryIter.getKey();
-                    TreeSet<Integer> clustersIter = entryIter.getValue();
-
-                    if (transactions.size() < transactionsIter.size() && transactionsIter.containsAll(transactions)) {
-                        clusters.addAll(clustersIter);
+                for (int clusterId : clusterMatrix.getClusterIds()) {
+                    HashSet<Integer> transactionsIter = clusterMatrix.getTransactionIds(clusterId);
+                    if (transactionsIter.size() > transactions.size() && transactionsIter.containsAll(transactions)) {
+                        clusters.add(clusterId);
                     }
                 }
             }
 
-            Debug.println("tailClusterTransaction", tailClusterTransaction, Debug.DEBUG);
+            Debug.println("TailClusterTransactions Updated", tailClusterTransaction, Debug.DEBUG);
 
             for (Map.Entry<HashSet<Integer>, TreeSet<Integer>> itemsetClusters : tailClusterTransaction.entrySet()) {
                 ArrayList<TreeSet<Integer>> itemsets = generateItemsets(base, new ArrayList<>(itemsetClusters.getValue()));
@@ -118,8 +90,6 @@ public class OptimizedItemsetsFinder extends ItemsetsFinder {
                     }
                 }
             }
-
-
         }
 
         Debug.println("Itemsets", itemsets, Debug.DEBUG);
@@ -134,7 +104,7 @@ public class OptimizedItemsetsFinder extends ItemsetsFinder {
      * @param itemsetClusters clusters of the itemset
      * @see Itemset#compareTo(Itemset) to understand how the verification is made.
      */
-    void saveItemset(ClusterMatrix clusterMatrix, TreeSet<Integer> itemsetClusters, HashSet<Integer> itemsetTransactions) {
+    private void saveItemset(ClusterMatrix clusterMatrix, TreeSet<Integer> itemsetClusters, HashSet<Integer> itemsetTransactions) {
         // then the itemset is possible
         TreeSet<Integer> itemsetTimes = new TreeSet<>();
         for (Integer clusterId : itemsetClusters) {

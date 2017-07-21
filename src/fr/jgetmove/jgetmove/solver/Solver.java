@@ -193,11 +193,12 @@ public class Solver implements PrettyPrint {
         int clusterId = 0;
         for (int blockIndex = 0, resultsSize = results.size(); blockIndex < resultsSize; blockIndex++) {
             int timeId = blockIndex + 1;
+            ArrayList<Itemset> block = results.get(blockIndex);
 
-            for (Itemset itemset : results.get(blockIndex)) {
+            for (int itemsetIndex = 0; itemsetIndex < block.size(); itemsetIndex++) {
                 clustersTime.put(clusterId, timeId);
-                clustersTransactions.put(clusterId, itemset.getTransactions());
-                equivalenceTable.put(clusterId, new int[]{blockIndex, itemset.getId()});
+                clustersTransactions.put(clusterId, block.get(itemsetIndex).getTransactions());
+                equivalenceTable.put(clusterId, new int[]{blockIndex, itemsetIndex});
                 ++clusterId;
             }
         }
@@ -225,7 +226,7 @@ public class Solver implements PrettyPrint {
                 mergedTransactions.addAll(superset.getTransactions());
 
             }
-            if (mergedClusters.size() >= config.getMinTime()) {
+            if (mergedClusters.size() > config.getMinTime()) {
                 Itemset itemset = new Itemset(itemsets.size(), mergedTransactions, mergedClusters, mergedTimes);
                 itemsets.add(itemset);
             }

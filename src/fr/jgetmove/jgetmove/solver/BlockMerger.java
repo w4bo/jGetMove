@@ -6,17 +6,24 @@ import fr.jgetmove.jgetmove.database.Cluster;
 import fr.jgetmove.jgetmove.database.ClusterMatrix;
 import fr.jgetmove.jgetmove.database.Itemset;
 import fr.jgetmove.jgetmove.debug.Debug;
+import fr.jgetmove.jgetmove.debug.TraceMethod;
 
 import java.util.*;
 
-public class BlockMerger extends OptimizedItemsetsFinder {
+public class BlockMerger {
+    private final int minSupport;
+    protected TreeSet<Itemset> itemsets;
+
+
     /**
      * Initialise le solveur.
      */
     public BlockMerger(DefaultConfig config) {
-        super(config);
+        minSupport = config.getMinSupport();
+        itemsets = new TreeSet<>();
     }
 
+    @TraceMethod
     ArrayList<Itemset> generate(Base base) {
         final int nbOfTimes = base.getTimeIds().size();
         Debug.println("Base", base, Debug.DEBUG);
@@ -26,30 +33,24 @@ public class BlockMerger extends OptimizedItemsetsFinder {
 
         ClusterMatrix clusterMatrix = new ClusterMatrix(base);
 
+        // main loop for each cluster
+        HashSet<HashSet<Integer>> doneTransactions = new HashSet<>(base.getClusters().size());
         for (Cluster cluster : base.getClusters().values()) {
             clusterMatrix.optimizeMatrix(base, cluster.getTransactions().keySet());
             final int currentclusterId = cluster.getId();
 
             HashSet<Integer> currentTransactions = clusterMatrix.getTransactionIds(currentclusterId);
-
             final int currentClusterSize = currentTransactions.size();
-            if (currentClusterSize < minSupport) {
-                continue;
-            }
 
-            // getting all the cluster preceding the current one
-            SortedSet<Integer> headClusters = base.getClusterIds().headSet(currentclusterId);
-
-            // getting the transactionSets which need to be ignored
-            HashSet<HashSet<Integer>> doneTransactions = doneTransactionHashs(clusterMatrix, headClusters, currentClusterSize);
-            // checking wether the transactions of the current cluster are (a part of/the same as) the transations of headClusters
-            if (doneTransactions == null) continue;
+            if (doneTransactions.contains(currentTransactions)) continue;
+            if (currentClusterSize < minSupport) continue;
 
             Debug.printTitle("Current Cluster:" + currentclusterId, Debug.DEBUG);
             Debug.println("ClusterMatrix", clusterMatrix, Debug.DEBUG);
+            Debug.println("DoneTransactions", doneTransactions, Debug.DEBUG);
 
             // getting all the clusters folowing the current one (included)
-            SortedSet<Integer> tailClusters = base.getClusterIds().tailSet(currentclusterId);
+            SortedSet<Integer> tailClusters = clusterMatrix.getClusterIds().tailSet(currentclusterId);
             // setting up all the detected clusters to add to the itemset
             HashMap<HashSet<Integer>, TreeSet<Integer>> detectedItemsets = new HashMap<>(tailClusters.size());
 
@@ -57,90 +58,72 @@ public class BlockMerger extends OptimizedItemsetsFinder {
             HashMap<Integer, HashMap<HashSet<Integer>, Integer>> minimalClusterForTransaction = new HashMap<>(nbOfTimes);
 
             // minimalClusterForTransaction setup
+            HashSet<HashSet<Integer>> doneForNextIteration = new HashSet<>(clusterMatrix.getClusterIds().size());
             for (int clusterId : tailClusters) {
                 HashSet<Integer> transactions = clusterMatrix.getTransactionIds(clusterId);
+
                 if (transactions.size() == 0) continue;
                 if (doneTransactions.contains(transactions)) continue;
+                doneForNextIteration.add(transactions);
 
                 Integer timeId = clusterMatrix.getTimeId(clusterId);
 
                 Integer minClusterId = minimalClusterForTransaction.computeIfAbsent(timeId,
                         t -> new HashMap<>(currentClusterSize * currentClusterSize)).get(transactions);
+
                 if (minClusterId == null ||
                         base.getClusterTransactions(clusterId).size() < base.getClusterTransactions(minClusterId).size()) {
                     minClusterId = clusterId;
                 }
+
                 minimalClusterForTransaction.get(timeId).put(transactions, minClusterId);
             }
+            doneTransactions.addAll(doneForNextIteration);
+
+
             Debug.println("minimalClusterForTransaction", minimalClusterForTransaction, Debug.DEBUG);
 
-            for (int clusterId : tailClusters) {
-                HashSet<Integer> transactions = clusterMatrix.getTransactionIds(clusterId);
-                if (transactions.size() == 0) continue;
-                if (doneTransactions.contains(transactions)) continue;
+            for (Map.Entry<Integer, HashMap<HashSet<Integer>, Integer>> entry : minimalClusterForTransaction.entrySet()) {
+                for (Map.Entry<HashSet<Integer>, Integer> entryCopy : entry.getValue().entrySet()) {
+                    detectedItemsets.computeIfAbsent(entryCopy.getKey(), key -> new TreeSet<>()).add(entryCopy.getValue());
+                }
 
-                for (int timeId = 1; timeId <= nbOfTimes; timeId++) {
-                    if (!minimalClusterForTransaction.containsKey(timeId))
-                        minimalClusterForTransaction.put(timeId, new HashMap<>(currentClusterSize * currentClusterSize));
-                    if (minimalClusterForTransaction.get(timeId).get(transactions) != null) continue;
+                for (Map.Entry<Integer, HashMap<HashSet<Integer>, Integer>> entryIter : minimalClusterForTransaction.entrySet()) {
+                    int timeIdIter = entryIter.getKey();
+                    // if it's the same time : ignore it
+                    if (entry.getKey() == timeIdIter) continue;
 
-                    HashSet<Integer> minimalEnglobing = new HashSet<>();
-                    int minimalCluster = -1; // random
-                    for (Map.Entry<HashSet<Integer>, Integer> englobingEntry : minimalClusterForTransaction.get(timeId).entrySet()) {
-                        HashSet<Integer> englobingTransactions = englobingEntry.getKey();
-                        if (englobingTransactions.size() <= transactions.size()) continue;
+                    for (HashSet<Integer> transactions : entry.getValue().keySet()) {
+                        HashMap<HashSet<Integer>, Integer> transactionsClusterIter = entryIter.getValue();
 
-                        if (englobingTransactions.containsAll(transactions)) {
-                            /// wohoo gold
-                            if (englobingTransactions.size() == transactions.size() + 1) {
-                                minimalCluster = englobingEntry.getValue();
-                                break;
-                            }
+                        // if the transactionSet is already present on this time
+                        if (transactionsClusterIter.get(transactions) != null) continue;
 
-                            if (englobingTransactions.size() < minimalEnglobing.size() && minimalCluster != -1) {
-                                minimalEnglobing = englobingTransactions;
-                                minimalCluster = englobingEntry.getValue();
+                        HashSet<Integer> minimalEnglobing = new HashSet<>();
+                        int minimalCluster = -1; // random
+                        for (Map.Entry<HashSet<Integer>, Integer> englobingEntry : entryIter.getValue().entrySet()) {
+                            HashSet<Integer> englobingTransactions = englobingEntry.getKey();
+
+                            if (englobingTransactions.size() <= transactions.size()) continue;
+
+                            if (englobingTransactions.containsAll(transactions)) {
+                                /// wohoo gold
+                                if (englobingTransactions.size() == transactions.size() + 1) {
+                                    minimalCluster = englobingEntry.getValue();
+                                    break;
+                                }
+
+                                if (englobingTransactions.size() < minimalEnglobing.size() || minimalCluster == -1) {
+                                    minimalEnglobing = englobingTransactions;
+                                    minimalCluster = englobingEntry.getValue();
+                                }
                             }
                         }
-                    }
-
-                    minimalClusterForTransaction.get(timeId).put(transactions, minimalCluster);
-                }
-            }
-
-            Debug.println("minimalClusterForTransaction", minimalClusterForTransaction, Debug.DEBUG);
-
-            // detecting all the itemset that can be created
-            for (int clusterId : tailClusters) {
-                int timeId = clusterMatrix.getTimeId(clusterId);
-
-                HashSet<Integer> transactions = clusterMatrix.getTransactionIds(clusterId);
-
-                // if it doesn't have enough transactions
-                if (transactions.size() < minSupport) continue;
-
-                // if it's not one which is contained in the already done one
-                if (doneTransactions.contains(transactions)) continue;
-
-                // if it's not the minimal one
-                Integer minimalCluster = minimalClusterForTransaction.get(timeId).get(transactions);
-                if (minimalCluster != null && minimalCluster != clusterId) continue;
-
-                // if it's not one which is included in headTransaction (or englobed in)
-                boolean inHeadClusters = false;
-                for (HashSet<Integer> headTransactions : doneTransactions) {
-                    if (headTransactions.containsAll(transactions)) {
-                        inHeadClusters = true;
-                        break;
+                        if (minimalCluster != -1) {
+                            detectedItemsets.computeIfAbsent(transactions, key -> new TreeSet<>()).add(minimalCluster);
+                        }
                     }
                 }
-                if (inHeadClusters) {
-                    continue;
-                }
-
-                // well adding it to the detected itemsets
-                detectedItemsets.computeIfAbsent(transactions, key -> new TreeSet<>()).add(clusterId);
-                // TODO : times of itemset
             }
 
             Debug.println("detectedItemsets", detectedItemsets, Debug.DEBUG);
@@ -156,28 +139,21 @@ public class BlockMerger extends OptimizedItemsetsFinder {
     }
 
     /**
-     * Computes all the transaction hashsets which have already been done by the iterator
-     * <p>
-     * All the clusters (preceding the current one) containing a part of the transactions of the current itemset have computed all the possible itemsets with these transactions, so it's useless to compute them again.
-     * <p>
-     * If the transactions of a clusters are (or included) in a precedent cluster, it's not useful to compute the current itemset, th funciton returns false
+     * Creates and adds the itemset. Will return <tt>true</tt> if the itemset wasn't already saved.
      *
-     * @param clusterMatrix      containing the reduced database, only contains the transactions of the current cluster
-     * @param currentClusterSize size of the current cluster
-     * @param headClusters       contains all the clusters preceding the current one ({@link SortedSet#headSet(Object)})
-     * @return all the TransactionSets wich need to be ignored or false if the transactions of the current cluster are or are a part of a cluster present in headClusters
+     * @param clusterMatrix   will be used to retrieve the list of transactions and times
+     * @param itemsetClusters clusters of the itemset
+     * @see Itemset#compareTo(Itemset) to understand how the verification is made.
      */
-    private HashSet<HashSet<Integer>> doneTransactionHashs(ClusterMatrix clusterMatrix, SortedSet<Integer> headClusters, final int currentClusterSize) {
-        HashSet<HashSet<Integer>> headClustersTransactions = new HashSet<>(headClusters.size());
-        for (int clusterId : headClusters) {
-            HashSet<Integer> clusterTransactions = clusterMatrix.getTransactionIds(clusterId);
-
-            if (clusterTransactions.size() == currentClusterSize) {
-                return null;
-            }
-
-            headClustersTransactions.add(clusterTransactions);
+    private void saveItemset(ClusterMatrix clusterMatrix, TreeSet<Integer> itemsetClusters, HashSet<Integer> itemsetTransactions) {
+        // then the itemset is possible
+        TreeSet<Integer> itemsetTimes = new TreeSet<>();
+        for (Integer clusterId : itemsetClusters) {
+            itemsetTimes.add(clusterMatrix.getTimeId(clusterId));
         }
-        return headClustersTransactions;
+        // so we add it to the final list
+        Itemset itemset = new Itemset(itemsets.size(), itemsetTransactions, itemsetClusters, itemsetTimes);
+
+        this.itemsets.add(itemset);
     }
 }

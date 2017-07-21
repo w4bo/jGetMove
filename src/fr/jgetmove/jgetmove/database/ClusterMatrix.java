@@ -3,15 +3,14 @@ package fr.jgetmove.jgetmove.database;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.PrettyPrint;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Used in ItemsetDetector, holds a {@link Cluster}-{@link Time} matrix and a {@link Cluster}-{@link Transaction} matrix
  */
 public class ClusterMatrix implements PrettyPrint {
 
+    private SortedSet<Integer> clusterIds;
     private HashMap<Integer, Integer> clusterTimeMatrix;
     private HashMap<Integer, HashSet<Integer>> clusterTransactionsMatrix;
 
@@ -22,13 +21,14 @@ public class ClusterMatrix implements PrettyPrint {
      * @param base Initial base reference
      */
     public ClusterMatrix(Base base) {
-        clusterTimeMatrix = new HashMap<>();
-        clusterTransactionsMatrix = new HashMap<>();
+        clusterIds = new TreeSet<>();
+        clusterTimeMatrix = new HashMap<>(base.getClusterIds().size());
+        clusterTransactionsMatrix = new HashMap<>(base.getClusterIds().size());
 
         for (Transaction transaction : base.getTransactions().values()) {
             for (int clusterId : transaction.getClusterIds()) {
-
                 if (!clusterTransactionsMatrix.containsKey(clusterId)) {
+                    clusterIds.add(clusterId);
                     clusterTransactionsMatrix.put(clusterId, new HashSet<>());
                     clusterTimeMatrix.put(clusterId, base.getClusterTimeId(clusterId));
                 }
@@ -54,6 +54,10 @@ public class ClusterMatrix implements PrettyPrint {
         return clusterTransactionsMatrix.get(clusterId);
     }
 
+    public SortedSet<Integer> getClusterIds() {
+        return clusterIds;
+    }
+
     /**
      * Rebinds the cluster-transaction matrix by removing the transactions not present in transactionIds and adding the one which are
      * <p>
@@ -65,13 +69,14 @@ public class ClusterMatrix implements PrettyPrint {
      * @param transactionIds Transactions which need to be present in the matrix
      */
     public void optimizeMatrix(Base base, Set<Integer> transactionIds) {
-        clusterTransactionsMatrix.forEach((clusterId, transactions) -> transactions.clear());
+        clusterTransactionsMatrix.clear();
+        clusterIds.clear();
         for (int transactionId : transactionIds) {
             Transaction transaction = base.getTransaction(transactionId);
-            Set<Integer> clusterIds = transaction.getClusterIds();
-
+            TreeSet<Integer> clusterIds = transaction.getClusterIds();
             for (int clusterId : clusterIds) {
                 if (!clusterTransactionsMatrix.containsKey(clusterId)) {
+                    this.clusterIds.add(clusterId);
                     clusterTransactionsMatrix.put(clusterId, new HashSet<>());
                     clusterTimeMatrix.put(clusterId, base.getClusterTimeId(clusterId));
                 }
