@@ -49,7 +49,7 @@ public class Solver implements PrettyPrint {
     /**
      * List of detectors called once, passing all the itemsets
      *
-     * @see MultiDetector#detect(DataBase, List)
+     * @see MultiDetector#detect(DataBase, Collection)
      */
     private Set<MultiDetector> multiDetectors;
 
@@ -179,7 +179,58 @@ public class Solver implements PrettyPrint {
         Debug.printTitle("Detecting Patterns", Debug.INFO);
         Debug.println("MultiClustering doesn't work properly, please be careful", Debug.ERROR);
 
-        ArrayList<Itemset> itemsets = blockMerger.fuse(results, dataBase.getTransactionIds().size());
+
+        // here we will be merging itemsets with each others across blocks so the basic principle is that we will be invoking itemsetsFinder on a different level
+        // the equivalence are done like this
+        // block -> time
+        // itemset -> cluster
+        // transaction -> transaction
+        HashMap<Integer, Integer> clustersTime = new HashMap<>();
+        HashMap<Integer, Set<Integer>> clustersTransactions = new HashMap<>();
+        HashMap<Integer, int[]> equivalenceTable = new HashMap<>();
+
+        // custom clusterId(itemsetId) because the times(blocks) are independent with each other and itemsetId begins at 0 for each block
+        int clusterId = 0;
+        for (int blockIndex = 0, resultsSize = results.size(); blockIndex < resultsSize; blockIndex++) {
+            int timeId = blockIndex + 1;
+            ArrayList<Itemset> block = results.get(blockIndex);
+
+            for (int itemsetIndex = 0; itemsetIndex < block.size(); itemsetIndex++) {
+                clustersTime.put(clusterId, timeId);
+                clustersTransactions.put(clusterId, block.get(itemsetIndex).getTransactions());
+                equivalenceTable.put(clusterId, new int[]{blockIndex, itemsetIndex});
+                ++clusterId;
+            }
+        }
+
+        Base itemsetBase = new Base(clustersTransactions, clustersTime);
+        ArrayList<Itemset> supersets = blockMerger.generate(itemsetBase);
+
+        // now we know which itemsets are together (each cluster of the superset is an itemset) we need to retrieve them with the equivalence table and flatten the results il a single list of itemsets
+
+        TreeSet<Itemset> itemsets = new TreeSet<>();
+        for (Itemset superset : supersets) {
+            Set<Integer> mergedClusters = new HashSet<>();
+            Set<Integer> mergedTimes = new HashSet<>();
+            Set<Integer> mergedTransactions = new HashSet<>();
+            for (int rawItemsetId : superset.getClusters()) {
+                int[] pair = equivalenceTable.get(rawItemsetId);
+                int blockId = pair[0];
+                int itemsetId = pair[1];
+
+                Itemset itemset = results.get(blockId).get(itemsetId);
+
+
+                mergedClusters.addAll(itemset.getClusters());
+                mergedTimes.addAll(itemset.getTimes());
+                mergedTransactions.addAll(superset.getTransactions());
+
+            }
+            if (mergedClusters.size() > config.getMinTime()) {
+                Itemset itemset = new Itemset(itemsets.size(), mergedTransactions, mergedClusters, mergedTimes);
+                itemsets.add(itemset);
+            }
+        }
 
 
         Debug.println("Itemsets", itemsets, Debug.DEBUG);
@@ -221,7 +272,7 @@ public class Solver implements PrettyPrint {
     }
 
     /**
-     * {@link MultiDetector#detect(DataBase, List)} is called for all Itemsets.
+     * {@link MultiDetector#detect(DataBase, Collection)} is called for all Itemsets.
      *
      * @param multiDetector adds this detector to the list of detectors to detect
      */
@@ -258,7 +309,7 @@ public class Solver implements PrettyPrint {
             int i = 0;
             for (Pattern pattern : patterns) {
                 jsonPattern.add("name", pattern.getClass().getSimpleName());
-                for (JsonObject jsonLink : pattern.getLinksToJson(i)) {
+                for (JsonObject jsonLink : pattern.getJsonLinks(i)) {
                     jsonLinks.add(jsonLink);
                 }
                 i++;

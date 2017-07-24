@@ -194,7 +194,7 @@ public class Base implements PrettyPrint {
      */
     public boolean areTransactionsInCluster(final Set<Integer> transactionIds, final int clusterId) {
         for (int transactionId : transactionIds) {
-            if (!this.getClusterTransactions(clusterId).containsKey(transactionId)) {
+            if (!getClusterTransactions(clusterId).containsKey(transactionId)) {
                 return false;
             }
         }

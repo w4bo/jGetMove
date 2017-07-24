@@ -5,11 +5,11 @@ import fr.jgetmove.jgetmove.database.Itemset;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 /**
  *
  */
 public interface MultiDetector extends Detector {
-    ArrayList<Pattern> detect(DataBase defaultDataBase, List<Itemset> itemset);
+    ArrayList<Pattern> detect(DataBase defaultDataBase, Collection<Itemset> itemset);
 }

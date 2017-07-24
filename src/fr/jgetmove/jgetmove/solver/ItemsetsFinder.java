@@ -9,20 +9,17 @@ import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.TraceMethod;
 import fr.jgetmove.jgetmove.utils.GeneratorUtils;
 
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Finds the itemsets
  */
 public class ItemsetsFinder {
 
-    private int minSupport;
-    private int maxPattern;
-    private TreeSet<Itemset> itemsets;
-    private int minTime;
+    protected int minSupport;
+    protected int maxPattern;
+    protected TreeSet<Itemset> itemsets;
+    protected int minTime;
 
     public ItemsetsFinder(DefaultConfig config) {
         minSupport = config.getMinSupport();
@@ -165,16 +162,12 @@ public class ItemsetsFinder {
         ArrayList<Integer> freqItemset = new ArrayList<>();
         TreeSet<Integer> transactionIds = new TreeSet<>(base.getTransactionIds());
 
-
-        int[] itemsetId = new int[1];
-        itemsetId[0] = 0;
-
         // Overwriting minTime to avoid problems with blocks
         this.minTime = minTime;
         // important if has multiple blocks it needs to be cleaned.
         this.itemsets.clear();
 
-        run(base, clusterMatrix, itemset, transactionIds, freqItemset, itemsetId);
+        run(base, clusterMatrix, itemset, transactionIds, freqItemset);
 
         Debug.println("Itemsets", itemsets, Debug.DEBUG);
         Debug.println("n° of Itemsets", itemsets.size(), Debug.INFO);
@@ -196,11 +189,10 @@ public class ItemsetsFinder {
      * @param clusterIds             (itemsets) une liste representant les id
      * @param transactionIds         (transactionList)
      * @param clustersFrequenceCount (freqList) une liste representant les clusterIds frequents
-     * @param itemsetId              (pathId)
      */
     @TraceMethod(displayTitle = true)
-    private void run(Base base, ClusterMatrix clusterMatrix, ArrayList<Integer> clusterIds,
-                     Set<Integer> transactionIds, ArrayList<Integer> clustersFrequenceCount, int[] itemsetId) {
+    void run(Base base, ClusterMatrix clusterMatrix, ArrayList<Integer> clusterIds,
+             Set<Integer> transactionIds, ArrayList<Integer> clustersFrequenceCount) {
         Debug.println("ClusterMatrix", clusterMatrix, Debug.DEBUG);
         Debug.println("Transactions", transactionIds, Debug.DEBUG);
         Debug.println("ClusterIds", clusterIds, Debug.DEBUG);
@@ -219,9 +211,7 @@ public class ItemsetsFinder {
 
             // if the itemset is not empty :)
             if (itemsetClusters.size() > minTime) {
-                if (saveItemset(itemsetId[0], clusterMatrix, itemsetClusters)) {
-                    itemsetId[0]++; // if the itemset is a new one
-                }
+                saveItemset(clusterMatrix, itemsetClusters);
 
                 // we calcurates its calcuration ?
                 calcurateCoreI = GeneratorUtils.getDifferentFromLastItem(clustersFrequenceCount, clusterIds);
@@ -242,7 +232,7 @@ public class ItemsetsFinder {
             // if the cluster is not in the already added in the itemset
             // and has more than the minimal amount of transactions
             for (int clusterId : clustersTailSet) {
-                if (!clusterIds.contains(clusterId) && clusterMatrix.getClusterTransactionIds(clusterId).size() >= minSupport) {
+                if (!clusterIds.contains(clusterId) && clusterMatrix.getTransactionIds(clusterId).size() >= minSupport) {
                     maxClusterIdsOfItemsets.add(clusterId);
                 }
             }
@@ -275,7 +265,7 @@ public class ItemsetsFinder {
 
                         clusterMatrix.optimizeMatrix(base, futureTransactionIds);
 
-                        run(base, clusterMatrix, futureClusterIds, futureTransactionIds, futureClustersFrequenceCount, itemsetId);
+                        run(base, clusterMatrix, futureClusterIds, futureTransactionIds, futureClustersFrequenceCount);
 
                     }
                 }
@@ -286,23 +276,21 @@ public class ItemsetsFinder {
     /**
      * Creates and adds the itemset. Will return <tt>true</tt> if the itemset wasn't already saved.
      *
-     * @param itemsetId       the id of the new itemset
      * @param clusterMatrix   will be used to retrieve the list of transactions and times
      * @param itemsetClusters clusters of the itemset
      * @return <tt>true</tt> if the saved itemset is'nt already added, will return <tt>false</tt> if the itemset was already saved.
      * @see Itemset#compareTo(Itemset) to understand how the verification is made.
      */
-    private boolean saveItemset(final int itemsetId, ClusterMatrix clusterMatrix, TreeSet<Integer> itemsetClusters) {
+    boolean saveItemset(ClusterMatrix clusterMatrix, TreeSet<Integer> itemsetClusters) {
         // then the itemset is possible
-        // the
-        TreeSet<Integer> itemsetTransactions = clusterMatrix.getClusterTransactionIds(itemsetClusters.last());
+        HashSet<Integer> itemsetTransactions = clusterMatrix.getTransactionIds(itemsetClusters.last());
 
         TreeSet<Integer> itemsetTimes = new TreeSet<>();
         for (Integer clusterId : itemsetClusters) {
-            itemsetTimes.add(clusterMatrix.getClusterTimeId(clusterId));
+            itemsetTimes.add(clusterMatrix.getTimeId(clusterId));
         }
         // so we add it to the final list
-        Itemset itemset = new Itemset(itemsetId, itemsetTransactions, itemsetClusters, itemsetTimes);
+        Itemset itemset = new Itemset(itemsets.size(), itemsetTransactions, itemsetClusters, itemsetTimes);
 
         // unless he's already in there. if so we don't add it
         return this.itemsets.add(itemset);

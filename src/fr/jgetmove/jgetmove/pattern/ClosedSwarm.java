@@ -56,7 +56,7 @@ public class ClosedSwarm extends Swarm implements PrettyPrint {
         return times;
     }
 
-    public String printGetTransactions() {
+    String printGetTransactions() {
         StringBuilder s = new StringBuilder();
         for (Transaction transaction : this.getTransactions()) {
             s.append(transaction.getId()).append(',');
@@ -65,7 +65,7 @@ public class ClosedSwarm extends Swarm implements PrettyPrint {
         return s.substring(0, s.length() - 1);
     }
 
-    public List<JsonObject> getLinksToJson(int index) {
+    public List<JsonObject> getJsonLinks(int index) {
         ArrayList<Time> timeArrayList = new ArrayList<>(times);
         timeArrayList.sort(null);
         ArrayList<Transaction> transactionArrayList = new ArrayList<>(transactions);

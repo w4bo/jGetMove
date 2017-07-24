@@ -6,7 +6,7 @@ import java.util.List;
 public class FuzzySwarm extends Swarm {
 
     @Override
-    public List<JsonObject> getLinksToJson(int index) {
+    public List<JsonObject> getJsonLinks(int index) {
         return null;
     }
 }
