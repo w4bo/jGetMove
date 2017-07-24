@@ -1,3 +1,13 @@
+/*
+ * Copyright 2017 jGetMove
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package fr.jgetmove.jgetmove.database;
 
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
@@ -25,7 +35,7 @@ public class DataBase extends Base {
      * @param inputObj  file (transactionId [clusterId ...])
      * @param inputTime file (timeId clusterId)
      * @throws IOException              if inputObj or inputTime is incorrect
-     * @throws ClusterNotExistException si le cluster n'existe pas
+     * @throws ClusterNotExistException if the cluster doesn't exist
      */
     public DataBase(Input inputObj, Input inputTime) throws IOException, ClusterNotExistException, MalformedTimeIndexException {
         super();
@@ -33,17 +43,16 @@ public class DataBase extends Base {
         this.inputObj = inputObj;
         this.inputTime = inputTime;
 
-
-        //Initialisation des clusters et transactions
         initClusterAndTransaction();
-        //Initialisation des temps
         initTimeAndCluster();
     }
 
     /**
-     * Initialise les HashMap de clusters et transactions
+     * Initiates the Cluster and Transactions HashMap, linking each other.
      *
-     * @throws IOException si le fichier est incorrect
+     * @throws IOException if the input file is incorrect
+     * @implSpec Iterates over each line of transaction cluster file and parses all the data within as clusters.
+     * uses {@link Transaction#add(Cluster)} and {@link Cluster#add(Transaction)}
      * @see DataBase#DataBase(Input, Input)
      */
     private void initClusterAndTransaction() throws IOException {
@@ -68,11 +77,16 @@ public class DataBase extends Base {
     }
 
     /**
-     * Initialise la liste des temps ainsi que les clusters associés
+     * Initializes the link between Time and Cluster
+     * <p>
+     * to be used after {@link #initClusterAndTransaction}
      *
-     * @throws IOException              si le fichier inputTime est inccorect
-     * @throws ClusterNotExistException si le cluster n'existe pas
+     * @throws IOException                 if the inputTime file is incorrect
+     * @throws ClusterNotExistException    if the cluster does not exist
+     * @throws MalformedTimeIndexException if there is more clusters on the same timeline
+     * @implSpec iterates over each line and sets the first int as the timeId and the second as the clusterId. Checks wether the clusterId exists throws an exception otherwise.
      * @see DataBase#DataBase(Input, Input)
+     * @see #initClusterAndTransaction()
      */
     private void initTimeAndCluster() throws IOException, ClusterNotExistException, MalformedTimeIndexException {
         String line;
@@ -80,44 +94,31 @@ public class DataBase extends Base {
         while ((line = inputTime.readLine()) != null) {
             String[] splitLine = line.split("[ \\t]+");
 
-            if (splitLine.length != 2) {//Check si non malformé
+            if (splitLine.length != 2) {//checks if the file is correctly formed
                 throw new MalformedTimeIndexException();
             }
 
 
             int timeId = Integer.parseInt(splitLine[0]);
             int clusterId = Integer.parseInt(splitLine[1]);
-            Time time;
-            Cluster cluster;
 
-            //Check si le temps existe
-            if (times.get(timeId) == null) {
+            Time time = times.get(timeId);
+            //Check if the time exists
+            if (time == null) {
                 time = new Time(timeId);
                 this.add(time);
-            } else {
-                time = times.get(timeId);
             }
 
-            cluster = clusters.get(clusterId);
+            Cluster cluster = clusters.get(clusterId);
 
-            //Check si le cluster existe
+            //Check if the cluster exists
             if (cluster == null) {
                 throw new ClusterNotExistException();
             }
 
             cluster.setTime(time);
             time.add(cluster);
-
         }
-    }
-
-
-    /**
-     * @param clusterId l'identifiant du cluster
-     * @return le Time du cluster
-     */
-    public Time getClusterTime(int clusterId) {
-        return clusters.get(clusterId).getTime();
     }
 
     /**

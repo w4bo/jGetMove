@@ -1,15 +1,28 @@
+[latest release]:(https://github.com/jGetMove/jGetMove/releases/latest)
 # jGetMove v1.0.0
 
 GetMove algorithm in java
 
-## Usage 
+## Sources
 
 To compile the project, simply use `make`. It will create `jGetMove.jar`.
+
+You can also build it manually 
+```bash
+$ mkdir -p out/
+$ javac -extdirs lib/ -sourcepath src/ src/fr/jgetmove/jgetmove/Main.java -d out/
+$ jar cvfm jGetMove.jar Manifest.mf -C out/ . lib/
+```
+
+or download it here: [Latest Release]
+
+## Usage 
 
 To execute the program (e.g. to see the usage): 
 ```bash
 $ java -jar jGetMove.jar --help
 ```
+
 
 ## Input files
 

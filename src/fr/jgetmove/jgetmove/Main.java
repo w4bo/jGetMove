@@ -1,8 +1,18 @@
+/*
+ * Copyright 2017 jGetMove
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package fr.jgetmove.jgetmove;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import fr.jgetmove.jgetmove.config.DefaultConfig;
+import fr.jgetmove.jgetmove.config.Config;
 import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.database.Itemset;
 import fr.jgetmove.jgetmove.debug.Debug;
@@ -25,6 +35,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Main Class
+ *
+ * @author stardisblue
  * @version 1.0.0
  * @since 0.1.0
  */
@@ -39,24 +52,22 @@ public class Main {
     @Parameter(names = {"-h", "--help"}, description = "displays the help", help = true)
     private boolean help;
 
-    @Parameter(names = {"-s", "--support-min"}, description = "min support : the minimum number of transction in each itemset", required = true)
+    @Parameter(names = {"-s", "--support-min"}, description = "min support : the minimum number of transaction in each itemset", required = true)
     private int minSupport = 1;
 
-    // TODO: 06/07/2017 WHAT IS THIS ?
     @Parameter(names = {"-p", "--pattern-max"}, description = "Max pattern", required = true)
     private int maxPattern = 0;
 
-    @Parameter(names = {"-t", "--time-min"}, description = "Min time : the minimum number of times in each itemset", required = true)
+    @Parameter(names = {"-t", "--time-min"}, description = "Min time : the minimum number of Times in each itemset", required = true)
     private int minTime = 1;
 
-    @Parameter(names = {"-b", "--bloc-size"}, description = "Block size : the number of times in each block")
+    @Parameter(names = {"-b", "--bloc-size"}, description = "Block size : the number of Times in each block")
     private int blockSize = 0;
 
     @Parameter(names = {"-o", "--output"}, description = "json output file")
     private String outputFile = "assets/results.json";
 
-    // TODO: 06/07/2017 WHAT IS THIS
-    @Parameter(names = {"-c", "--common-object-percentage"}, description = "Common object percentage")
+    @Parameter(names = {"-c", "--common-object-percentage"}, description = "Common object percentage : used in ")
     private double commonObjectPercentage = 0;
 
 
@@ -89,12 +100,11 @@ public class Main {
 
         try {
             // Initializes the config parameters
-            DefaultConfig config = new DefaultConfig(minSupport, maxPattern, minTime, blockSize, commonObjectPercentage);
+            Config config = new Config(minSupport, maxPattern, minTime, blockSize, commonObjectPercentage);
 
             // Creates Inputs from the file paths
             Input inputObj = new Input(files.get(0));
             Input inputTime = new Input(files.get(1));
-
 
             //Create a new dataBase from the Input objects
             Debug.printTitle("DataBase Initialisation", Debug.INFO);

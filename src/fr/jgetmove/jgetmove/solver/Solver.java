@@ -1,6 +1,16 @@
+/*
+ * Copyright 2017 jGetMove
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package fr.jgetmove.jgetmove.solver;
 
-import fr.jgetmove.jgetmove.config.DefaultConfig;
+import fr.jgetmove.jgetmove.config.Config;
 import fr.jgetmove.jgetmove.database.*;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.PrettyPrint;
@@ -22,15 +32,15 @@ import java.util.*;
  * <p>
  * It's used to call {@link BlockMerger} to merge them in a single array of itemsets used for detecting different patterns with their given detectors.
  *
- * @since 0.1.0
  * @version 1.0.0
+ * @since 0.1.0
  */
 public class Solver implements PrettyPrint {
 
     /**
      * Config shared accross the application
      */
-    private final DefaultConfig config;
+    private final Config config;
 
     /**
      * ItemsetsFinder that will handle the creation of itemsets
@@ -67,7 +77,7 @@ public class Solver implements PrettyPrint {
      * @param config          configuration
      */
     public Solver(ItemsetsFinder itemsetsFinder, BlockMerger blockMerger,
-                  Set<SingleDetector> singleDetectors, Set<MultiDetector> multiDetectors, DefaultConfig config) {
+                  Set<SingleDetector> singleDetectors, Set<MultiDetector> multiDetectors, Config config) {
         this.itemsetsFinder = itemsetsFinder;
         this.blockMerger = blockMerger;
         this.singleDetectors = singleDetectors;
@@ -76,24 +86,11 @@ public class Solver implements PrettyPrint {
     }
 
     /**
-     * Prepares the solver with all the elements used to detect patterns.
-     *
-     * @param itemsetsFinder DI, has for function to find all the itemsets of the database
-     * @param config         configuration
-     */
-    public Solver(ItemsetsFinder itemsetsFinder, DefaultConfig config) {
-        this.itemsetsFinder = itemsetsFinder;
-        singleDetectors = new HashSet<>();
-        multiDetectors = new HashSet<>();
-        this.config = config;
-    }
-
-    /**
      * Finds all the itemsets from the database.
      * <p>
-     * Breaks the task by blocks (a given time interval {@link DefaultConfig#blockSize} ) and returns an array of blocks containing their respective itemsets.
+     * Breaks the task by blocks (a given time interval {@link Config#blockSize} ) and returns an array of blocks containing their respective itemsets.
      * <p>
-     * If the {@link DefaultConfig#blockSize} is 0, then a single block is returned, containing all the itemset of the database.
+     * If the {@link Config#blockSize} is 0, then a single block is returned, containing all the itemset of the database.
      *
      * @return ArrayList of blocks containing it's id and all the itemsets detected in the block
      */
