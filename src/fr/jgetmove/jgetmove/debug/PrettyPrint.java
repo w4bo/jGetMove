@@ -2,8 +2,11 @@ package fr.jgetmove.jgetmove.debug;
 
 /**
  * Interface used to display a prettified version of {@link #toString()}
- *<p>
+ * <p>
  * If it's implemented, {@link Debug} will use it as default display
+ *
+ * @version 1.0.0
+ * @since 0.2.0
  */
 public interface PrettyPrint {
     /**

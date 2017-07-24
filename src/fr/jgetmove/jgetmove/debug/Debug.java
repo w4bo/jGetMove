@@ -21,6 +21,7 @@ import java.util.Objects;
  * <p>
  * <b>note:</b> if {@link PrettyPrint} is implemented by the object, it will use {@link PrettyPrint#toPrettyString()} instead of {@link #toString()}
  *
+ * @version 1.2.0
  * @see #enable()
  * @see #print(Object, short)
  * @see #print(PrettyPrint, short)
@@ -37,6 +38,7 @@ import java.util.Objects;
  * @see #unstack()
  * @see #indent(String)
  * @see #now()
+ * @since 0.2.0
  */
 public final class Debug {
     public final static short DEBUG = -1;

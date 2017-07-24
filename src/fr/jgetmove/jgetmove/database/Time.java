@@ -9,6 +9,9 @@ import java.util.Set;
  * Represents a fixed time in the timeline, contains a set of clusters, contained in a block and has a unique identifier
  * <p>
  * Time is managed by DataBase
+ *
+ * @version 1.0.0
+ * @since 0.1.0
  */
 public class Time implements Comparable<Time>, PrettyPrint {
     private final int id;

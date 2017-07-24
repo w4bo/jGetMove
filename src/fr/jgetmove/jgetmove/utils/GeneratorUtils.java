@@ -1,13 +1,16 @@
 package fr.jgetmove.jgetmove.utils;
 
 import fr.jgetmove.jgetmove.database.Base;
-import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.database.Transaction;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.TraceMethod;
 
 import java.util.*;
 
+/**
+ * @version 1.0.0
+ * @since 0.1.0
+ */
 public class GeneratorUtils {
     /**
      * <pre>
@@ -170,20 +173,6 @@ public class GeneratorUtils {
         }
 
         return clustersFrequenceCount;
-    }
-
-    /**
-     * CheckItemInclusion(DataBase,transactionlist,item)
-     * Check whether clusterId is included in any of the transactions pointed to transactions
-     *
-     * @param base           (database)
-     * @param transactionIds (transactionList) la liste des transactions
-     * @param clusterId      (item) clusterId to find
-     * @return true if the clusterId is in one of the transactions
-     * @deprecated not expressive naming use {@link DataBase#areTransactionsInCluster(Set, int)}
-     */
-    public static boolean CheckItemInclusion(Base base, Set<Integer> transactionIds, int clusterId) {
-        return base.areTransactionsInCluster(transactionIds, clusterId);
     }
 
     /**

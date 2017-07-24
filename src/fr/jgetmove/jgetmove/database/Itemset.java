@@ -8,6 +8,8 @@ import java.util.TreeSet;
 
 /**
  *
+ * @since 0.1.0
+ * @version 1.2.0
  */
 public class Itemset implements Comparable<Itemset>, PrettyPrint {
 

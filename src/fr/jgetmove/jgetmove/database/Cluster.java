@@ -6,6 +6,9 @@ import java.util.HashMap;
 
 /**
  * Groups a set of clusters in a specific time
+ *
+ * @version 1.0.0
+ * @since 0.1.0
  */
 public class Cluster implements PrettyPrint {
 

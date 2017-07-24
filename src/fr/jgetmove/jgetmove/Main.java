@@ -25,7 +25,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @version 0.2.0
+ * @version 1.0.0
+ * @since 0.1.0
  */
 public class Main {
 
@@ -115,7 +116,7 @@ public class Main {
             Set<MultiDetector> multiDetectors = new HashSet<>();
             multiDetectors.add(new DivergentDetector());
             multiDetectors.add(new ConvergentDetector());
-            multiDetectors.add(new GroupPatternDetector(minTime, commonObjectPercentage));
+            // multiDetectors.add(new GroupPatternDetector(minTime, commonObjectPercentage));
 
             //Create solver, injecting the necessary objects (DI)
             Debug.printTitle("Solver Initialisation", Debug.INFO);

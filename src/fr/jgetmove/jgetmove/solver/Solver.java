@@ -21,6 +21,9 @@ import java.util.*;
  * It's used to call {@link ItemsetsFinder} to detect all the itemsets per block
  * <p>
  * It's used to call {@link BlockMerger} to merge them in a single array of itemsets used for detecting different patterns with their given detectors.
+ *
+ * @since 0.1.0
+ * @version 1.0.0
  */
 public class Solver implements PrettyPrint {
 
