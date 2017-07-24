@@ -2,6 +2,8 @@ package fr.jgetmove.jgetmove.pattern;
 
 import fr.jgetmove.jgetmove.database.Time;
 import fr.jgetmove.jgetmove.database.Transaction;
+import fr.jgetmove.jgetmove.debug.Debug;
+import fr.jgetmove.jgetmove.debug.PrettyPrint;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -11,8 +13,11 @@ import java.util.Set;
 
 /**
  * Class representant le pattern Convoy
+ *
+ * @version 1.0.0
+ * @since 0.1.0
  */
-public class Convoy implements Pattern {
+public class Convoy implements Pattern, PrettyPrint {
 
     /**
      * Liste des transactions présents dans le convoy
@@ -71,10 +76,6 @@ public class Convoy implements Pattern {
     }
 
 
-    public String toString() {
-        return "Convoy:\n" + " transactions : [" + transactions + "]" + "times : " + times;
-    }
-
     public String printGetTransactions() {
         StringBuilder s = new StringBuilder();
         for (Transaction transaction : this.getTransactions()) {
@@ -84,7 +85,7 @@ public class Convoy implements Pattern {
         return s.substring(0, s.length() - 1);
     }
 
-    public List<JsonObject> getLinksToJson(int index) {
+    public List<JsonObject> getJsonLinks(int index) {
         ArrayList<Time> timeArrayList = new ArrayList<>(times);
         timeArrayList.sort(null);
         ArrayList<Transaction> transactionArrayList = new ArrayList<>(transactions);
@@ -123,5 +124,16 @@ public class Convoy implements Pattern {
         }
 
         return jsonLinks;
+    }
+
+    @Override
+    public String toPrettyString() {
+        return "\n|-- transactions : " + transactions +
+                "\n`-- times : " + times;
+    }
+
+    @Override
+    public String toString() {
+        return "\nConvoy :" + Debug.indent(toPrettyString());
     }
 }

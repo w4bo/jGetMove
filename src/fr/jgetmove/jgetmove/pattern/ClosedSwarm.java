@@ -2,6 +2,8 @@ package fr.jgetmove.jgetmove.pattern;
 
 import fr.jgetmove.jgetmove.database.Time;
 import fr.jgetmove.jgetmove.database.Transaction;
+import fr.jgetmove.jgetmove.debug.Debug;
+import fr.jgetmove.jgetmove.debug.PrettyPrint;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -11,8 +13,11 @@ import java.util.Set;
 
 /**
  * Class that represent a closed swarm pattern
+ *
+ * @version 1.0.0
+ * @since 0.1.0
  */
-public class ClosedSwarm extends Swarm {
+public class ClosedSwarm extends Swarm implements PrettyPrint {
 
     /**
      * List of transactions in the closed swarm
@@ -54,11 +59,7 @@ public class ClosedSwarm extends Swarm {
         return times;
     }
 
-    public String toString() {
-        return "Closed Swarm :\n" + " transactions : [" + transactions + "]" + "times : " + times;
-    }
-
-    public String printGetTransactions() {
+    String printGetTransactions() {
         StringBuilder s = new StringBuilder();
         for (Transaction transaction : this.getTransactions()) {
             s.append(transaction.getId()).append(',');
@@ -67,7 +68,7 @@ public class ClosedSwarm extends Swarm {
         return s.substring(0, s.length() - 1);
     }
 
-    public List<JsonObject> getLinksToJson(int index) {
+    public List<JsonObject> getJsonLinks(int index) {
         ArrayList<Time> timeArrayList = new ArrayList<>(times);
         timeArrayList.sort(null);
         ArrayList<Transaction> transactionArrayList = new ArrayList<>(transactions);
@@ -115,4 +116,13 @@ public class ClosedSwarm extends Swarm {
         return jsonLinks;
     }
 
+    @Override
+    public String toPrettyString() {
+        return "\n|-- transactions : " + transactions +
+                "\n`-- times : " + times;
+    }
+
+    public String toString() {
+        return "\nClosed Swarm :" + Debug.indent(toPrettyString());
+    }
 }

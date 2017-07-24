@@ -1,5 +1,9 @@
 package fr.jgetmove.jgetmove.database;
 
+/**
+ * @version 1.1.0
+ * @since 0.2.0
+ */
 public class BlockBase extends Base {
 
     private int id;
@@ -15,6 +19,6 @@ public class BlockBase extends Base {
 
     @Override
     public String toPrettyString() {
-        return "\n. id : " + id + super.toString();
+        return "\n. id : " + id + super.toPrettyString();
     }
 }

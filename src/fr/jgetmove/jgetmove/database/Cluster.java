@@ -6,6 +6,9 @@ import java.util.HashMap;
 
 /**
  * Groups a set of clusters in a specific time
+ *
+ * @version 1.0.0
+ * @since 0.1.0
  */
 public class Cluster implements PrettyPrint {
 
@@ -76,14 +79,14 @@ public class Cluster implements PrettyPrint {
     }
 
     @Override
-    public String toString() {
-        return "{" + id + "=" + String.valueOf(transactions.keySet()) + "}";
-    }
-
-    @Override
     public String toPrettyString() {
         return "\n. " + id +
                 "\n|-- Time : " + time.getId() +
                 "\n`-- Transactions : " + String.valueOf(transactions.keySet());
+    }
+
+    @Override
+    public String toString() {
+        return "{" + id + "=" + String.valueOf(transactions.keySet()) + "}";
     }
 }

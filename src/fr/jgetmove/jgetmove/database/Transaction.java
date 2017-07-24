@@ -7,6 +7,9 @@ import java.util.TreeSet;
 
 /**
  * Object contenant l'ensemble des clusters dans lequel il est présent.
+ *
+ * @version 1.0.0
+ * @since 0.1.0
  */
 public class Transaction implements Comparable<Transaction>, PrettyPrint {
     /**
@@ -80,8 +83,8 @@ public class Transaction implements Comparable<Transaction>, PrettyPrint {
     }
 
     @Override
-    public String toString() {
-        return "{" + id + "=" + String.valueOf(clusterIds) + "}";
+    public int compareTo(Transaction transaction) {
+        return id - transaction.id;
     }
 
     @Override
@@ -91,7 +94,7 @@ public class Transaction implements Comparable<Transaction>, PrettyPrint {
     }
 
     @Override
-    public int compareTo(Transaction transaction) {
-        return id - transaction.id;
+    public String toString() {
+        return "{" + id + "=" + String.valueOf(clusterIds) + "}";
     }
 }

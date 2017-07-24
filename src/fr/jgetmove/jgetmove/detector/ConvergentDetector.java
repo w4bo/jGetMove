@@ -2,17 +2,20 @@ package fr.jgetmove.jgetmove.detector;
 
 import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.database.Itemset;
-import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.pattern.Convergent;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 
+/**
+ * @version 1.0.0
+ * @since 0.2.0
+ */
 public class ConvergentDetector implements MultiDetector {
 
-    public ArrayList<Pattern> detect(DataBase defaultDataBase, List<Itemset> itemsets) {
+    public ArrayList<Pattern> detect(DataBase defaultDataBase, Collection<Itemset> itemsets) {
 
         ArrayList<Pattern> convergeants = new ArrayList<>();
         ArrayList<Integer> lastClusters = new ArrayList<>();
@@ -67,7 +70,6 @@ public class ConvergentDetector implements MultiDetector {
             convergeants.add(new Convergent(defaultDataBase, idCluster));
         }
 
-        Debug.println("Convergeants", convergeants, Debug.INFO);
         return convergeants;
     }
 
@@ -92,5 +94,10 @@ public class ConvergentDetector implements MultiDetector {
             }
         }
         return clusterId;
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName();
     }
 }

@@ -7,7 +7,38 @@ import java.util.Date;
 import java.util.Objects;
 
 /**
- * Utilisée afin d'afficher les erreurs
+ * Class used to display Logs.
+ * <p>
+ * Has different display statuses :
+ * <ul>
+ * <li>{@link #DEBUG}</li>
+ * <li>{@link #INFO}</li>
+ * <li>{@link #WARNING} : displays all the text in orange</li>
+ * <li>{@link #ERROR} : displays all the text in red</li>
+ * </ul>
+ * <p>
+ * <b>note:</b> only {@link #DEBUG} is hidden if {@link #enable()} is not used. all the others statuses are displayed in the {@link System#out}
+ * <p>
+ * <b>note:</b> if {@link PrettyPrint} is implemented by the object, it will use {@link PrettyPrint#toPrettyString()} instead of {@link #toString()}
+ *
+ * @version 1.2.0
+ * @see #enable()
+ * @see #print(Object, short)
+ * @see #print(PrettyPrint, short)
+ * @see #print(String, Object, short)
+ * @see #print(String, PrettyPrint, short)
+ * @see #println(Object, short)
+ * @see #println(PrettyPrint, short)
+ * @see #println(String, Object, short) (Object, short)
+ * @see #println(String, PrettyPrint, short)
+ * @see #displayTitle()
+ * @see #printTitle(String, short)
+ * @see #stack(char)
+ * @see #stack(char, String)
+ * @see #unstack()
+ * @see #indent(String)
+ * @see #now()
+ * @since 0.2.0
  */
 public final class Debug {
     public final static short DEBUG = -1;
@@ -39,29 +70,10 @@ public final class Debug {
     private static int sizeDirection = 0;
 
     /**
-     * Affiche l'objet, alias de
-     * <pre>
-     *     System.out.println(Object)
-     * </pre>
+     * Displays the object (uses <tt>o.toString()</tt>)
      *
-     * @param o L'objet a afficher
-     * @deprecated use {@link #println(Object, short)}
-     */
-    public static void println(Object o) {
-        if (displayDebug) {
-            severity = getSeverityString(DEBUG);
-            updateDebugString();
-            System.out.println(concatAll(o));
-        }
-    }
-
-    /**
-     * Affiche l'objet, alias de
-     * <pre>
-     *     System.out.print(Object)
-     * </pre>
-     *
-     * @param o L'objet a afficher
+     * @param o      the object to PrettyPrint
+     * @param status status of the text
      */
     public static void print(Object o, short status) {
         if (displayDebug || status > DEBUG) {
@@ -72,12 +84,10 @@ public final class Debug {
     }
 
     /**
-     * Affiche l'objet, alias de
-     * <pre>
-     *     System.out.print(Object)
-     * </pre>
+     * Displays the object if it has {@link PrettyPrint} implemented. (uses <tt>o.toPrettyString()</tt>)
      *
-     * @param o L'objet a afficher
+     * @param o      the object to PrettyPrint
+     * @param status status of the text
      */
     public static void print(PrettyPrint o, short status) {
         if (displayDebug || status > DEBUG) {
@@ -88,12 +98,10 @@ public final class Debug {
     }
 
     /**
-     * Affiche l'objet, alias de
-     * <pre>
-     *     System.out.println(Object)
-     * </pre>
+     * Displays the object (uses <tt>o.toString()</tt>)
      *
-     * @param o L'objet a afficher
+     * @param o      the object to PrettyPrint
+     * @param status status of the text
      */
     public static void println(Object o, short status) {
         if (displayDebug || status > DEBUG) {
@@ -104,12 +112,10 @@ public final class Debug {
     }
 
     /**
-     * Affiche l'objet, alias de
-     * <pre>
-     *     System.out.println(Object)
-     * </pre>
+     * Displays the object if it has {@link PrettyPrint} implemented. (uses <tt>o.toPrettyString()</tt>)
      *
-     * @param o L'objet a afficher
+     * @param o      the object to PrettyPrint
+     * @param status status of the text
      */
     public static void println(PrettyPrint o, short status) {
         if (displayDebug || status > DEBUG) {
@@ -120,45 +126,40 @@ public final class Debug {
     }
 
     /**
-     * Affiche l'objet, alias de
-     * <pre>
-     *     System.out.print(name + Object)
-     * </pre>
+     * Displays the object (uses <tt>o.toString()</tt>)
      *
-     * @param o L'objet a afficher
+     * @param name   name of the object
+     * @param o      the object to PrettyPrint
+     * @param status status of the text
      */
     public static void print(String name, Object o, short status) {
-        if (displayDebug) {
-            severity = getSeverityString(DEBUG);
+        if (displayDebug || status > DEBUG) {
+            severity = getSeverityString(status);
             updateDebugString();
-            System.out.print(concatAll(o));
+            System.out.print(concatAll(name, o));
         }
     }
 
     /**
-     * Affiche l'objet, alias de
-     * <pre>
-     *     System.out.print(name + Object)
-     * </pre>
+     * Displays the object if it has {@link PrettyPrint} implemented. (uses <tt>o.toPrettyString()</tt>)
      *
-     * @param o L'objet a afficher
+     * @param name   name of the object
+     * @param o      the object to PrettyPrint
+     * @param status status of the text
      */
     public static void print(String name, PrettyPrint o, short status) {
-        if (displayDebug) {
-            severity = getSeverityString(DEBUG);
+        if (displayDebug || status > DEBUG) {
+            severity = getSeverityString(status);
             updateDebugString();
-            System.out.print(concatAll(o));
+            System.out.print(concatAll(name, o));
         }
     }
 
     /**
-     * Affiche l'objet, alias de
-     * <pre>
-     *     System.out.println(name + Object)
-     * </pre>
+     * Displays the object (uses <tt>o.toString()</tt>)
      *
-     * @param name le nom de la variable
-     * @param o    l'objet a afficher
+     * @param name name of the object
+     * @param o    Object to display
      */
     public static void println(String name, Object o, short status) {
         if (displayDebug || status > DEBUG) {
@@ -169,13 +170,11 @@ public final class Debug {
     }
 
     /**
-     * Affiche l'objet, alias de
-     * <pre>
-     *     System.out.println(name + Object)
-     * </pre>
+     * Displays the object if it has {@link PrettyPrint} implemented. (uses <tt>o.toPrettyString()</tt>)
      *
-     * @param name le nom de la variable
-     * @param o    l'objet a afficher
+     * @param name   name of the object
+     * @param o      the object to PrettyPrint
+     * @param status status of the text
      */
     public static void println(String name, PrettyPrint o, short status) {
         if (displayDebug || status > DEBUG) {
@@ -185,6 +184,12 @@ public final class Debug {
         }
     }
 
+    /**
+     * Displays a custom title in the given status
+     *
+     * @param title  text to display
+     * @param status status of the title
+     */
     public static void printTitle(String title, short status) {
         if (displayDebug || status > DEBUG) {
             severity = getSeverityString(status);
@@ -193,39 +198,53 @@ public final class Debug {
         }
     }
 
+    /**
+     * @return a String containing the current time up to milliseconds
+     */
     public static String now() {
         DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM);
         return df.format(new Date()) + "," + System.currentTimeMillis() % 1000;
     }
 
     /**
-     * Active l'affichage du debug
+     * Enables {@link #DEBUG} statuses to be displayed.
      */
     public static void enable() {
         displayDebug = true;
     }
 
     /**
-     * Ajoute un path personalisé
+     * Adds a custom stack. Use {@link #unstack()} to unstack them.
      *
-     * @param letter l'initiale a afficher dans la traceroute
+     * @param letter Symbol of the stack
      */
     public static void stack(char letter) {
         stack(letter, null, 3);
     }
 
     /**
-     * Ajoute un stack personalisé
+     * Adds a custom stack. Use {@link #unstack()} to unstack them.
      *
-     * @param letter l'initiale a afficher dans la traceroute
-     * @param title  Le titre à afficher lors de l'entree dans le path
+     * @param letter Symbol of the stack
+     * @param title  Title of the stack
      */
     public static void stack(char letter, String title) {
         stack(letter, title, 3);
     }
 
     /**
-     * Affiche le nom de la methode courante.
+     * Unstacks the <strong>last custom stack</strong>
+     * <p>
+     * Only unstacks custom stacks, even if more method symbols are added after them
+     */
+    public static void unstack() {
+        if (customStackPositions.size() > 0) {
+            customStackPositions.remove(customStackPositions.size() - 1);
+        }
+    }
+
+    /**
+     * Displays the current methodName name (will display it even if {@link TraceMethod#displayTitle()} is <tt>false</tt>
      */
     public static void displayTitle() {
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
@@ -241,16 +260,14 @@ public final class Debug {
         }
     }
 
+
     /**
+     * Indents the multiline String by one tabulation foreach <bold>new</bold> line
+     * If the string is on oneline, nothing will be indented
      *
+     * @param multiline text to be indented
+     * @return the indented version of the text
      */
-    public static void unstack() {
-        if (customStackPositions.size() > 0) {
-            customStackPositions.remove(customStackPositions.size() - 1);
-        }
-    }
-
-
     public static String indent(String multiline) {
         return multiline.replaceAll("(?m)(\r?\n)", "$1\t");
     }
@@ -446,7 +463,7 @@ public final class Debug {
      */
     private static String createTitle(String title) {
         return " ".concat(pathLine(sizeDirection, METHOD_SEPARATOR)).concat(METHOD_PREFIX)
-                .concat(" \033[4m").concat(title).concat("\033[0m ")
+                .concat(" \033[1;4m").concat(title).concat("\033[0m ")
                 .concat(METHOD_SUFFIX).concat(pathLine(sizeDirection, METHOD_SEPARATOR));
     }
 
@@ -471,6 +488,6 @@ public final class Debug {
     }
 
     private static String concatAll(String name, String value) {
-        return concatAll(name.concat(VARNAME_SEPARATOR).concat(value));
+        return concatAll(("\033[1m").concat(name).concat("\033[0m").concat(VARNAME_SEPARATOR).concat(value));
     }
 }

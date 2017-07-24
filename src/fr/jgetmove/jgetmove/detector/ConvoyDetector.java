@@ -4,7 +4,6 @@ import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.database.Itemset;
 import fr.jgetmove.jgetmove.database.Time;
 import fr.jgetmove.jgetmove.database.Transaction;
-import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.pattern.Convoy;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
@@ -14,6 +13,8 @@ import java.util.Set;
 
 /**
  * Class/Singleton related to the detection of convoys in a database
+ * @version 1.0.0
+ * @since 0.1.0
  */
 public class ConvoyDetector implements SingleDetector {
 
@@ -104,7 +105,11 @@ public class ConvoyDetector implements SingleDetector {
             }
             convoys.add(new Convoy(transactionsOfClusters,timesOfClusters));
         }
-        Debug.println("Convoys", convoys, Debug.INFO);
         return convoys;
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName();
     }
 }

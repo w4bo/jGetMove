@@ -10,7 +10,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- *
+ * @version 1.1.0
+ * @since 0.2.0
  */
 public class Base implements PrettyPrint {
 
@@ -173,7 +174,7 @@ public class Base implements PrettyPrint {
         Set<Integer> filteredTransactionIds = new HashSet<>();
 
         for (int transactionId : transactionIds) {
-            if (this.getCluster(clusterId) != null && this.getClusterTransactions(clusterId).containsKey(transactionId)) {
+            if (this.getClusterTransactions(clusterId).containsKey(transactionId)) {
                 filteredTransactionIds.add(transactionId);
             }
         }
@@ -192,9 +193,9 @@ public class Base implements PrettyPrint {
      * @param clusterId      (item) le cluster à trouver
      * @return vrai si le cluster est présent dans toute les transactions de la liste
      */
-    public boolean isClusterInTransactions(final Set<Integer> transactionIds, final int clusterId) {
+    public boolean areTransactionsInCluster(final Set<Integer> transactionIds, final int clusterId) {
         for (int transactionId : transactionIds) {
-            if (this.getCluster(clusterId) != null && !this.getClusterTransactions(clusterId).containsKey(transactionId)) {
+            if (!getClusterTransactions(clusterId).containsKey(transactionId)) {
                 return false;
             }
         }
@@ -206,14 +207,14 @@ public class Base implements PrettyPrint {
     }
 
     @Override
-    public String toString() {
-        return Debug.indent(toPrettyString());
-    }
-
-    @Override
     public String toPrettyString() {
         return "\n|-- Clusters :" + String.valueOf(clusters.values()) +
                 "\n|-- Transactions :" + String.valueOf(transactions.values()) +
                 "\n`-- Times :" + String.valueOf(times.values());
+    }
+
+    @Override
+    public String toString() {
+        return Debug.indent(toPrettyString());
     }
 }

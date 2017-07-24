@@ -4,7 +4,6 @@ import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.database.Itemset;
 import fr.jgetmove.jgetmove.database.Time;
 import fr.jgetmove.jgetmove.database.Transaction;
-import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.pattern.ClosedSwarm;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
@@ -13,6 +12,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+/**
+ * @version 1.0.0
+ * @since 0.1.0
+ */
 public class ClosedSwarmDetector implements SingleDetector {
 
     private int minTime;
@@ -42,8 +45,13 @@ public class ClosedSwarmDetector implements SingleDetector {
             } else {
                 closedSwarm.add(new ClosedSwarm(transactionsOfPattern, timesOfPattern));
             }
-            Debug.println("ClosedSwarm", closedSwarm, Debug.INFO);
         }
+
         return closedSwarm;
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName();
     }
 }

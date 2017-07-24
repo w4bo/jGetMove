@@ -8,9 +8,12 @@ import java.util.ArrayList;
 
 /**
  * Interface related to the detection of patterns
+ *
+ * @version 1.0.0
+ * @since 0.2.0
  */
 public interface SingleDetector extends Detector {
 
-    ArrayList<Pattern> detect(final DataBase defaultDataBase, final Itemset itemset);
+    ArrayList<Pattern> detect(DataBase defaultDataBase, Itemset itemset);
 
 }

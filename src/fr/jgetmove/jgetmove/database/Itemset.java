@@ -1,6 +1,5 @@
 package fr.jgetmove.jgetmove.database;
 
-import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.PrettyPrint;
 
 import java.util.Iterator;
@@ -9,6 +8,8 @@ import java.util.TreeSet;
 
 /**
  *
+ * @since 0.1.0
+ * @version 1.2.0
  */
 public class Itemset implements Comparable<Itemset>, PrettyPrint {
 
@@ -41,58 +42,63 @@ public class Itemset implements Comparable<Itemset>, PrettyPrint {
     }
 
     @Override
-    public int compareTo(Itemset p) {
-        if (clusters.equals(p.clusters) && transactions.equals(p.transactions)) {
+    public int compareTo(Itemset itemset) {
+        if (clusters.equals(itemset.clusters) && transactions.equals(itemset.transactions)) {
             return 0;
         }
 
-        if (clusters.size() == p.clusters.size()) {
-            Iterator<Integer> iterator = clusters.iterator();
-            Iterator<Integer> pIterator = p.clusters.iterator();
+        Integer transactionComparator = compareIterators(transactions.iterator(), itemset.transactions.iterator());
+        if (transactionComparator != null) return transactionComparator;
 
-            while (iterator.hasNext() && pIterator.hasNext()) {
-                int clusterId = iterator.next();
-                int pClusterId = pIterator.next();
-
-                if (clusterId != pClusterId) {
-                    return clusterId - pClusterId;
-                }
-            }
-        } else {
-            return clusters.size() - p.clusters.size();
-        }
-
-        if (transactions.size() == p.transactions.size()) {
-            Iterator<Integer> transactionIt = transactions.iterator();
-            Iterator<Integer> pTransactionIt = p.transactions.iterator();
-
-            while (transactionIt.hasNext() && pTransactionIt.hasNext()) {
-                int transactionId = transactionIt.next();
-                int pTransactionId = pTransactionIt.next();
-
-                if (transactionId != pTransactionId) {
-                    return transactionId - pTransactionId;
-                }
-            }
-        } else {
-            return transactions.size() - p.transactions.size();
-        }
+        Integer clusterComparator = compareIterators(clusters.iterator(), itemset.clusters.iterator());
+        if (clusterComparator != null) return clusterComparator;
 
         return 0;
     }
 
+    private Integer compareIterators(Iterator<Integer> first, Iterator<Integer> second) {
+        while (first.hasNext() && second.hasNext()) {
+            int transactionId = first.next();
+            int pTransactionId = second.next();
+
+            if (transactionId != pTransactionId) {
+                return transactionId - pTransactionId;
+            }
+        }
+
+        if (first.hasNext()) {
+            return 1;
+        } else if (second.hasNext()) {
+            return -1;
+        }
+        return null;
+    }
 
     @Override
-    public String toString() {
-        return Debug.indent(toPrettyString());
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+
+        if (!(o instanceof Itemset))
+            return false;
+
+
+        Itemset i = (Itemset) o;
+
+        return clusters.equals(i.clusters) && transactions.equals(i.transactions);
     }
 
 
     @Override
     public String toPrettyString() {
         return "\n. id : " + id +
-                "\n|-- Clusters : " + clusters +
-                "\n|-- Transactions : " + transactions +
-                "\n`-- Times : " + times;
+                "\n\t|-- Clusters : " + clusters +
+                "\n\t|-- Transactions : " + transactions +
+                "\n\t`-- Times : " + times;
+    }
+
+    @Override
+    public String toString() {
+        return toPrettyString();
     }
 }

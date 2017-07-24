@@ -2,16 +2,19 @@ package fr.jgetmove.jgetmove.detector;
 
 import fr.jgetmove.jgetmove.database.DataBase;
 import fr.jgetmove.jgetmove.database.Itemset;
-import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.pattern.Divergent;
 import fr.jgetmove.jgetmove.pattern.Pattern;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
+/**
+ * @version 1.0.0
+ * @since 0.2.0
+ */
 public class DivergentDetector implements MultiDetector {
 
-    public ArrayList<Pattern> detect(DataBase defaultDataBase, List<Itemset> itemsets) {
+    public ArrayList<Pattern> detect(DataBase defaultDataBase, Collection<Itemset> itemsets) {
 
         ArrayList<Pattern> divergeants = new ArrayList<>();
         ArrayList<Integer> firstClusters = new ArrayList<>();
@@ -30,7 +33,7 @@ public class DivergentDetector implements MultiDetector {
                     nbTrue++;
                 }
             }
-            if(nbTrue > 0){
+            if (nbTrue > 0) {
                 //Condition qui permet de ne pas incrémenter l'index si on était sur un itemset qui ne comportait qu'un seul cluster
                 indexItemset++;
                 nbTrue = 0;
@@ -49,7 +52,7 @@ public class DivergentDetector implements MultiDetector {
                 }
                 if (itemsetIds.size() > 1) {
                     int idFirstCluster = subDetect(itemsetMatrice, clusterId, itemsetIds, nbClusters);
-                    if(!firstClusters.contains(idFirstCluster)){
+                    if (!firstClusters.contains(idFirstCluster)) {
                         firstClusters.add(idFirstCluster);
                     }
                 }
@@ -65,7 +68,6 @@ public class DivergentDetector implements MultiDetector {
             divergeants.add(new Divergent(defaultDataBase, idCluster));
         }
 
-        Debug.println("Divergeants", divergeants, Debug.INFO);
         return divergeants;
     }
 
@@ -90,5 +92,10 @@ public class DivergentDetector implements MultiDetector {
             }
         }
         return clusterId;
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName();
     }
 }
