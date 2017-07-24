@@ -7,6 +7,8 @@ import java.util.*;
 
 /**
  * Used in ItemsetDetector, holds a {@link Cluster}-{@link Time} matrix and a {@link Cluster}-{@link Transaction} matrix
+ * @since 0.2.0
+ * @version 1.1.0
  */
 public class ClusterMatrix implements PrettyPrint {
 

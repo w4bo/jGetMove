@@ -1,4 +1,4 @@
-# jGetMove
+# jGetMove v1.0.0
 
 GetMove algorithm in java
 

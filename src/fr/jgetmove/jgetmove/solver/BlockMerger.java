@@ -10,6 +10,10 @@ import fr.jgetmove.jgetmove.debug.TraceMethod;
 
 import java.util.*;
 
+/**
+ * @version 1.0.0
+ * @since 0.2.0
+ */
 public class BlockMerger {
     private final int minSupport;
     protected TreeSet<Itemset> itemsets;

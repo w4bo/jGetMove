@@ -8,6 +8,10 @@ import fr.jgetmove.jgetmove.pattern.Pattern;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * @version 1.0.0
+ * @since 0.2.0
+ */
 public class DivergentDetector implements MultiDetector {
 
     public ArrayList<Pattern> detect(DataBase defaultDataBase, Collection<Itemset> itemsets) {
@@ -29,7 +33,7 @@ public class DivergentDetector implements MultiDetector {
                     nbTrue++;
                 }
             }
-            if(nbTrue > 0){
+            if (nbTrue > 0) {
                 //Condition qui permet de ne pas incrémenter l'index si on était sur un itemset qui ne comportait qu'un seul cluster
                 indexItemset++;
                 nbTrue = 0;
@@ -48,7 +52,7 @@ public class DivergentDetector implements MultiDetector {
                 }
                 if (itemsetIds.size() > 1) {
                     int idFirstCluster = subDetect(itemsetMatrice, clusterId, itemsetIds, nbClusters);
-                    if(!firstClusters.contains(idFirstCluster)){
+                    if (!firstClusters.contains(idFirstCluster)) {
                         firstClusters.add(idFirstCluster);
                     }
                 }

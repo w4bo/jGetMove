@@ -12,6 +12,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * @version 1.0.0
+ * @since 0.2.0
+ */
 public class Convergent implements Pattern, PrettyPrint {
 
     public DataBase defaultDataBase;

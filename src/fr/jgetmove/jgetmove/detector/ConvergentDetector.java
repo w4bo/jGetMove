@@ -9,6 +9,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 
+/**
+ * @version 1.0.0
+ * @since 0.2.0
+ */
 public class ConvergentDetector implements MultiDetector {
 
     public ArrayList<Pattern> detect(DataBase defaultDataBase, Collection<Itemset> itemsets) {

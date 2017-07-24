@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 
+/**
+ */
 public class GroupPatternDetector implements MultiDetector {
 
     int minTime;

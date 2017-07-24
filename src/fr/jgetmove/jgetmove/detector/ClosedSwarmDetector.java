@@ -12,6 +12,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+/**
+ * @version 1.0.0
+ * @since 0.1.0
+ */
 public class ClosedSwarmDetector implements SingleDetector {
 
     private int minTime;

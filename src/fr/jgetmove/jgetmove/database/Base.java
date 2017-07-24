@@ -10,7 +10,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- *
+ * @version 1.1.0
+ * @since 0.2.0
  */
 public class Base implements PrettyPrint {
 

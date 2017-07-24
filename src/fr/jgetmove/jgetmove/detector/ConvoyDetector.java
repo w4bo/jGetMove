@@ -13,6 +13,8 @@ import java.util.Set;
 
 /**
  * Class/Singleton related to the detection of convoys in a database
+ * @version 1.0.0
+ * @since 0.1.0
  */
 public class ConvoyDetector implements SingleDetector {
 

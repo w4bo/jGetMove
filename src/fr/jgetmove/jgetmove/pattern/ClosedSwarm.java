@@ -13,6 +13,9 @@ import java.util.Set;
 
 /**
  * Class that represent a closed swarm pattern
+ *
+ * @version 1.0.0
+ * @since 0.1.0
  */
 public class ClosedSwarm extends Swarm implements PrettyPrint {
 

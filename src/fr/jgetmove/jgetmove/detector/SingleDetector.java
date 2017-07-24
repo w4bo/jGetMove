@@ -8,6 +8,9 @@ import java.util.ArrayList;
 
 /**
  * Interface related to the detection of patterns
+ *
+ * @version 1.0.0
+ * @since 0.2.0
  */
 public interface SingleDetector extends Detector {
 
