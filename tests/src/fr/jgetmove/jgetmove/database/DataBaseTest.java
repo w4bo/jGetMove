@@ -27,7 +27,7 @@ class DataBaseTest {
     private DataBase dataBase;
 
     @BeforeAll
-    void init() {
+    static void init() {
         Debug.disable();
     }
 

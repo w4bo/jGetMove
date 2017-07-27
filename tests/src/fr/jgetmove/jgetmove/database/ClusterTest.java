@@ -23,7 +23,7 @@ class ClusterTest {
     private Cluster cluster;
 
     @BeforeAll
-    void init() {
+    static void init() {
         Debug.disable();
     }
 
