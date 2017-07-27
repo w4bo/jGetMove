@@ -28,7 +28,7 @@ class InputTest {
 
         // TODO : check exception d'initialisation
         try {
-            input = new Input("tests/assets/itemset_check.dat");
+            input = new Input("tests/assets/simple.dat");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -42,7 +42,7 @@ class InputTest {
 
     @Test
     void testToString() {
-        assertEquals("tests/assets/itemset_check.dat", input.toString());
+        assertEquals("tests/assets/simple.dat", input.toString());
     }
 
 }

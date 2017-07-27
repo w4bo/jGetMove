@@ -10,6 +10,8 @@
 
 package fr.jgetmove.jgetmove.database;
 
+import fr.jgetmove.jgetmove.debug.Debug;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,6 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ClusterTest {
 
     private Cluster cluster;
+
+    @BeforeAll
+    static void init() {
+        Debug.disable();
+    }
 
     @BeforeEach
     void setUp() {

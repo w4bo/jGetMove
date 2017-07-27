@@ -14,7 +14,7 @@ $ javac -extdirs lib/ -sourcepath src/ src/fr/jgetmove/jgetmove/Main.java -d out
 $ jar cvfm jGetMove.jar Manifest.mf -C out/ . lib/
 ```
 
-or download it here: [Latest Release](https://github.com/jgetmove/jgetmove/releases/latest)
+or download it here: [Latest Release](https://github.com/jGetMove/jGetMove/releases/latest)
 
 ## Usage 
 
@@ -37,10 +37,12 @@ the `Transaction` is the line number (begginning by `0`) and it iterates through
 > Following this logic there are 5 clusters (from `0` to `4`).
 >
 > **Note :** the javadoc refers to this structure with : `transactionId [clusterId ...]`
+
 ```
 0 1 2
 2 3 4
 ```
+> A working example is present in `assets/example.dat`
 
 ### Cluster-Time
 
@@ -62,3 +64,4 @@ Each line of the file is a link between the `Time` and the `Cluster` by their id
 2 3
 3 4
 ```
+> A working example can be found in `assets/example_time_index.dat`

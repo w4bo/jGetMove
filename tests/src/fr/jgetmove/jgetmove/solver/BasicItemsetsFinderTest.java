@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.TreeSet;
+import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -27,19 +27,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  */
 class BasicItemsetsFinderTest {
+
     @Test
     void generateItemsets() throws IOException, MalformedTimeIndexException, ClusterNotExistException {
         Debug.disable();
-        DataBase simpleDataBase = new DataBase(new Input("tests/assets/itemset_check.dat"), new Input("tests/assets/itemset_check_time_index.dat"));
+        DataBase simpleDataBase = new DataBase(new Input("tests/assets/simple.dat"), new Input("tests/assets/simple_time_index.dat"));
         // Testing with singlepath itemset
-        ArrayList<TreeSet<Integer>> generatedItemsets = BasicItemsetsFinder.generateItemsets(simpleDataBase, new TreeSet<>());
+        ArrayList<HashSet<Integer>> generatedItemsets = BasicItemsetsFinder.generateItemsets(simpleDataBase, new HashSet<>());
 
         Debug.println("generatedItemset", generatedItemsets, Debug.DEBUG);
 
         assertEquals(1, generatedItemsets.size());
         assertEquals(0, generatedItemsets.get(0).size());
 
-        TreeSet<Integer> itemset = new TreeSet<>();
+        HashSet<Integer> itemset = new HashSet<>();
         itemset.add(0);
         itemset.add(2);
         itemset.add(4);
@@ -67,5 +68,4 @@ class BasicItemsetsFinderTest {
         assertEquals(1, generatedItemsets.size());
         assertEquals(1, generatedItemsets.get(0).size());
     }
-
 }
