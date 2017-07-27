@@ -1,6 +1,16 @@
+/*
+ * Copyright 2017 jGetMove
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package fr.jgetmove.jgetmove.solver;
 
-import fr.jgetmove.jgetmove.config.DefaultConfig;
+import fr.jgetmove.jgetmove.config.Config;
 import fr.jgetmove.jgetmove.database.*;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.PrettyPrint;
@@ -22,15 +32,17 @@ import java.util.*;
  * <p>
  * It's used to call {@link BlockMerger} to merge them in a single array of itemsets used for detecting different patterns with their given detectors.
  *
- * @since 0.1.0
+ * @author stardisblue
+ * @author Carmona-Anthony
  * @version 1.0.0
+ * @since 0.1.0
  */
 public class Solver implements PrettyPrint {
 
     /**
      * Config shared accross the application
      */
-    private final DefaultConfig config;
+    private final Config config;
 
     /**
      * ItemsetsFinder that will handle the creation of itemsets
@@ -62,12 +74,12 @@ public class Solver implements PrettyPrint {
      *
      * @param itemsetsFinder  DI, has for function to find all the itemsets of the database
      * @param blockMerger     DI, has for funtion to merge all the blocks created by the itemsetsFinder
-     * @param singleDetectors initializes all the singleDetectors to use
-     * @param multiDetectors  initializes all the multiDetectors to use
+     * @param singleDetectors DI, initializes all the singleDetectors to use
+     * @param multiDetectors  DI, initializes all the multiDetectors to use
      * @param config          configuration
      */
     public Solver(ItemsetsFinder itemsetsFinder, BlockMerger blockMerger,
-                  Set<SingleDetector> singleDetectors, Set<MultiDetector> multiDetectors, DefaultConfig config) {
+                  Set<SingleDetector> singleDetectors, Set<MultiDetector> multiDetectors, Config config) {
         this.itemsetsFinder = itemsetsFinder;
         this.blockMerger = blockMerger;
         this.singleDetectors = singleDetectors;
@@ -76,51 +88,35 @@ public class Solver implements PrettyPrint {
     }
 
     /**
-     * Prepares the solver with all the elements used to detect patterns.
-     *
-     * @param itemsetsFinder DI, has for function to find all the itemsets of the database
-     * @param config         configuration
-     */
-    public Solver(ItemsetsFinder itemsetsFinder, DefaultConfig config) {
-        this.itemsetsFinder = itemsetsFinder;
-        singleDetectors = new HashSet<>();
-        multiDetectors = new HashSet<>();
-        this.config = config;
-    }
-
-    /**
-     * Finds all the itemsets from the database.
+     * Finds all the itemsets in the database.
      * <p>
-     * Breaks the task by blocks (a given time interval {@link DefaultConfig#blockSize} ) and returns an array of blocks containing their respective itemsets.
+     * Breaks the task by blocks (a given time interval {@link Config#blockSize} ) and returns an array of blocks containing their respective itemsets.
      * <p>
-     * If the {@link DefaultConfig#blockSize} is 0, then a single block is returned, containing all the itemset of the database.
+     * If the {@link Config#blockSize} is 0, then a single block is returned, containing all the itemset of the database.
      *
      * @return ArrayList of blocks containing it's id and all the itemsets detected in the block
      */
-    public ArrayList<ArrayList<Itemset>> findItemsets(DataBase dataBase) {
+    public ArrayList<TreeSet<Itemset>> findItemsets(DataBase dataBase) {
         Debug.printTitle("Itemsets Finder", Debug.INFO);
 
-        ArrayList<ArrayList<Itemset>> blockItemsets = new ArrayList<>();
-
-        int blockId = 0;
+        ArrayList<TreeSet<Itemset>> blockItemsets = new ArrayList<>();
 
         if (config.getBlockSize() > 0) { // if blockSize is set
-            BlockBase blockBase;
+            Base base;
             Iterator<Integer> lastTime = dataBase.getTimeIds().iterator();
 
-            while ((blockBase = createBlock(blockId, dataBase, lastTime)) != null) {
+            while ((base = createBlock(dataBase, lastTime)) != null) {
                 // if there is more than one block, min time is ignored for the glory of mankind (or because it could break the block fusion later on).
                 // generating the itemsets
-                ArrayList<Itemset> itemsets = itemsetsFinder.generate(blockBase, 0);
+                TreeSet<Itemset> itemsets = itemsetsFinder.generate(base, 0);
                 // putting the itemsets in the block
                 blockItemsets.add(itemsets);
-                ++blockId; // incrementing blockId
             }
         } else { // if blockSize is not set
             // One block for all of this
-            ArrayList<Itemset> result = itemsetsFinder.generate(dataBase, config.getMinTime());
+            TreeSet<Itemset> result = itemsetsFinder.generate(dataBase, config.getMinTime());
             // aaand putting the itemsets in the first block
-            blockItemsets.add(blockId, result);
+            blockItemsets.add(result);
         }
 
         Debug.println("Blocks", blockItemsets, Debug.DEBUG);
@@ -129,37 +125,36 @@ public class Solver implements PrettyPrint {
     }
 
     /**
-     * Creates and returns an new {@link BlockBase} if and only if there it's possible to create another {@link BlockBase} from the {@link DataBase}.
+     * Creates and returns an new {@link Base} if and only if there it's possible to create another {@link Base} from the {@link DataBase}.
      * <p>
      * If the lastTime iterator is
      *
-     * @param id       the id of the block to create
      * @param dataBase to create the Blocks from
      * @param lastTime the time from where the block need to begin
      * @return null or the created Block
      */
-    private BlockBase createBlock(int id, DataBase dataBase, Iterator<Integer> lastTime) {
-        BlockBase blockBase = null;
+    private Base createBlock(DataBase dataBase, Iterator<Integer> lastTime) {
+        Base base = null;
 
         if (lastTime.hasNext()) {
-            blockBase = new BlockBase(id);
+            base = new Base();
 
             int counter = 0;
 
             while (lastTime.hasNext() && counter < config.getBlockSize()) {
-                // adds a time in the blockBase
+                // adds a time in the base
                 Integer timeId = lastTime.next();
                 Time blockTime = new Time(timeId);
-                blockBase.add(blockTime);
+                base.add(blockTime);
 
                 for (Cluster cluster : dataBase.getTime(timeId).getClusters().values()) {
-                    // adds a (possibly new) cluster in the blockBase and links it with the correct time
-                    Cluster blockCluster = blockBase.getOrCreateCluster(cluster.getId());
+                    // adds a (possibly new) cluster in the base and links it with the correct time
+                    Cluster blockCluster = base.getOrCreateCluster(cluster.getId());
                     blockCluster.setTime(blockTime);
 
                     for (int transactionId : cluster.getTransactions().keySet()) {
-                        // get all the transactions of the cluster, adds them in the blockBase and links it with cluster
-                        Transaction blockTransaction = blockBase.getOrCreateTransaction(transactionId);
+                        // get all the transactions of the cluster, adds them in the base and links it with cluster
+                        Transaction blockTransaction = base.getOrCreateTransaction(transactionId);
 
                         blockCluster.add(blockTransaction);
                         blockTransaction.add(blockCluster);
@@ -170,7 +165,7 @@ public class Solver implements PrettyPrint {
         }
 
 
-        return blockBase;
+        return base;
     }
 
     /**
@@ -178,7 +173,7 @@ public class Solver implements PrettyPrint {
      *
      * @return a HashMap SingleDetector -> ArrayList< Motif>
      */
-    public HashMap<Detector, ArrayList<Pattern>> blockMerge(DataBase dataBase, ArrayList<ArrayList<Itemset>> results) {
+    public HashMap<Detector, ArrayList<Pattern>> blockMerge(DataBase dataBase, ArrayList<TreeSet<Itemset>> results) {
         Debug.printTitle("Detecting Patterns", Debug.INFO);
         Debug.println("MultiClustering doesn't work properly, please be careful", Debug.ERROR);
 
@@ -190,24 +185,26 @@ public class Solver implements PrettyPrint {
         // transaction -> transaction
         HashMap<Integer, Integer> clustersTime = new HashMap<>();
         HashMap<Integer, Set<Integer>> clustersTransactions = new HashMap<>();
-        HashMap<Integer, int[]> equivalenceTable = new HashMap<>();
+        HashMap<Integer, Itemset> equivalenceTable = new HashMap<>();
 
         // custom clusterId(itemsetId) because the times(blocks) are independent with each other and itemsetId begins at 0 for each block
         int clusterId = 0;
-        for (int blockIndex = 0, resultsSize = results.size(); blockIndex < resultsSize; blockIndex++) {
-            int timeId = blockIndex + 1;
-            ArrayList<Itemset> block = results.get(blockIndex);
+        int blockIndex = 0;
+        int resultsSize = results.size();
 
-            for (int itemsetIndex = 0; itemsetIndex < block.size(); itemsetIndex++) {
+        while (blockIndex < resultsSize) {
+            int timeId = blockIndex + 1;
+            for (Itemset itemset : results.get(blockIndex)) {
                 clustersTime.put(clusterId, timeId);
-                clustersTransactions.put(clusterId, block.get(itemsetIndex).getTransactions());
-                equivalenceTable.put(clusterId, new int[]{blockIndex, itemsetIndex});
+                clustersTransactions.put(clusterId, itemset.getTransactions());
+                equivalenceTable.put(clusterId, itemset);
                 ++clusterId;
             }
+            blockIndex++;
         }
 
         Base itemsetBase = new Base(clustersTransactions, clustersTime);
-        ArrayList<Itemset> supersets = blockMerger.generate(itemsetBase);
+        TreeSet<Itemset> supersets = blockMerger.generate(itemsetBase);
 
         // now we know which itemsets are together (each cluster of the superset is an itemset) we need to retrieve them with the equivalence table and flatten the results il a single list of itemsets
 
@@ -216,13 +213,8 @@ public class Solver implements PrettyPrint {
             Set<Integer> mergedClusters = new HashSet<>();
             Set<Integer> mergedTimes = new HashSet<>();
             Set<Integer> mergedTransactions = new HashSet<>();
-            for (int rawItemsetId : superset.getClusters()) {
-                int[] pair = equivalenceTable.get(rawItemsetId);
-                int blockId = pair[0];
-                int itemsetId = pair[1];
-
-                Itemset itemset = results.get(blockId).get(itemsetId);
-
+            for (int mappedItemsetIndex : superset.getClusters()) {
+                Itemset itemset = equivalenceTable.get(mappedItemsetIndex);
 
                 mergedClusters.addAll(itemset.getClusters());
                 mergedTimes.addAll(itemset.getTimes());
@@ -230,7 +222,7 @@ public class Solver implements PrettyPrint {
 
             }
             if (mergedClusters.size() > config.getMinTime()) {
-                Itemset itemset = new Itemset(itemsets.size(), mergedTransactions, mergedClusters, mergedTimes);
+                Itemset itemset = new Itemset(mergedTransactions, mergedClusters, mergedTimes);
                 itemsets.add(itemset);
             }
         }
@@ -312,7 +304,7 @@ public class Solver implements PrettyPrint {
             int i = 0;
             for (Pattern pattern : patterns) {
                 jsonPattern.add("name", pattern.getClass().getSimpleName());
-                for (JsonObject jsonLink : pattern.getJsonLinks(i)) {
+                for (JsonObject jsonLink : pattern.toJsonArray(i)) {
                     jsonLinks.add(jsonLink);
                 }
                 i++;
