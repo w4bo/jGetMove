@@ -80,7 +80,7 @@ public class BlockMerger {
 
             HashSet<HashSet<Integer>> doneForNextIteration = new HashSet<>(clusterMatrix.getClusterIds().size());
             for (int clusterId : clusterMatrix.getClusterIds()) {
-                if (clusterId <= currentclusterId) continue; // if the clusterId is before the actual cluster
+                if (clusterId < currentclusterId) continue; // if the clusterId is before the actual cluster
 
                 HashSet<Integer> transactions = clusterMatrix.getTransactionIds(clusterId);
 
