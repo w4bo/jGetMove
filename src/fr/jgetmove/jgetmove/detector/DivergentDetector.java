@@ -19,16 +19,38 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
+ * In charge of detecting Divergent patterns
+ * <p>
+ * A divergent pattern is when from a defined set of transactions, these transactions diverge over time(forming a tree).
+ *
+ * @author jframos0
  * @version 1.0.0
+ * @see ConvergentDetector
  * @since 0.2.0
  */
 public class DivergentDetector implements MultiDetector {
 
-    public ArrayList<Pattern> detect(DataBase defaultDataBase, Collection<Itemset> itemsets) {
+    /**
+     * Detects all the {@link Divergent} patterns in a collection of itemsets
+     *
+     * @param dataBase data binder
+     * @param itemsets a collection of all the itemsets detected
+     * @return an array of detected patterns
+     * @implSpec First, we remove all the itemsets which spread across 1 cluster (to remove noise).
+     * The rest is mapped into an matrix itemset x cluster.
+     * <p>
+     * We iterate over each cluster (in inverse order), excluding the one which are on the last time.
+     * At each iterations we look if there are more than one itemset at this point. if there is then it's a divergence.
+     * And then we simply need to check since when they are together (using {@link #subDetect(boolean[][], int, ArrayList)}).
+     * <p>
+     * Once we have the first cluster (at being together) we create a pattern from it.
+     * @implNote the current implementation may vary
+     */
+    public ArrayList<Pattern> detect(DataBase dataBase, Collection<Itemset> itemsets) {
 
         ArrayList<Pattern> divergeants = new ArrayList<>();
         ArrayList<Integer> firstClusters = new ArrayList<>();
-        int nbClusters = defaultDataBase.getClusters().size();
+        int nbClusters = dataBase.getClusters().size();
         int nbItemsets = itemsets.size();
         boolean[][] itemsetMatrice = new boolean[nbItemsets][nbClusters];
         int indexItemset = 0;
@@ -53,7 +75,7 @@ public class DivergentDetector implements MultiDetector {
         Ajout des clusters à la liste firstClusters
          */
         for (int clusterId = nbClusters - 1; clusterId >= 0; clusterId--) {
-            if (defaultDataBase.getCluster(clusterId).getTimeId() != defaultDataBase.getCluster(defaultDataBase.getClusters().size() - 1).getTimeId()) {
+            if (dataBase.getCluster(clusterId).getTimeId() != dataBase.getCluster(dataBase.getClusters().size() - 1).getTimeId()) {
                 ArrayList<Integer> itemsetIds = new ArrayList<>();
                 for (int j = 0; j < nbItemsets; j++) {
                     if (itemsetMatrice[j][clusterId]) {
@@ -61,7 +83,7 @@ public class DivergentDetector implements MultiDetector {
                     }
                 }
                 if (itemsetIds.size() > 1) {
-                    int idFirstCluster = subDetect(itemsetMatrice, clusterId, itemsetIds, nbClusters);
+                    int idFirstCluster = subDetect(itemsetMatrice, clusterId, itemsetIds);
                     if (!firstClusters.contains(idFirstCluster)) {
                         firstClusters.add(idFirstCluster);
                     }
@@ -74,14 +96,22 @@ public class DivergentDetector implements MultiDetector {
          */
         for (int idCluster : firstClusters) {
             //Lorsqu'on a notre tableau, pour tt les lastclusters
-            //New Convergent (defaultDataBase, lastClusters[i]);
-            divergeants.add(new Divergent(defaultDataBase, idCluster));
+            //New Convergent (dataBase, lastClusters[i]);
+            divergeants.add(new Divergent(dataBase, idCluster));
         }
 
         return divergeants;
     }
 
-    public int subDetect(boolean[][] itemsetMatrice, int clusterId, ArrayList<Integer> itemsetIds, int nbClusters) {
+    /**
+     * Detect the first cluster when all the itemsetIds are present
+     *
+     * @param itemsetMatrice the matrix
+     * @param clusterId      the last clusterId when the itemsets are all present
+     * @param itemsetIds     a list of the itemsetIds
+     * @return the first clusterId where all the itemsetIds are present
+     */
+    public int subDetect(boolean[][] itemsetMatrice, int clusterId, ArrayList<Integer> itemsetIds) {
         boolean finalResult = true; //Variable qui permet de verifier si les itemsets sont identiques (true) ou opposes (false) opposes = tt vrai et dans l'autre cluster tt faux
         for (int i = clusterId - 1; i >= 0; i--) {
             //Pour chaque cluster en partant du clusterId + 1 vu qu'on doit comparer clusterId aux clusters précèdents

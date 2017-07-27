@@ -20,16 +20,39 @@ import java.util.Collection;
 
 
 /**
+ * In charge of detecting Convergent patterns
+ * <p>
+ * A convergeant pattern is when more and more transactions are joining across a period of time
+ *
+ * @author jframos0
  * @version 1.0.0
+ * @implSpec We just detect if across time, more and more itemsets are together. The moment they begin to part is when the pattern ends. This way, it detects all the englobing conveargent patterns.
+ * @see DivergentDetector
  * @since 0.2.0
  */
 public class ConvergentDetector implements MultiDetector {
 
-    public ArrayList<Pattern> detect(DataBase defaultDataBase, Collection<Itemset> itemsets) {
+    /**
+     * Detects all the {@link Convergent} in a collection of itemsets.
+     *
+     * @param dataBase data binder
+     * @param itemsets a collection of all the itemsets detected
+     * @return an array of detected patterns
+     * @implSpec First, we remove all the itemsets which spread across 1 cluster (to remove noise).
+     * The rest is mapped into an matrix itemset x cluster.
+     * <p>
+     * We iterate over each cluster (excluding the one which are on the first time).
+     * At each iterations we look if there are more than one itemset at this point. if there is then it's sa convergeance.
+     * And then we simply need to check how long they are staying together (using {@link #subDetect(boolean[][], int, ArrayList, int)}).
+     * <p>
+     * Once we have the latest cluster (at being together) we create a pattern from it.
+     * @implNote the current implementation may vary
+     */
+    public ArrayList<Pattern> detect(DataBase dataBase, Collection<Itemset> itemsets) {
 
         ArrayList<Pattern> convergeants = new ArrayList<>();
         ArrayList<Integer> lastClusters = new ArrayList<>();
-        int nbClusters = defaultDataBase.getClusters().size();
+        int nbClusters = dataBase.getClusters().size();
         int nbItemsets = itemsets.size();
         boolean[][] itemsetMatrice = new boolean[nbItemsets][nbClusters];
         int indexItemset = 0;
@@ -45,7 +68,7 @@ public class ConvergentDetector implements MultiDetector {
                 }
             }
             if (nbTrue > 0) {
-                //Condition qui permet de ne pas incrémenter l'index si on était sur un itemset qui ne comportait qu'un seul cluster
+                //removing itemsets that are alone
                 indexItemset++;
                 nbTrue = 0;
             }
@@ -55,7 +78,7 @@ public class ConvergentDetector implements MultiDetector {
         Ajout des clusters à la liste lastClusters
          */
         for (int clusterId = 0; clusterId < nbClusters; clusterId++) {
-            if (defaultDataBase.getCluster(clusterId).getTimeId() != 1) {
+            if (dataBase.getCluster(clusterId).getTimeId() != 1) {
                 ArrayList<Integer> itemsetIds = new ArrayList<>();
                 for (int j = 0; j < nbItemsets; j++) {
                     if (itemsetMatrice[j][clusterId]) {
@@ -76,15 +99,25 @@ public class ConvergentDetector implements MultiDetector {
          */
         for (int idCluster : lastClusters) {
             //Lorsqu'on a notre tableau, pour tt les lastclusters
-            //New Convergent (defaultDataBase, lastClusters[i]);
-            convergeants.add(new Convergent(defaultDataBase, idCluster));
+            //New Convergent (dataBase, lastClusters[i]);
+            convergeants.add(new Convergent(dataBase, idCluster));
         }
 
         return convergeants;
     }
 
-    public int subDetect(boolean[][] itemsetMatrice, int clusterId, ArrayList<Integer> itemsetIds, int nbClusters) {
+    /**
+     * Detect the last cluster when all the itemsetIds are present
+     *
+     * @param itemsetMatrice the matrix
+     * @param clusterId      the first clusterId when the itemsets are all present
+     * @param itemsetIds     a list of the itemsetIds
+     * @param nbClusters     the maximum number of clusters
+     * @return the last clusterId where all the itemsetIds are present
+     */
+    public int subDetect(final boolean[][] itemsetMatrice, final int clusterId, ArrayList<Integer> itemsetIds, final int nbClusters) {
         boolean finalResult = true; //Variable qui permet de verifier si les itemsets sont identiques (true) ou opposes (false) opposes = tt vrai et dans l'autre cluster tt faux
+        int lastClusterId = clusterId;
         for (int i = clusterId + 1; i < nbClusters; i++) {
             //Pour chaque cluster en partant du clusterId + 1 vu qu'on doit comparer clusterId aux clusters suivants
             for (int j = 0; j < itemsetIds.size() - 1; j++) {
@@ -95,15 +128,15 @@ public class ConvergentDetector implements MultiDetector {
                     finalResult = itemsetMatrice[itemsetIds.get(j)][i];
                 } else {
                     //si j et j+1 sont differents, on retourne le clusterId comme cluster convergeant
-                    return clusterId;
+                    return lastClusterId;
                 }
             }
             if (finalResult) {
                 //si les itemsets etaient identiques, alors clusterId prend la valeur du cluster le plus avance dans le temps.
-                clusterId = i;
+                lastClusterId = i;
             }
         }
-        return clusterId;
+        return lastClusterId;
     }
 
     @Override

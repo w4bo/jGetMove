@@ -29,10 +29,7 @@ import fr.jgetmove.jgetmove.solver.Solver;
 
 import javax.json.JsonObjectBuilder;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Main Class
@@ -67,7 +64,7 @@ public class Main {
     @Parameter(names = {"-o", "--output"}, description = "json output file")
     private String outputFile = "assets/results.json";
 
-    @Parameter(names = {"-c", "--common-object-percentage"}, description = "Common object percentage : used in ")
+    @Parameter(names = {"-c", "--common-object-percentage"}, description = "Common object percentage")
     private double commonObjectPercentage = 0;
 
 
@@ -120,7 +117,6 @@ public class Main {
             Set<SingleDetector> singleDetectors = new HashSet<>();
             singleDetectors.add(new ConvoyDetector(minTime));
             singleDetectors.add(new ClosedSwarmDetector(minTime));
-            //TODO Change GroupPatternDetector singleDetector -> multiDetector
 
             // multi detectors
             Set<MultiDetector> multiDetectors = new HashSet<>();
@@ -139,7 +135,7 @@ public class Main {
              */
             //generates the itemsets from the database (separated by blocs)
             long then = System.nanoTime();
-            ArrayList<ArrayList<Itemset>> results = solver.findItemsets(dataBase);
+            ArrayList<TreeSet<Itemset>> results = solver.findItemsets(dataBase);
             Debug.println("It took " + (System.nanoTime() - then) + "ns to find the itemsets", Debug.INFO);
             // merges the blocs (and so itemsets) and detect patterns from the result
             then = System.nanoTime();

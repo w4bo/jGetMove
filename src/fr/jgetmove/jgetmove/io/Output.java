@@ -15,16 +15,19 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 /**
- * Créé le fichier .json à partir d'une chaîne de caractère générée dans DataBase
+ * Small simple {@link BufferedWriter} wrapper
+ *
+ * @author stardisblue
+ * @version 1.0.0
+ * @since 0.1.0
  */
-
 public class Output {
     private String filePath;
     private BufferedWriter writer;
 
     /**
-     * @param filePath le chemin vers le fichier à ecrire
-     * @throws IOException
+     * @param filePath path to the file to write into
+     * @throws IOException if an I/O error occurs
      */
     public Output(String filePath) throws IOException {
         this.filePath = filePath;
@@ -33,7 +36,9 @@ public class Output {
 
 
     /**
-     * @throws IOException si il y a une erreur I/O
+     * writes a string
+     *
+     * @throws IOException if an I/O error occurs
      * @see BufferedWriter#write(String)
      */
     public void write(String line) throws IOException {
@@ -41,6 +46,12 @@ public class Output {
         close();
     }
 
+    /**
+     * Wrapper for closing writer
+     *
+     * @throws IOException if an I/O error occurs
+     * @see BufferedWriter#close()
+     */
     public void close() throws IOException {
         writer.close();
     }

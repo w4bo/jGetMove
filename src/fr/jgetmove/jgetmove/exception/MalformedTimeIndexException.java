@@ -11,7 +11,11 @@
 package fr.jgetmove.jgetmove.exception;
 
 /**
- * Si le fichier timeindex est est mal formé
+ * If the timeIndex file is malformed
+ *
+ * @author stardisblue
+ * @version 1.0.0
+ * @since 0.2.0
  */
 public class MalformedTimeIndexException extends Exception {
 }

@@ -19,6 +19,7 @@ import java.util.BitSet;
 import java.util.Collection;
 
 /**
+ * Note: not implemented yet
  */
 public class GroupPatternDetector implements MultiDetector {
 

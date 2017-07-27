@@ -16,10 +16,13 @@ import java.util.HashMap;
 import java.util.Set;
 
 /**
- * Represents a fixed time in the timeline, contains a set of clusters, contained in a block and has a unique identifier
+ * Represents a fixed time in the timeline.
  * <p>
- * Time is managed by DataBase
+ * Contains a set of clusters, contained in a block and has a unique identifier
  *
+ * @author stardisblue
+ * @author jframos0
+ * @author Carmona-Anthony
  * @version 1.0.0
  * @since 0.1.0
  */
@@ -27,7 +30,7 @@ public class Time implements Comparable<Time>, PrettyPrint {
     private final int id;
 
     /**
-     * Hashmap containing the list of clusters (idCluster -> Cluster)
+     * HashMap representing all the clusters
      */
     private HashMap<Integer, Cluster> clusters;
 
@@ -62,7 +65,7 @@ public class Time implements Comparable<Time>, PrettyPrint {
     }
 
     /**
-     * Sets and replaces the current clusters by the given one
+     * Sets or replaces the current clusters by the given one
      *
      * @param clusters new clusters of the time
      */

@@ -31,18 +31,19 @@ import java.util.Objects;
  * <p>
  * <b>note:</b> if {@link PrettyPrint} is implemented by the object, it will use {@link PrettyPrint#toPrettyString()} instead of {@link #toString()}
  *
- * @version 1.2.0
+ * @author stardisblue
+ * @version 1.3.0
  * @see #enable()
- * @see #print(Object, short)
- * @see #print(PrettyPrint, short)
- * @see #print(String, Object, short)
- * @see #print(String, PrettyPrint, short)
- * @see #println(Object, short)
- * @see #println(PrettyPrint, short)
- * @see #println(String, Object, short) (Object, short)
- * @see #println(String, PrettyPrint, short)
+ * @see #print(Object, int)
+ * @see #print(PrettyPrint, int)
+ * @see #print(String, Object, int)
+ * @see #print(String, PrettyPrint, int)
+ * @see #println(Object, int)
+ * @see #println(PrettyPrint, int)
+ * @see #println(String, Object, int) (Object, int)
+ * @see #println(String, PrettyPrint, int)
  * @see #displayTitle()
- * @see #printTitle(String, short)
+ * @see #printTitle(String, int)
  * @see #stack(char)
  * @see #stack(char, String)
  * @see #unstack()
@@ -51,10 +52,10 @@ import java.util.Objects;
  * @since 0.2.0
  */
 public final class Debug {
-    public final static short DEBUG = -1;
-    public final static short INFO = 0;
-    public final static short WARNING = 1;
-    public final static short ERROR = 2;
+    public final static int DEBUG = 1;
+    public final static int INFO = 2;
+    public final static int WARNING = 4;
+    public final static int ERROR = 8;
 
     private final static String DEBUG_STRING = "\033[0;32m[DEBUG]\033[0m ";
     private final static String INFO_STRING = "\033[0;34m[INFO ]\033[0m ";
@@ -70,7 +71,7 @@ public final class Debug {
     private final static String METHOD_FULL_DISPLAY_SEPARATOR = "·";
     private final static String VARNAME_SEPARATOR = ": ";
 
-    private static boolean displayDebug = false;
+    private static int displayDebug = 14;
     private static String severity = "";
     private static String path = "";
     private static String content = "";
@@ -85,8 +86,8 @@ public final class Debug {
      * @param o      the object to PrettyPrint
      * @param status status of the text
      */
-    public static void print(Object o, short status) {
-        if (displayDebug || status > DEBUG) {
+    public static void print(Object o, int status) {
+        if ((status & displayDebug) != 0) {
             severity = getSeverityString(status);
             updateDebugString();
             System.out.print(concatAll(o));
@@ -99,8 +100,8 @@ public final class Debug {
      * @param o      the object to PrettyPrint
      * @param status status of the text
      */
-    public static void print(PrettyPrint o, short status) {
-        if (displayDebug || status > DEBUG) {
+    public static void print(PrettyPrint o, int status) {
+        if ((status & displayDebug) != 0) {
             severity = getSeverityString(status);
             updateDebugString();
             System.out.print(concatAll(o));
@@ -113,8 +114,8 @@ public final class Debug {
      * @param o      the object to PrettyPrint
      * @param status status of the text
      */
-    public static void println(Object o, short status) {
-        if (displayDebug || status > DEBUG) {
+    public static void println(Object o, int status) {
+        if ((status & displayDebug) != 0) {
             severity = getSeverityString(status);
             updateDebugString();
             System.out.println(concatAll(o));
@@ -127,8 +128,8 @@ public final class Debug {
      * @param o      the object to PrettyPrint
      * @param status status of the text
      */
-    public static void println(PrettyPrint o, short status) {
-        if (displayDebug || status > DEBUG) {
+    public static void println(PrettyPrint o, int status) {
+        if ((status & displayDebug) != 0) {
             severity = getSeverityString(status);
             updateDebugString();
             System.out.println(concatAll(o));
@@ -142,8 +143,8 @@ public final class Debug {
      * @param o      the object to PrettyPrint
      * @param status status of the text
      */
-    public static void print(String name, Object o, short status) {
-        if (displayDebug || status > DEBUG) {
+    public static void print(String name, Object o, int status) {
+        if ((status & displayDebug) != 0) {
             severity = getSeverityString(status);
             updateDebugString();
             System.out.print(concatAll(name, o));
@@ -157,8 +158,8 @@ public final class Debug {
      * @param o      the object to PrettyPrint
      * @param status status of the text
      */
-    public static void print(String name, PrettyPrint o, short status) {
-        if (displayDebug || status > DEBUG) {
+    public static void print(String name, PrettyPrint o, int status) {
+        if ((status & displayDebug) != 0) {
             severity = getSeverityString(status);
             updateDebugString();
             System.out.print(concatAll(name, o));
@@ -171,8 +172,8 @@ public final class Debug {
      * @param name name of the object
      * @param o    Object to display
      */
-    public static void println(String name, Object o, short status) {
-        if (displayDebug || status > DEBUG) {
+    public static void println(String name, Object o, int status) {
+        if ((status & displayDebug) != 0) {
             severity = getSeverityString(status);
             updateDebugString();
             System.out.println(concatAll(name, o));
@@ -186,8 +187,8 @@ public final class Debug {
      * @param o      the object to PrettyPrint
      * @param status status of the text
      */
-    public static void println(String name, PrettyPrint o, short status) {
-        if (displayDebug || status > DEBUG) {
+    public static void println(String name, PrettyPrint o, int status) {
+        if ((status & displayDebug) != 0) {
             severity = getSeverityString(status);
             updateDebugString();
             System.out.println(concatAll(name, o));
@@ -200,8 +201,8 @@ public final class Debug {
      * @param title  text to display
      * @param status status of the title
      */
-    public static void printTitle(String title, short status) {
-        if (displayDebug || status > DEBUG) {
+    public static void printTitle(String title, int status) {
+        if ((status & displayDebug) != 0) {
             severity = getSeverityString(status);
             updateDebugString();
             System.out.println(concatAll(createTitle(title)));
@@ -213,14 +214,14 @@ public final class Debug {
      */
     public static String now() {
         DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM);
-        return df.format(new Date()) + "," + System.currentTimeMillis() % 1000;
+        return df.format(new Date()) + "," + String.format("%03d", System.currentTimeMillis() % 1000);
     }
 
     /**
      * Enables {@link #DEBUG} statuses to be displayed.
      */
     public static void enable() {
-        displayDebug = true;
+        displayDebug = 15;
     }
 
     /**
@@ -286,7 +287,7 @@ public final class Debug {
         return "\033[0;37m[" + now() + "]\033[0m";
     }
 
-    private static String getSeverityString(short severity) {
+    private static String getSeverityString(int severity) {
         switch (severity) {
             case DEBUG:
                 return DEBUG_STRING;
@@ -346,16 +347,16 @@ public final class Debug {
         String methodName = getMethodName(stackTraceElement);
 
         if (methodName != null && !lastMethodName.equals(stackTraceElement.getMethodName())) {
-            content = createTitle(methodName).concat(System.getProperty("line.separator"));
+            content = createTitle(methodName) + System.getProperty("line.separator");
             sizeDirection = 0;
             updateLastMethodName(stackTraceElement.getMethodName());
         }
 
         if (path.length() > 0) {
             if (content.length() > 0) {
-                content = content.concat(dateBlock()).concat(severity).concat(path);
+                content = content + dateBlock() + severity + path;
             }
-            content = content.concat(" ").concat(pathLine(sizeDirection, DEFAULT_SEPARATOR)).concat(" ");
+            content = content + " " + pathLine(sizeDirection, DEFAULT_SEPARATOR) + " ";
         }
 
     }
@@ -472,9 +473,7 @@ public final class Debug {
      * @return le titre sera prefixé et suffixé par {@link #METHOD_PREFIX} et {@link #METHOD_SUFFIX}
      */
     private static String createTitle(String title) {
-        return " ".concat(pathLine(sizeDirection, METHOD_SEPARATOR)).concat(METHOD_PREFIX)
-                .concat(" \033[1;4m").concat(title).concat("\033[0m ")
-                .concat(METHOD_SUFFIX).concat(pathLine(sizeDirection, METHOD_SEPARATOR));
+        return pathLine(sizeDirection, METHOD_SEPARATOR) + METHOD_PREFIX + " \033[1;4m" + title + "\033[0m " + METHOD_SUFFIX + pathLine(sizeDirection, METHOD_SEPARATOR);
     }
 
     private static String concatAll(Object o) {
@@ -486,7 +485,7 @@ public final class Debug {
     }
 
     private static String concatAll(String str) {
-        return dateBlock().concat(severity).concat(path).concat(content).concat(str);
+        return dateBlock() + severity + path + content + str;
     }
 
     private static String concatAll(String name, Object o) {
@@ -498,6 +497,6 @@ public final class Debug {
     }
 
     private static String concatAll(String name, String value) {
-        return concatAll(("\033[1m").concat(name).concat("\033[0m").concat(VARNAME_SEPARATOR).concat(value));
+        return concatAll(("\033[1m") + name + "\033[0m" + VARNAME_SEPARATOR + value);
     }
 }

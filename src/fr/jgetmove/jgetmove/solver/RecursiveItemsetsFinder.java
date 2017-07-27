@@ -21,10 +21,16 @@ import fr.jgetmove.jgetmove.debug.TraceMethod;
 import java.util.*;
 
 /**
- * Finds the itemsets
+ * First version of the ItemsetFinder.
+ * <p>
+ * Uses a recursive loop and some dark not understood methods. But works well if there are no transactions in different clusters on the same time.
  *
- * @version 1.1.0
+ * @author stardisblue
+ * @author Carmona-Anthony
+ * @author jframos0
+ * @version 1.4.0
  * @since 0.1.0
+ * @deprecated left as an example of implementation
  */
 public class RecursiveItemsetsFinder extends BasicItemsetsFinder {
     public RecursiveItemsetsFinder(Config config) {
@@ -232,7 +238,7 @@ public class RecursiveItemsetsFinder extends BasicItemsetsFinder {
      */
     @TraceMethod
     @Override
-    public ArrayList<Itemset> generate(Base base, final int minTime) {
+    public TreeSet<Itemset> generate(Base base, final int minTime) {
         Debug.println("Base", base, Debug.DEBUG);
         Debug.println("n° of Clusters", base.getClusterIds().size(), Debug.INFO);
         Debug.println("n° of Transactions", base.getTransactionIds().size(), Debug.INFO);
@@ -248,13 +254,13 @@ public class RecursiveItemsetsFinder extends BasicItemsetsFinder {
         // Overwriting minTime to avoid problems with blocks
         this.minTime = minTime;
         // important if has multiple blocks it needs to be cleaned.
-        this.itemsets.clear();
+        this.itemsets = new TreeSet<>();
 
         run(base, clusterMatrix, itemset, transactionIds, freqItemset);
 
         Debug.println("Itemsets", itemsets, Debug.DEBUG);
         Debug.println("n° of Itemsets", itemsets.size(), Debug.INFO);
-        return new ArrayList<>(itemsets);
+        return itemsets;
     }
 
     /**
@@ -282,7 +288,7 @@ public class RecursiveItemsetsFinder extends BasicItemsetsFinder {
         Debug.println("ClustersFrequenceCount", clustersFrequenceCount, Debug.DEBUG);
 
         // generating all the possible itemsets from the list of clusters
-        ArrayList<TreeSet<Integer>> itemsets = generateItemsets(base, clusterIds);
+        ArrayList<TreeSet<Integer>> itemsets = generateItemsets(base, new TreeSet<>(clusterIds));
 
         Debug.println("Itemsets", itemsets, Debug.DEBUG);
 
@@ -373,7 +379,7 @@ public class RecursiveItemsetsFinder extends BasicItemsetsFinder {
             itemsetTimes.add(clusterMatrix.getTimeId(clusterId));
         }
         // so we add it to the final list
-        Itemset itemset = new Itemset(itemsets.size(), itemsetTransactions, itemsetClusters, itemsetTimes);
+        Itemset itemset = new Itemset(itemsetTransactions, itemsetClusters, itemsetTimes);
 
         // unless he's already in there. if so we don't add it
         return this.itemsets.add(itemset);

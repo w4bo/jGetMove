@@ -13,27 +13,52 @@ package fr.jgetmove.jgetmove.database;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.PrettyPrint;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
+ * Class containing all the basic data.
+ * <p>
+ * All the data is binded once, note that adding or rebinding data in here is expensive. Use {@link ClusterMatrix} for a dynamic database.
+ *
+ * @author stardisblue
  * @version 1.1.0
+ * @see ClusterMatrix
  * @since 0.2.0
  */
 public class Base implements PrettyPrint {
 
+    /**
+     * Hosts all the Times : {@code HashMap<timeId,Time>}
+     */
     protected HashMap<Integer, Time> times;
+    /**
+     * Hosts all the Clusters : {@code HashMap<clusterId,Cluster>}
+     */
     protected HashMap<Integer, Cluster> clusters;
+    /**
+     * Hosts all the Transactions : {@code HashMap<transactionId,Transaction>}
+     */
     protected HashMap<Integer, Transaction> transactions;
 
+    /**
+     * Hosts all the times' id in a {@link TreeSet}
+     */
     private TreeSet<Integer> timeIds;
+    /**
+     * Hosts all the clusters' id in a {@link TreeSet}
+     */
     private TreeSet<Integer> clusterIds;
+
+    /**
+     * Hosts all the transactions' id in a {@link TreeSet}
+     */
     private TreeSet<Integer> transactionIds;
 
-    Base() {
+    /**
+     * Initializes an empty Base
+     */
+    public Base() {
         clusters = new HashMap<>();
         transactions = new HashMap<>();
         times = new HashMap<>();
@@ -44,6 +69,8 @@ public class Base implements PrettyPrint {
     }
 
     /**
+     * Fills and binds the Base using the parameters
+     *
      * @param clustersTransactions link between clusters and transactions 1:x relation
      * @param clustersTime         link between clusters and its time 1:1 relation
      */
@@ -69,21 +96,42 @@ public class Base implements PrettyPrint {
         }
     }
 
+    /**
+     * Adds the cluster to the base
+     *
+     * @param cluster cluster to add
+     */
     public void add(Cluster cluster) {
         clusters.put(cluster.getId(), cluster);
         clusterIds.add(cluster.getId());
     }
 
+    /**
+     * Adds the transaction to the base
+     *
+     * @param transaction transaction to add
+     */
     public void add(Transaction transaction) {
         transactions.put(transaction.getId(), transaction);
         transactionIds.add(transaction.getId());
     }
 
+    /**
+     * Adds the time to the base
+     *
+     * @param time time to add
+     */
     public void add(Time time) {
         times.put(time.getId(), time);
         timeIds.add(time.getId());
     }
 
+    /**
+     * Checks whether the clusterId is present, if not creates  one. Returns the cluster found/created.
+     *
+     * @param clusterId id to check
+     * @return created or found cluster.
+     */
     public Cluster getOrCreateCluster(final int clusterId) {
         Cluster cluster = this.getCluster(clusterId);
 
@@ -96,6 +144,12 @@ public class Base implements PrettyPrint {
     }
 
 
+    /**
+     * Check whether the timeId is present, if not creates one. Returns the time found/created.
+     *
+     * @param timeId id to check
+     * @return created or found time
+     */
     public Time getOrCreateTime(final int timeId) {
         Time time = this.getTime(timeId);
 
@@ -108,8 +162,10 @@ public class Base implements PrettyPrint {
     }
 
     /**
-     * @param transactionId l'id de la transaction à récuperer
-     * @return La transaction crée ou récuperée
+     * Check whether the transactionId is present, if not creates one. Returns the transaction found/created.
+     *
+     * @param transactionId id to check
+     * @return created or found transaction
      */
     public Transaction getOrCreateTransaction(final int transactionId) {
         Transaction transaction = this.getTransaction(transactionId);
@@ -121,53 +177,103 @@ public class Base implements PrettyPrint {
         return transaction;
     }
 
+    /**
+     * Returns the {@link Cluster} having this id, {@code null} otherwise
+     *
+     * @param clusterId id of the cluster
+     * @return the corresponding {@link Cluster} or {@code null}
+     * @see HashMap#get(Object)
+     */
     public Cluster getCluster(final int clusterId) {
         return clusters.get(clusterId);
     }
 
+    /**
+     * Returns the {@link Time} having this id, {@code null} otherwise
+     *
+     * @param timeId id of the time
+     * @return the corresponding {@link Time} or {@code null}
+     * @see HashMap#get(Object)
+     */
     public Time getTime(final int timeId) {
         return times.get(timeId);
     }
 
+    /**
+     * Returns the {@link Transaction} having this id, {@code null} otherwise
+     *
+     * @param transactionId id of the transaction
+     * @return the corresponding {@link Transaction} or {@code null}
+     * @see HashMap#get(Object)
+     */
     public Transaction getTransaction(final int transactionId) {
         return transactions.get(transactionId);
     }
 
+    /**
+     * @return all the clusters of the base in form of a {@link HashMap}
+     */
     public HashMap<Integer, Cluster> getClusters() {
         return clusters;
     }
 
+    /**
+     * @return all the times of the base in form of a {@link HashMap}
+     */
     public HashMap<Integer, Time> getTimes() {
         return times;
     }
 
+    /**
+     * @return all the transactions of the base in form of a {@link HashMap}
+     */
     public HashMap<Integer, Transaction> getTransactions() {
         return transactions;
     }
 
+
+    /**
+     * @return all the clusterIds as a {@link TreeSet}
+     */
     public TreeSet<Integer> getClusterIds() {
         return clusterIds;
     }
 
+    /**
+     * @return all the timeIds as a {@link TreeSet}
+     */
     public TreeSet<Integer> getTimeIds() {
         return timeIds;
     }
 
+    /**
+     * @return all the transactionIds as a {@link TreeSet}
+     */
     public TreeSet<Integer> getTransactionIds() {
         return transactionIds;
     }
 
+
     /**
-     * @param clusterId identifiant du cluster
-     * @return l'ensemble des transactions du cluster
+     * Retrieves all the transactions of a specific cluster.
+     * <p>
+     * Shortcut for <code>getCluster(clusterId).getTransactions()</code>
+     *
+     * @param clusterId id of the {@link Cluster}
+     * @return all the transaction of the cluster as a {@link HashMap}
      */
     public HashMap<Integer, Transaction> getClusterTransactions(final int clusterId) {
         return getCluster(clusterId).getTransactions();
     }
 
+
     /**
-     * @param transactionId identifiant de la transaction
-     * @return l'ensemble des clusters de la transaction
+     * Retrieves all the clusters of a specific transaction.
+     * <p>
+     * Shortcut for <code>getTransaction(transactionId).getClusters()</code>
+     *
+     * @param transactionId id of the {@link Transaction}
+     * @return all the clusters of the transaction as a {@link HashMap}
      */
     public HashMap<Integer, Cluster> getTransactionClusters(final int transactionId) {
         return getTransaction(transactionId).getClusters();
@@ -179,6 +285,7 @@ public class Base implements PrettyPrint {
      * @param transactionIds list of transactions to check from
      * @param clusterId      the cluster to filter them
      * @return a list of transactionIds
+     * @implSpec iterates over the set and checks if the transaction is contained in the cluster using {@link #getClusterTransactions(int)}.{@link HashMap#containsKey(Object) containsKey(Object)} . If so, the transaction is added to the return set.
      */
     public Set<Integer> getFilteredTransactionIdsIfHaveCluster(final Set<Integer> transactionIds, final int clusterId) {
         Set<Integer> filteredTransactionIds = new HashSet<>();
@@ -192,28 +299,33 @@ public class Base implements PrettyPrint {
     }
 
     /**
-     * Verifie si le cluster est inclus dans toute la liste des transactions
+     * Checks whether all the transactions are contained in the cluster.
+     * <p>
+     * Shortcut for {@link #getClusterTransactions(int) getClusterTransactions(clusterId)}.{@link HashMap#keySet() keySet()}.{@link Set#containsAll(Collection) containsAll(transactionIds)}
      * <p>
      * Dans GetMove :
      * <pre>
      * Lcm::CheckItemInclusion(DataBase,transactionList,item)
      * </pre>
      *
-     * @param transactionIds (transactionList) la liste des transactions
-     * @param clusterId      (item) le cluster à trouver
-     * @return vrai si le cluster est présent dans toute les transactions de la liste
+     * @param transactionIds (transactionList) set of transactionIds
+     * @param clusterId      (item) the concerned cluster
+     * @return <code>true</code> of the set is contained in the cluster
      */
     public boolean areTransactionsInCluster(final Set<Integer> transactionIds, final int clusterId) {
-        for (int transactionId : transactionIds) {
-            if (!getClusterTransactions(clusterId).containsKey(transactionId)) {
-                return false;
-            }
-        }
-        return true;
+        return getClusterTransactions(clusterId).keySet().containsAll(transactionIds);
     }
 
+    /**
+     * Returns the timeId of the cluster
+     * <p>
+     * Shortcut for {@link #getCluster(int) getCluster(clusterId)}.{@link Cluster#getTimeId() getTimeId()}
+     *
+     * @param clusterId id of the cluster
+     * @return the timeId of the cluster
+     */
     public int getClusterTimeId(final int clusterId) {
-        return clusters.get(clusterId).getTimeId();
+        return getCluster(clusterId).getTimeId();
     }
 
     @Override
@@ -223,6 +335,10 @@ public class Base implements PrettyPrint {
                 "\n`-- Times :" + String.valueOf(times.values());
     }
 
+    /**
+     * @return A string representing the object
+     * @implSpec indents the output of {@link #toPrettyString()}
+     */
     @Override
     public String toString() {
         return Debug.indent(toPrettyString());

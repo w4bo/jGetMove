@@ -18,7 +18,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
+ * Defines the structure of a Detector which need all the found itemsets to work
+ *
+ * @author stardisblue
  * @version 1.1.0
+ * @implNote please use {@link SingleDetector} when possible as manipulating a collection can be more memory consuming
+ * @see SingleDetector
  * @since 0.2.0
  */
 public interface MultiDetector extends Detector {

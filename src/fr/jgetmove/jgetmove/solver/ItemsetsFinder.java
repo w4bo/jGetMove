@@ -13,11 +13,24 @@ package fr.jgetmove.jgetmove.solver;
 import fr.jgetmove.jgetmove.database.Base;
 import fr.jgetmove.jgetmove.database.Itemset;
 
-import java.util.ArrayList;
+import java.util.TreeSet;
 
 /**
+ * Interface used for all the algorithm in charge of finding itemsets.
  *
+ * @author stardisblue
+ * @version 1.0.0
+ * @since 1.0.0
  */
 public interface ItemsetsFinder {
-    ArrayList<Itemset> generate(Base base, final int minTime);
+
+
+    /**
+     * Method invoked, must contain the algorithm in charge of finding the itemsets
+     *
+     * @param base    database
+     * @param minTime minimal number of time
+     * @return detected itemsets
+     */
+    TreeSet<Itemset> generate(Base base, final int minTime);
 }

@@ -18,11 +18,19 @@ import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.TraceMethod;
 
 import java.util.ArrayList;
-import java.util.Set;
+import java.util.Iterator;
 import java.util.TreeSet;
 
 /**
+ * Abstract Implementation of ItemsetsFinder.
+ * <p>
+ * Initialises some configuration values and static method useful for the algorithms
  *
+ * @author stardisblue
+ * @author Carmona-Anthony
+ * @author jframos0
+ * @version 1.0.0
+ * @since 0.1.0
  */
 public abstract class BasicItemsetsFinder implements ItemsetsFinder {
 
@@ -35,25 +43,26 @@ public abstract class BasicItemsetsFinder implements ItemsetsFinder {
         minSupport = config.getMinSupport();
         maxPattern = config.getMaxPattern();
         itemsets = new TreeSet<>();
+        minTime = config.getMinTime();
     }
 
     /**
-     * Generates all the itemsets possible from toItemsetize clusters.
+     * Generates all the itemsets possible from clusters clusters.
      * <p>
-     * There can be more than one itemset possible if and only if two clusters of toItemsetize are on the same time.
+     * There can be more than one itemset possible if and only if two clusters of clusters are on the same time. The principle is to create a carthesian product representing all the itemsets possible for a set of clusters
      * <p>
      * <pre>
      * Lcm::GenerateItemset(DataBase,[]itemsets,[]itemID,[]timeID,[][]generatedItemsets, [][]generatedtimeID,[][]generateditemID,sizeGenerated)
      * </pre>
      *
-     * @param base         (database)
-     * @param toItemsetize (itemsets) une liste representant les clusterId
+     * @param base     (database)
+     * @param clusters (itemsets) une liste representant les clusterId
      */
     @TraceMethod(displayTitle = true)
-    static ArrayList<TreeSet<Integer>> generateItemsets(Base base, ArrayList<Integer> toItemsetize) {
-        Debug.println("toItemsetize", toItemsetize, Debug.DEBUG);
+    static ArrayList<TreeSet<Integer>> generateItemsets(Base base, TreeSet<Integer> clusters) {
+        Debug.println("clusters", clusters, Debug.DEBUG);
 
-        if (toItemsetize.size() == 0) {
+        if (clusters.isEmpty()) {
             ArrayList<TreeSet<Integer>> generatedItemsets = new ArrayList<>(1);
             generatedItemsets.add(new TreeSet<>());
             return generatedItemsets;
@@ -63,13 +72,14 @@ public abstract class BasicItemsetsFinder implements ItemsetsFinder {
 
         int lastTime = 0;
         // liste des temps qui n'ont qu'un seul cluster
-        for (int i = 0; i < toItemsetize.size(); ++i) {
-            int clusterId = toItemsetize.get(i);
+        Iterator<Integer> iterator = clusters.iterator();
+        while (iterator.hasNext()) {
+            int clusterId = iterator.next();
             lastTime = base.getClusterTimeId(clusterId);
 
-            if (i != toItemsetize.size() - 1) {
-                int nextClusterId = toItemsetize.get(i + 1);
-                if (base.getClusterTimeId(clusterId) == base.getClusterTimeId(nextClusterId)) {
+            if (iterator.hasNext()) {
+                int nextClusterId = iterator.next();
+                if (lastTime == base.getClusterTimeId(nextClusterId)) {
                     oneTimePerCluster = false;
                 }
             }
@@ -77,7 +87,7 @@ public abstract class BasicItemsetsFinder implements ItemsetsFinder {
 
         if (oneTimePerCluster) {
             ArrayList<TreeSet<Integer>> generatedPaths = new ArrayList<>(1);
-            generatedPaths.add(new TreeSet<>(toItemsetize));
+            generatedPaths.add(new TreeSet<>(clusters));
             return generatedPaths;
         }
 
@@ -87,11 +97,11 @@ public abstract class BasicItemsetsFinder implements ItemsetsFinder {
 
         ArrayList<ArrayList<Integer>> timesClusterIds = new ArrayList<>(); // PosDates
 
-        for (int i = 1; i <= lastTime; i++) {
+        for (int timeId = 1; timeId <= lastTime; timeId++) {
             ArrayList<Integer> tempPath = new ArrayList<>();
 
-            for (int clusterId : toItemsetize) {
-                if (base.getClusterTimeId(clusterId) == i) {
+            for (int clusterId : clusters) {
+                if (base.getClusterTimeId(clusterId) == timeId) {
                     tempPath.add(clusterId);
                 }
             }
@@ -117,7 +127,7 @@ public abstract class BasicItemsetsFinder implements ItemsetsFinder {
             ArrayList<Integer> tempClusterIds = timesClusterIds.get(clusterIdsIndex);
             ArrayList<TreeSet<Integer>> results = new ArrayList<>();
 
-            for (Set<Integer> generatedPath : tempItemsets) {
+            for (TreeSet<Integer> generatedPath : tempItemsets) {
                 for (int item : tempClusterIds) {
                     TreeSet<Integer> result = new TreeSet<>(generatedPath);
                     result.add(item);

@@ -16,21 +16,30 @@ import java.util.HashMap;
 import java.util.TreeSet;
 
 /**
- * Object contenant l'ensemble des clusters dans lequel il est présent.
+ * Class representing a Transaction.
+ * <p>
+ * Contains all the clusters containing the Transaction.
  *
+ * @author stardisblue
+ * @author jframos0
+ * @author Carmona-Anthony
  * @version 1.0.0
+ * @implSpec Contains a {@link HashMap} representing the clusters as well as a {@link TreeSet} ordering all the clusters' id.
  * @since 0.1.0
  */
 public class Transaction implements Comparable<Transaction>, PrettyPrint {
     /**
-     * id de la transaction
+     * identifier
      */
     private int id;
 
     /**
-     * hashmap contenant (idCluster => Cluster)
+     * Contains all the clusters of the transaction.
      */
     private HashMap<Integer, Cluster> clusters;
+    /**
+     * Contains all the clusters' id of the transaction.
+     */
     private TreeSet<Integer> clusterIds;
 
     /**
@@ -56,7 +65,7 @@ public class Transaction implements Comparable<Transaction>, PrettyPrint {
 
     /**
      * @param id       transaction identifier
-     * @param clusters set of cluster to add
+     * @param clusters clusters to add
      */
     public Transaction(int id, HashMap<Integer, Cluster> clusters) {
         this.id = id;
@@ -64,7 +73,9 @@ public class Transaction implements Comparable<Transaction>, PrettyPrint {
     }
 
     /**
-     * @param cluster ajoute le cluster à la transaction
+     * Adds to cluster to this transaction.
+     *
+     * @param cluster cluster to add
      */
     public void add(Cluster cluster) {
         clusters.put(cluster.getId(), cluster);
@@ -79,14 +90,14 @@ public class Transaction implements Comparable<Transaction>, PrettyPrint {
     }
 
     /**
-     * @return the Cluster HashMap
+     * @return the clusters containing this transaction as a {@link HashMap}
      */
     public HashMap<Integer, Cluster> getClusters() {
         return clusters;
     }
 
     /**
-     * @return the Clusters' id as a TreeSet
+     * @return the clusters' id as a {@link TreeSet}
      */
     public TreeSet<Integer> getClusterIds() {
         return clusterIds;

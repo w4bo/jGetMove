@@ -15,8 +15,13 @@ import fr.jgetmove.jgetmove.debug.PrettyPrint;
 import java.util.HashMap;
 
 /**
- * Groups a set of clusters in a specific time
+ * Class representing a cluster.
+ * <p>
+ * Contains a set of transactions and the time in which the cluster is located
  *
+ * @author stardisblue
+ * @author jframos0
+ * @author Carmona-Anthony
  * @version 1.0.0
  * @since 0.1.0
  */
@@ -25,7 +30,7 @@ public class Cluster implements PrettyPrint {
     private int id;
 
     /**
-     * HashMap of all the transactions of the cluster idTransaction => {@link Transaction}
+     * HashMap representing all the transactions of the cluster.
      */
     private HashMap<Integer, Transaction> transactions;
 
@@ -47,14 +52,14 @@ public class Cluster implements PrettyPrint {
     /**
      * Adds the transaction to the cluster
      *
-     * @param transaction to add to the cluster
+     * @param transaction to add
      */
     public void add(Transaction transaction) {
         transactions.put(transaction.getId(), transaction);
     }
 
     /**
-     * @return cluster identifier
+     * @return cluster's identifier
      */
     public int getId() {
         return id;
@@ -75,14 +80,14 @@ public class Cluster implements PrettyPrint {
     }
 
     /**
-     * @return the cluster identifier
+     * @return the time's id of the cluster
      */
     public int getTimeId() {
         return time.getId();
     }
 
     /**
-     * @return transaction transaction in the cluster (HashMap [idTransaction => Transaction])
+     * @return all the transactions of the cluster as a {@code HashMap<transactionId, Transaction>}
      */
     public HashMap<Integer, Transaction> getTransactions() {
         return transactions;
@@ -95,6 +100,9 @@ public class Cluster implements PrettyPrint {
                 "\n`-- Transactions : " + String.valueOf(transactions.keySet());
     }
 
+    /**
+     * @return a string representing the cluster
+     */
     @Override
     public String toString() {
         return "{" + id + "=" + String.valueOf(transactions.keySet()) + "}";

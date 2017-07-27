@@ -11,7 +11,12 @@
 package fr.jgetmove.jgetmove.detector;
 
 /**
+ * An interface representing a Detector.
+ *
+ * @author stardisblue
  * @version 1.0.0
+ * @see MultiDetector
+ * @see SingleDetector
  * @since 0.1.0
  */
 public interface Detector {

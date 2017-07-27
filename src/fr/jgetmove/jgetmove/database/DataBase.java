@@ -21,8 +21,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 /**
- * Contains all the objects, has the job of managing data and saving informations
+ * Class containing all the basic data. Allows to bind the data from input files
+ * <p>
+ * All the data is binded once, note that adding or rebinding data in here is expensive. Use {@link ClusterMatrix} for a dynamic database.
  *
+ * @author stardisblue
+ * @author jframos0
+ * @author Carmona-Anthony
  * @version 1.0.0
  * @since 0.1.0
  */
@@ -55,14 +60,15 @@ public class DataBase extends Base {
      * uses {@link Transaction#add(Cluster)} and {@link Cluster#add(Transaction)}
      * @see DataBase#DataBase(Input, Input)
      */
-    private void initClusterAndTransaction() throws IOException {
+    protected void initClusterAndTransaction() throws IOException {
         String line;
         int transactionId = 0;
-        while ((line = inputObj.readLine()) != null) {
+
+        while ((line = inputObj.readLine()) != null) { // foreach line
             String[] lineClusterId = line.split("[ \\t]+");
             Transaction transaction = new Transaction(transactionId);
 
-            for (String strClusterId : lineClusterId) {
+            for (String strClusterId : lineClusterId) {// foreach cluster
                 int clusterId = Integer.parseInt(strClusterId);
                 Cluster cluster = getOrCreateCluster(clusterId);
 
@@ -74,6 +80,8 @@ public class DataBase extends Base {
 
             transactionId++;
         }
+
+        inputObj.close();
     }
 
     /**
@@ -88,7 +96,7 @@ public class DataBase extends Base {
      * @see DataBase#DataBase(Input, Input)
      * @see #initClusterAndTransaction()
      */
-    private void initTimeAndCluster() throws IOException, ClusterNotExistException, MalformedTimeIndexException {
+    protected void initTimeAndCluster() throws IOException, ClusterNotExistException, MalformedTimeIndexException {
         String line;
 
         while ((line = inputTime.readLine()) != null) {
@@ -119,6 +127,8 @@ public class DataBase extends Base {
             cluster.setTime(time);
             time.add(cluster);
         }
+
+        inputTime.close();
     }
 
     /**
@@ -136,6 +146,7 @@ public class DataBase extends Base {
 
     /**
      * @return la database en format json
+     * // TODO: 26/07/2017
      */
     public JsonObjectBuilder toJson() {
         //int index = 0;

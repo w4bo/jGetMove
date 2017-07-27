@@ -17,37 +17,66 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
+ * Class representing an itemset
+ * <p>
+ * Contains a set of clusters, transactions and times.
+ *
+ * @implSpec All of the attributes are stored as {@link TreeSet}
+ *
+ * @author stardisblue
+ * @author jframos0
+ * @author Carmona-Anthony
  * @version 1.2.0
  * @since 0.1.0
  */
 public class Itemset implements Comparable<Itemset>, PrettyPrint {
 
-    private final int id;
+    /**
+     * All the clusters' id of the itemset.
+     */
     private TreeSet<Integer> clusters;
+    /**
+     * The transactions' id of the itemset
+     */
     private TreeSet<Integer> transactions;
+    /**
+     * The times' id of the itemset
+     */
     private TreeSet<Integer> times;
 
-    public Itemset(final int id, final Set<Integer> transactions, final Set<Integer> clusters, final Set<Integer> times) {
-        this.id = id;
+    /**
+     * Default constructer.
+     *
+     * @param transactions set containing the transactions of the itemset
+     * @param clusters     set containing the clusters of the itemset
+     * @param times        set containing the times of the itemset
+     * @implSpec all the sets are copied when added to the itemset
+     */
+    public Itemset(final Set<Integer> transactions, final Set<Integer> clusters, final Set<Integer> times) {
         this.clusters = new TreeSet<>(clusters);
         this.transactions = new TreeSet<>(transactions);
         this.times = new TreeSet<>(times);
     }
 
+    /**
+     * @return all the clusters of the itemset as a {@link TreeSet}
+     */
     public TreeSet<Integer> getClusters() {
         return clusters;
     }
 
+    /**
+     * @return all the transactions of the itemset as a {@link TreeSet}
+     */
     public TreeSet<Integer> getTransactions() {
         return transactions;
     }
 
+    /**
+     * @return all the times of the itemset as a {@link TreeSet}
+     */
     public TreeSet<Integer> getTimes() {
         return times;
-    }
-
-    public int getId() {
-        return id;
     }
 
     @Override
@@ -56,16 +85,25 @@ public class Itemset implements Comparable<Itemset>, PrettyPrint {
             return 0;
         }
 
-        Integer transactionComparator = compareIterators(transactions.iterator(), itemset.transactions.iterator());
-        if (transactionComparator != null) return transactionComparator;
+        int transactionComparator = compareIterators(transactions.iterator(), itemset.transactions.iterator());
+        if (transactionComparator != 0) return transactionComparator;
 
-        Integer clusterComparator = compareIterators(clusters.iterator(), itemset.clusters.iterator());
-        if (clusterComparator != null) return clusterComparator;
+        int clusterComparator = compareIterators(clusters.iterator(), itemset.clusters.iterator());
+        if (clusterComparator != 0) return clusterComparator;
 
         return 0;
     }
 
-    private Integer compareIterators(Iterator<Integer> first, Iterator<Integer> second) {
+    /**
+     * Compares two iterators.
+     * <p>
+     * Iterates simultaneously over the iterators and returns 1 if the first has a higher value or -1 if the second one has. If all the values are equals. Checks if the first is longer. Otherwise, returns null.
+     *
+     * @param first  iterator
+     * @param second iterator
+     * @return return 1 if the first has a higher value than the second or if is longer and all values are equals. returns -1 if the second has a higher value or if is longer and all the precedent values are equal. returns 0 otherwise.
+     */
+    private int compareIterators(Iterator<Integer> first, Iterator<Integer> second) {
         while (first.hasNext() && second.hasNext()) {
             int transactionId = first.next();
             int pTransactionId = second.next();
@@ -80,7 +118,7 @@ public class Itemset implements Comparable<Itemset>, PrettyPrint {
         } else if (second.hasNext()) {
             return -1;
         }
-        return null;
+        return 0;
     }
 
     @Override
@@ -100,12 +138,15 @@ public class Itemset implements Comparable<Itemset>, PrettyPrint {
 
     @Override
     public String toPrettyString() {
-        return "\n. id : " + id +
-                "\n\t|-- Clusters : " + clusters +
+        return "\n\t|-- Clusters : " + clusters +
                 "\n\t|-- Transactions : " + transactions +
                 "\n\t`-- Times : " + times;
     }
 
+    /**
+     * @return a string representing the object.
+     * @implSpec uses {@link #toPrettyString()}
+     */
     @Override
     public String toString() {
         return toPrettyString();

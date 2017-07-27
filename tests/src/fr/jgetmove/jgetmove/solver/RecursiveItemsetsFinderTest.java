@@ -45,61 +45,60 @@ class RecursiveItemsetsFinderTest {
     void generateBasic() {
         RecursiveItemsetsFinder recursiveItemsetsFinder = new RecursiveItemsetsFinder(config);
 
-        ArrayList<Itemset> results = recursiveItemsetsFinder.generate(simpleDataBase, config.getBlockSize());
+        TreeSet<Itemset> results = recursiveItemsetsFinder.generate(simpleDataBase, config.getBlockSize());
 
         assertEquals(3, results.size());
         assertEquals("[\n" +
-                ". id : 0\n\t|-- Clusters : [0, 2, 4]\n\t|-- Transactions : [0]\n\t`-- Times : [1, 2, 3], \n" +
-                ". id : 2\n\t|-- Clusters : [4]\n\t|-- Transactions : [0, 1]\n\t`-- Times : [3], \n" +
-                ". id : 1\n\t|-- Clusters : [1, 3, 4]\n\t|-- Transactions : [1]\n\t`-- Times : [1, 2, 3]]", results.toString());
+                "\t|-- Clusters : [0, 2, 4]\n\t|-- Transactions : [0]\n\t`-- Times : [1, 2, 3], \n" +
+                "\t|-- Clusters : [4]\n\t|-- Transactions : [0, 1]\n\t`-- Times : [3], \n" +
+                "\t|-- Clusters : [1, 3, 4]\n\t|-- Transactions : [1]\n\t`-- Times : [1, 2, 3]]", results.toString());
     }
 
     @Test
     void generateComplex() {
-        String complexResult = "[\n. id : 3\n\t|-- Clusters : [0, 2, 6, 9, 15, 19, 22]\n\t|-- Transactions : [0]\n\t`-- Times : [1, 2, 4, 5, 7, 9, 10], \n" +
-                ". id : 1\n\t|-- Clusters : [0, 2, 19]\n\t|-- Transactions : [0, 1]\n\t`-- Times : [1, 2, 9], \n" +
-                ". id : 0\n\t|-- Clusters : [0]\n\t|-- Transactions : [0, 1, 2]\n\t`-- Times : [1], \n" +
-                ". id : 6\n\t|-- Clusters : [0, 22]\n\t|-- Transactions : [0, 2]\n\t`-- Times : [1, 10], \n" +
-                ". id : 17\n\t|-- Clusters : [22]\n\t|-- Transactions : [0, 2, 3]\n\t`-- Times : [10], \n" +
-                ". id : 2\n\t|-- Clusters : [0, 2, 5, 10, 12, 13, 19, 23]\n\t|-- Transactions : [1]\n\t`-- Times : [1, 2, 3, 5, 6, 7, 9, 10], \n" +
-                ". id : 5\n\t|-- Clusters : [0, 5]\n\t|-- Transactions : [1, 2]\n\t`-- Times : [1, 3], \n" +
-                ". id : 14\n\t|-- Clusters : [5]\n\t|-- Transactions : [1, 2, 3]\n\t`-- Times : [3], \n" +
-                ". id : 15\n\t|-- Clusters : [5, 12]\n\t|-- Transactions : [1, 3]\n\t`-- Times : [3, 6], \n" +
-                ". id : 18\n\t|-- Clusters : [23]\n\t|-- Transactions : [1, 5]\n\t`-- Times : [10], \n" +
-                ". id : 4\n\t|-- Clusters : [0, 3, 5, 7, 8, 14, 18, 20, 22]\n\t|-- Transactions : [2]\n\t`-- Times : [1, 2, 3, 4, 5, 7, 8, 9, 10], \n" +
-                ". id : 13\n\t|-- Clusters : [3, 5, 20, 22]\n\t|-- Transactions : [2, 3]\n\t`-- Times : [2, 3, 9, 10], \n" +
-                ". id : 16\n\t|-- Clusters : [7]\n\t|-- Transactions : [2, 4, 5]\n\t`-- Times : [4], \n" +
-                ". id : 8\n\t|-- Clusters : [1, 3, 5, 11, 12, 16, 20, 22]\n\t|-- Transactions : [3]\n\t`-- Times : [1, 2, 3, 5, 6, 7, 9, 10], \n" +
-                ". id : 7\n\t|-- Clusters : [1]\n\t|-- Transactions : [3, 4, 5]\n\t`-- Times : [1], \n" +
-                ". id : 12\n\t|-- Clusters : [1, 11, 16]\n\t|-- Transactions : [3, 5]\n\t`-- Times : [1, 5, 7], \n" +
-                ". id : 11\n\t|-- Clusters : [1, 4, 7, 17]\n\t|-- Transactions : [4]\n\t`-- Times : [1, 2, 4, 7], \n" +
-                ". id : 9\n\t|-- Clusters : [1, 4, 7]\n\t|-- Transactions : [4, 5]\n\t`-- Times : [1, 2, 4], \n" +
-                ". id : 10\n\t|-- Clusters : [1, 4, 7, 11, 16, 21, 23]\n\t|-- Transactions : [5]\n\t`-- Times : [1, 2, 4, 5, 7, 9, 10]]";
+        String complexResult = "[\n\t|-- Clusters : [0, 2, 6, 9, 15, 19, 22]\n\t|-- Transactions : [0]\n\t`-- Times : [1, 2, 4, 5, 7, 9, 10], \n" +
+                "\t|-- Clusters : [0, 2, 19]\n\t|-- Transactions : [0, 1]\n\t`-- Times : [1, 2, 9], \n" +
+                "\t|-- Clusters : [0]\n\t|-- Transactions : [0, 1, 2]\n\t`-- Times : [1], \n" +
+                "\t|-- Clusters : [0, 22]\n\t|-- Transactions : [0, 2]\n\t`-- Times : [1, 10], \n" +
+                "\t|-- Clusters : [22]\n\t|-- Transactions : [0, 2, 3]\n\t`-- Times : [10], \n" +
+                "\t|-- Clusters : [0, 2, 5, 10, 12, 13, 19, 23]\n\t|-- Transactions : [1]\n\t`-- Times : [1, 2, 3, 5, 6, 7, 9, 10], \n" +
+                "\t|-- Clusters : [0, 5]\n\t|-- Transactions : [1, 2]\n\t`-- Times : [1, 3], \n" +
+                "\t|-- Clusters : [5]\n\t|-- Transactions : [1, 2, 3]\n\t`-- Times : [3], \n" +
+                "\t|-- Clusters : [5, 12]\n\t|-- Transactions : [1, 3]\n\t`-- Times : [3, 6], \n" +
+                "\t|-- Clusters : [23]\n\t|-- Transactions : [1, 5]\n\t`-- Times : [10], \n" +
+                "\t|-- Clusters : [0, 3, 5, 7, 8, 14, 18, 20, 22]\n\t|-- Transactions : [2]\n\t`-- Times : [1, 2, 3, 4, 5, 7, 8, 9, 10], \n" +
+                "\t|-- Clusters : [3, 5, 20, 22]\n\t|-- Transactions : [2, 3]\n\t`-- Times : [2, 3, 9, 10], \n" +
+                "\t|-- Clusters : [7]\n\t|-- Transactions : [2, 4, 5]\n\t`-- Times : [4], \n" +
+                "\t|-- Clusters : [1, 3, 5, 11, 12, 16, 20, 22]\n\t|-- Transactions : [3]\n\t`-- Times : [1, 2, 3, 5, 6, 7, 9, 10], \n" +
+                "\t|-- Clusters : [1]\n\t|-- Transactions : [3, 4, 5]\n\t`-- Times : [1], \n" +
+                "\t|-- Clusters : [1, 11, 16]\n\t|-- Transactions : [3, 5]\n\t`-- Times : [1, 5, 7], \n" +
+                "\t|-- Clusters : [1, 4, 7, 17]\n\t|-- Transactions : [4]\n\t`-- Times : [1, 2, 4, 7], \n" +
+                "\t|-- Clusters : [1, 4, 7]\n\t|-- Transactions : [4, 5]\n\t`-- Times : [1, 2, 4], \n" +
+                "\t|-- Clusters : [1, 4, 7, 11, 16, 21, 23]\n\t|-- Transactions : [5]\n\t`-- Times : [1, 2, 4, 5, 7, 9, 10]]";
 
         RecursiveItemsetsFinder recursiveItemsetsFinder = new RecursiveItemsetsFinder(config);
 
-        ArrayList<Itemset> results = recursiveItemsetsFinder.generate(complexDataBase, config.getBlockSize());
+        TreeSet<Itemset> results = recursiveItemsetsFinder.generate(complexDataBase, config.getBlockSize());
         assertEquals(19, results.size());
         assertEquals(complexResult, results.toString());
     }
 
     @Test
     void generateItemsets() {
-
         // Testing with singlepath itemset
-        ArrayList<TreeSet<Integer>> generatedItemsets = RecursiveItemsetsFinder.generateItemsets(simpleDataBase, new ArrayList<>());
+        ArrayList<TreeSet<Integer>> generatedItemsets = BasicItemsetsFinder.generateItemsets(simpleDataBase, new TreeSet<>());
 
         Debug.println("generatedItemset", generatedItemsets, Debug.DEBUG);
 
         assertEquals(1, generatedItemsets.size());
         assertEquals(0, generatedItemsets.get(0).size());
 
-        ArrayList<Integer> itemset = new ArrayList<>();
+        TreeSet<Integer> itemset = new TreeSet<>();
         itemset.add(0);
         itemset.add(2);
         itemset.add(4);
 
-        generatedItemsets = RecursiveItemsetsFinder.generateItemsets(simpleDataBase, itemset);
+        generatedItemsets = BasicItemsetsFinder.generateItemsets(simpleDataBase, itemset);
 
         assertEquals(1, generatedItemsets.size());
         assertEquals(3, generatedItemsets.get(0).size());
@@ -109,7 +108,7 @@ class RecursiveItemsetsFinderTest {
         itemset.add(3);
         itemset.add(4);
 
-        generatedItemsets = RecursiveItemsetsFinder.generateItemsets(simpleDataBase, itemset);
+        generatedItemsets = BasicItemsetsFinder.generateItemsets(simpleDataBase, itemset);
 
         assertEquals(1, generatedItemsets.size());
         assertEquals(3, generatedItemsets.get(0).size());
@@ -117,7 +116,7 @@ class RecursiveItemsetsFinderTest {
         itemset.clear();
         itemset.add(4);
 
-        generatedItemsets = RecursiveItemsetsFinder.generateItemsets(simpleDataBase, itemset);
+        generatedItemsets = BasicItemsetsFinder.generateItemsets(simpleDataBase, itemset);
 
         assertEquals(1, generatedItemsets.size());
         assertEquals(1, generatedItemsets.get(0).size());

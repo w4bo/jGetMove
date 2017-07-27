@@ -16,8 +16,11 @@ import java.io.FileReader;
 import java.io.IOException;
 
 /**
- * Charge le fichier passé en paramètres.
- * Peut être lu grâce à readLine
+ * Small simple {@link BufferedReader} wrapper
+ *
+ * @author stardisblue
+ * @version 1.0.0
+ * @since 0.1.0
  */
 public class Input {
 
@@ -25,7 +28,10 @@ public class Input {
     private BufferedReader reader;
 
     /**
-     * @param filePath le chemin vers le fichier à lire
+     * Initializes the Class and opens a stream to the file.
+     *
+     * @param filePath path to file
+     * @throws FileNotFoundException when the file path is incorrect
      */
     public Input(String filePath) throws FileNotFoundException {
         this.filePath = filePath;
@@ -34,12 +40,22 @@ public class Input {
     }
 
     /**
-     * @return un String contenant toute la ligne, excluant les caractères de fin de ligne
-     * @throws IOException si il y a une erreur I/O
+     * @return a string containing all the text of a line, excluding endline characters
+     * @throws IOException if an I/O error occurs
      * @see BufferedReader#readLine
      */
     public String readLine() throws IOException {
         return reader.readLine();
+    }
+
+    /**
+     * Wrapper for closing the reader
+     *
+     * @throws IOException if an I/O error occurs
+     * @see BufferedReader#close()
+     */
+    public void close() throws IOException {
+        reader.close();
     }
 
     @Override

@@ -15,6 +15,7 @@ package fr.jgetmove.jgetmove.debug;
  * <p>
  * If it's implemented, {@link Debug} will use it as default display
  *
+ * @author stardisblue
  * @version 1.0.0
  * @since 0.2.0
  */

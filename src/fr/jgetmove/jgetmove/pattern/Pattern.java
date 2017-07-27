@@ -13,6 +13,19 @@ package fr.jgetmove.jgetmove.pattern;
 import javax.json.JsonObject;
 import java.util.List;
 
+/**
+ * Interface representing a pattern.
+ *
+ * @author stardisblue
+ * @author jframos0
+ * @author Carmona-Anthony
+ * @version 1.0.0
+ * @since 0.1.0
+ */
 public interface Pattern {
-    List<JsonObject> getJsonLinks(int index);
+    /**
+     * @param index identifier
+     * @return a list of JsonObject to represent the pattern in the output file
+     */
+    List<JsonObject> toJsonArray(int index);
 }

@@ -11,7 +11,11 @@
 package fr.jgetmove.jgetmove.exception;
 
 /**
- * Exception utilisée si le cluster n'existe pas
+ * When the cluster is not binded to any transaction but still bound to a time
+ *
+ * @since 0.1.0
+ * @version 1.0.0
+ * @author stardisblue
  */
 public class ClusterNotExistException extends Exception {
 

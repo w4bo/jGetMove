@@ -22,39 +22,35 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Class/Singleton related to the detection of convoys in a database
+ * In charge of detecting convoys
+ * <p>
+ * A convoy is a pattern when a set of transactions are together across consecutive, incremental times.
  *
+ * @author jframos0
+ * @author Carmona-Anthony
  * @version 1.0.0
  * @since 0.1.0
  */
 public class ConvoyDetector implements SingleDetector {
 
-    private static ConvoyDetector convoyDetector;
     private int minTime;
 
     /**
-     * Empty Constructor
+     * Default constructor
      */
     public ConvoyDetector(int minTime) {
         this.minTime = minTime;
     }
 
     /**
-     * Cree une instance de ConvoyDetector ou retourne celle deja presente
+     * Detects all the {@link Convoy}
      *
-     * @return une nouvelle instance de convoyDetector si elle n'a pas été deja
-     * crée
+     * @param dataBase data binder
+     * @param itemset  the itemset to iterate
+     * @return all the convoys detected in the itemset
      */
-    public static ConvoyDetector getInstance(int minTime) {
-        if (convoyDetector == null) {
-            convoyDetector = new ConvoyDetector(minTime);
-            return convoyDetector;
-        }
-        return convoyDetector;
-    }
-
     //TODO Retester quand les itemsets en double seront corrigés + opti si besoin
-    public ArrayList<Pattern> detect(final DataBase defaultDataBase, final Itemset itemset) {
+    public ArrayList<Pattern> detect(DataBase dataBase, Itemset itemset) {
 
         ArrayList<Pattern> convoys = new ArrayList<>();
         ArrayList<Integer> clusters = new ArrayList<>(itemset.getClusters());
@@ -74,7 +70,7 @@ public class ConvoyDetector implements SingleDetector {
         for (int i = 0; i < times.size(); i++) {
             //Cette boucle determine les transactions de l'itemset + l'ensemble des temps consécutifs de l'itemsets
             currentTime = times.get(i);
-            transactionsOfAClusterOfItemset = new ArrayList<>(defaultDataBase.getClusterTransactions(clusters.get(i)).keySet());
+            transactionsOfAClusterOfItemset = new ArrayList<>(dataBase.getClusterTransactions(clusters.get(i)).keySet());
             size = transactionsOfAClusterOfItemset.size();
             if (size == sizeMin && !(transactionsOfItemset.equals(transactionsOfAClusterOfItemset))) {
                 //Si on a ce cas par exemple [2,3] et [3,5] TofItemset = [3] mais on doit pas rentrer dedans si [2,3] et [2,3]
@@ -84,7 +80,7 @@ public class ConvoyDetector implements SingleDetector {
 
             if (size < sizeMin) {
                 sizeMin = size;
-                transactionsOfItemset = new ArrayList<>(defaultDataBase.getClusterTransactions(clusters.get(i)).keySet());
+                transactionsOfItemset = new ArrayList<>(dataBase.getClusterTransactions(clusters.get(i)).keySet());
             }
 
             if (currentTime > (lastTime + 1) && timesSet.size() > 1) {
@@ -111,10 +107,10 @@ public class ConvoyDetector implements SingleDetector {
             Set<Time> timesOfClusters = new HashSet<>();
             Set<Transaction> transactionsOfClusters = new HashSet<>();
             for (int transactionId : transactionsOfItemset) {
-                transactionsOfClusters.add(defaultDataBase.getTransaction(transactionId));
+                transactionsOfClusters.add(dataBase.getTransaction(transactionId));
             }
             for (int time : actualTimesSet) {
-                timesOfClusters.add(defaultDataBase.getTime(time));
+                timesOfClusters.add(dataBase.getTime(time));
             }
             convoys.add(new Convoy(transactionsOfClusters, timesOfClusters));
         }

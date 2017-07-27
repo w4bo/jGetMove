@@ -95,7 +95,7 @@ public class Convoy implements Pattern, PrettyPrint {
         return s.substring(0, s.length() - 1);
     }
 
-    public List<JsonObject> getJsonLinks(int index) {
+    public List<JsonObject> toJsonArray(int index) {
         ArrayList<Time> timeArrayList = new ArrayList<>(times);
         timeArrayList.sort(null);
         ArrayList<Transaction> transactionArrayList = new ArrayList<>(transactions);

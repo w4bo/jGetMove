@@ -16,20 +16,25 @@ import fr.jgetmove.jgetmove.debug.PrettyPrint;
 import java.util.*;
 
 /**
- * Used in ItemsetDetector, holds a {@link Cluster}-{@link Time} matrix and a {@link Cluster}-{@link Transaction} matrix
+ * Used as a dynamic partial database.
+ * Holds a {@link Cluster}-{@link Time} matrix and a {@link Cluster}-{@link Transaction} matrix.
  *
+ * @author stardisblue
  * @version 1.1.0
  * @since 0.2.0
  */
 public class ClusterMatrix implements PrettyPrint {
 
+    /**
+     * Used clusters by the clusterMatrix
+     */
     private SortedSet<Integer> clusterIds;
     private HashMap<Integer, Integer> clusterTimeMatrix;
     private HashMap<Integer, HashSet<Integer>> clusterTransactionsMatrix;
 
 
     /**
-     * Initializes the cluster by tacking the relations of the block as a reference
+     * Initializes the cluster by taking the relations of the base as a reference
      *
      * @param base Initial base reference
      */
@@ -52,7 +57,7 @@ public class ClusterMatrix implements PrettyPrint {
     }
 
     /**
-     * @param clusterId the identifier of the cluster
+     * @param clusterId cluster's identifier
      * @return the time id of the given cluster
      */
     public int getTimeId(int clusterId) {
@@ -61,12 +66,15 @@ public class ClusterMatrix implements PrettyPrint {
 
     /**
      * @param clusterId cluster's identifier
-     * @return returns all the transactions of a cluster as a treeset
+     * @return returns all the transactions of a cluster as a {@link HashSet}
      */
     public HashSet<Integer> getTransactionIds(int clusterId) {
         return clusterTransactionsMatrix.get(clusterId);
     }
 
+    /**
+     * @return all the clusters' id of the matrix
+     */
     public SortedSet<Integer> getClusterIds() {
         return clusterIds;
     }
@@ -74,12 +82,11 @@ public class ClusterMatrix implements PrettyPrint {
     /**
      * Rebinds the cluster-transaction matrix by removing the transactions not present in transactionIds and adding the one which are
      * <p>
-     * <pre>
-     * Lcm::UpdateOccurenceDeriver(const DataBase &database, const vector<int> &transactionList, ClusterMatrix &occurence)
-     * </pre>
+     * {@code Lcm::UpdateOccurenceDeriver(const Database &database, const vector<int> &transactionList, OccurenceDeriver &occurence);}
      *
-     * @param base           Reference database to retrieve the bindings
+     * @param base           Reference base to retrieve the bindings
      * @param transactionIds Transactions which need to be present in the matrix
+     * @implSpec complexity : <code>t&times;c</code> (worst case), otherwise <code>t&times;log(c)</code>(t transactionIds, c clusters of transactions).
      */
     public void optimizeMatrix(Base base, Set<Integer> transactionIds) {
         clusterTransactionsMatrix.clear();
@@ -105,6 +112,10 @@ public class ClusterMatrix implements PrettyPrint {
                 "\n`-- TimeMatrix :" + clusterTimeMatrix;
     }
 
+    /**
+     * @return A string representing the object
+     * @implSpec indents the output of {@link #toPrettyString()}
+     */
     @Override
     public String toString() {
         return Debug.indent(toPrettyString());
