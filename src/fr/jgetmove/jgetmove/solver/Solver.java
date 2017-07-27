@@ -33,6 +33,7 @@ import java.util.*;
  * It's used to call {@link BlockMerger} to merge them in a single array of itemsets used for detecting different patterns with their given detectors.
  *
  * @author stardisblue
+ * @author Carmona-Anthony
  * @version 1.0.0
  * @since 0.1.0
  */
