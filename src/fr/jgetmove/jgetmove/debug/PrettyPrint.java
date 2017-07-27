@@ -21,11 +21,11 @@ package fr.jgetmove.jgetmove.debug;
  */
 public interface PrettyPrint {
     /**
-     * Displays a prettified version of {@link #toString()}
+     * Displays a prettified version of {@link Object#toString()}
      * <p>
      * It's used as display by {@link Debug} if it's implemented.
      *
-     * @return String containing a prettified version of {@link #toString()}
+     * @return String containing a prettified version of {@link Object#toString()}
      */
     String toPrettyString();
 }

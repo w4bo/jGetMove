@@ -94,6 +94,7 @@ public class Solver implements PrettyPrint {
      * <p>
      * If the {@link Config#blockSize} is 0, then a single block is returned, containing all the itemset of the database.
      *
+     * @param dataBase database
      * @return ArrayList of blocks containing it's id and all the itemsets detected in the block
      */
     public ArrayList<ArrayList<Itemset>> findItemsets(DataBase dataBase) {
@@ -172,7 +173,9 @@ public class Solver implements PrettyPrint {
     /**
      * Call BlockMerger and launches the pattern detection system
      *
-     * @return a HashMap SingleDetector -> ArrayList< Motif>
+     * @param dataBase database
+     * @param itemsets itemsets to detect pattern from
+     * @return a HashMap SingleDetector &rarr; ArrayList&lt; Motif &gt;
      */
     public HashMap<Detector, ArrayList<Pattern>> detectPatterns(DataBase dataBase, ArrayList<Itemset> itemsets) {
         Debug.printTitle("Detecting Patterns", Debug.INFO);
@@ -205,9 +208,9 @@ public class Solver implements PrettyPrint {
     /**
      * Here we will be merging itemsets with each others across blocks so the basic principle is that we will be invoking itemsetsFinder on a different level.
      * the equivalence are done like this
-     * block -> time
-     * itemset -> cluster
-     * transaction -> transaction
+     * block &rarr; time
+     * itemset &rarr; cluster
+     * transaction &rarr; transaction
      *
      * @param results array of blocks and their itemsets
      * @return the resulting list of itemsets

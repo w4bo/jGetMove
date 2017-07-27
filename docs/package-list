@@ -1,0 +1,10 @@
+fr.jgetmove.jgetmove
+fr.jgetmove.jgetmove.config
+fr.jgetmove.jgetmove.database
+fr.jgetmove.jgetmove.debug
+fr.jgetmove.jgetmove.detector
+fr.jgetmove.jgetmove.exception
+fr.jgetmove.jgetmove.io
+fr.jgetmove.jgetmove.pattern
+fr.jgetmove.jgetmove.solver
+fr.jgetmove.jgetmove.strategy
