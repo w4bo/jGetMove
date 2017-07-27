@@ -36,6 +36,7 @@ class RecursiveItemsetsFinderTest {
 
     @BeforeAll
     static void init() throws IOException, MalformedTimeIndexException, ClusterNotExistException {
+        Debug.disable();
         simpleDataBase = new DataBase(new Input("tests/assets/itemset_check.dat"), new Input("tests/assets/itemset_check_time_index.dat"));
         config = new Config(1, 0, 1, 0, 0);
         complexDataBase = new DataBase(new Input("tests/assets/complex.dat"), new Input("tests/assets/complex_time_index.dat"));
@@ -81,46 +82,6 @@ class RecursiveItemsetsFinderTest {
         TreeSet<Itemset> results = recursiveItemsetsFinder.generate(complexDataBase, config.getBlockSize());
         assertEquals(19, results.size());
         assertEquals(complexResult, results.toString());
-    }
-
-    @Test
-    void generateItemsets() {
-        // Testing with singlepath itemset
-        ArrayList<TreeSet<Integer>> generatedItemsets = BasicItemsetsFinder.generateItemsets(simpleDataBase, new TreeSet<>());
-
-        Debug.println("generatedItemset", generatedItemsets, Debug.DEBUG);
-
-        assertEquals(1, generatedItemsets.size());
-        assertEquals(0, generatedItemsets.get(0).size());
-
-        TreeSet<Integer> itemset = new TreeSet<>();
-        itemset.add(0);
-        itemset.add(2);
-        itemset.add(4);
-
-        generatedItemsets = BasicItemsetsFinder.generateItemsets(simpleDataBase, itemset);
-
-        assertEquals(1, generatedItemsets.size());
-        assertEquals(3, generatedItemsets.get(0).size());
-
-        itemset.clear();
-        itemset.add(1);
-        itemset.add(3);
-        itemset.add(4);
-
-        generatedItemsets = BasicItemsetsFinder.generateItemsets(simpleDataBase, itemset);
-
-        assertEquals(1, generatedItemsets.size());
-        assertEquals(3, generatedItemsets.get(0).size());
-
-        itemset.clear();
-        itemset.add(4);
-
-        generatedItemsets = BasicItemsetsFinder.generateItemsets(simpleDataBase, itemset);
-
-        assertEquals(1, generatedItemsets.size());
-        assertEquals(1, generatedItemsets.get(0).size());
-
     }
 
     @Test
