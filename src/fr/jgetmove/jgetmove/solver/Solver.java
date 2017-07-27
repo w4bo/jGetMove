@@ -269,7 +269,7 @@ public class Solver implements PrettyPrint {
      *
      * @param singleDetector adds this detector to the list of detectors to detect
      */
-    private void add(SingleDetector singleDetector) {
+    public void add(SingleDetector singleDetector) {
         singleDetectors.add(singleDetector);
     }
 
@@ -278,21 +278,21 @@ public class Solver implements PrettyPrint {
      *
      * @param multiDetector adds this detector to the list of detectors to detect
      */
-    private void add(MultiDetector multiDetector) {
+    public void add(MultiDetector multiDetector) {
         multiDetectors.add(multiDetector);
     }
 
     /**
      * @param singleDetector removes this detector from the list of detectors to detect
      */
-    private void remove(SingleDetector singleDetector) {
+    public void remove(SingleDetector singleDetector) {
         singleDetectors.remove(singleDetector);
     }
 
     /**
      * @param multiDetector removes this detector from the list of detectors to detect
      */
-    private void remove(MultiDetector multiDetector) {
+    public void remove(MultiDetector multiDetector) {
         multiDetectors.remove(multiDetector);
     }
 
