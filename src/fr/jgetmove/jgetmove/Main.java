@@ -35,6 +35,8 @@ import java.util.*;
  * Main Class
  *
  * @author stardisblue
+ * @author Carmona-Anthony
+ * @author jframos0
  * @version 1.0.0
  * @since 0.1.0
  */
@@ -141,6 +143,7 @@ public class Main {
             then = System.nanoTime();
             HashMap<Detector, ArrayList<Pattern>> patterns = solver.blockMerge(dataBase, results);
             Debug.println("It took " + (System.nanoTime() - then) + "ns to find generate the patterns", Debug.INFO);
+
             /*
              * JSON Output process
              */
