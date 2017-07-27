@@ -34,7 +34,7 @@ import java.util.*;
  *
  * @author stardisblue
  * @author Carmona-Anthony
- * @version 1.0.0
+ * @version 1.1.0
  * @since 0.1.0
  */
 public class Solver implements PrettyPrint {
@@ -172,17 +172,64 @@ public class Solver implements PrettyPrint {
      * Call BlockMerger and launches the pattern detection system
      *
      * @return a HashMap SingleDetector -> ArrayList< Motif>
+     * @deprecated use {@link #detectPatterns(DataBase, TreeSet)} and {@link #mergeBlocks(ArrayList)}
      */
     public HashMap<Detector, ArrayList<Pattern>> blockMerge(DataBase dataBase, ArrayList<TreeSet<Itemset>> results) {
+        TreeSet<Itemset> itemsets = mergeBlocks(results);
+
+        return detectPatterns(dataBase, itemsets);
+    }
+
+    /**
+     * Launches {@link SingleDetector#detect(DataBase, Itemset)} foreach itemset and {@link MultiDetector#detect(DataBase, Collection)} for all itemsets
+     *
+     * @param dataBase database
+     * @param itemsets list of itemsets
+     * @return all the patterns found
+     */
+    public HashMap<Detector, ArrayList<Pattern>> detectPatterns(DataBase dataBase, TreeSet<Itemset> itemsets) {
         Debug.printTitle("Detecting Patterns", Debug.INFO);
-        Debug.println("MultiClustering doesn't work properly, please be careful", Debug.ERROR);
+        HashMap<Detector, ArrayList<Pattern>> patterns = new HashMap<>(singleDetectors.size() + multiDetectors.size());
 
+        for (SingleDetector singleDetector : singleDetectors) {
+            patterns.put(singleDetector, new ArrayList<>());
+            ArrayList<Pattern> detectorPatterns = patterns.get(singleDetector);
+            for (Itemset itemset : itemsets) {
+                detectorPatterns.addAll(singleDetector.detect(dataBase, itemset));
+            }
 
-        // here we will be merging itemsets with each others across blocks so the basic principle is that we will be invoking itemsetsFinder on a different level
-        // the equivalence are done like this
-        // block -> time
-        // itemset -> cluster
-        // transaction -> transaction
+            Debug.println(singleDetector.toString(), detectorPatterns, Debug.DEBUG);
+            Debug.println(singleDetector.toString(), detectorPatterns.size() + " patterns found", Debug.INFO);
+
+        }
+
+        for (MultiDetector multiDetector : multiDetectors) {
+            patterns.put(multiDetector, multiDetector.detect(dataBase, itemsets));
+
+            Debug.println(multiDetector.toString(), patterns.get(multiDetector), Debug.DEBUG);
+            Debug.println(multiDetector.toString(), patterns.get(multiDetector).size() + " patterns found", Debug.INFO);
+        }
+
+        return patterns;
+    }
+
+    /**
+     * Here we will be merging itemsets with each others across blocks so the basic principle is that we will be invoking itemsetsFinder on a different level.
+     * the equivalence are done like this
+     * block -> time
+     * itemset -> cluster
+     * transaction -> transaction
+     *
+     * @param results array of blocks and their itemsets
+     * @return the resulting list of itemsets
+     */
+    public TreeSet<Itemset> mergeBlocks(ArrayList<TreeSet<Itemset>> results) {
+        // checking if it's only one time :
+        if (results.size() == 1) {
+            return results.get(0);
+        }
+
+        Debug.printTitle("Block Merging", Debug.INFO);
         HashMap<Integer, Integer> clustersTime = new HashMap<>();
         HashMap<Integer, Set<Integer>> clustersTransactions = new HashMap<>();
         HashMap<Integer, Itemset> equivalenceTable = new HashMap<>();
@@ -227,34 +274,9 @@ public class Solver implements PrettyPrint {
             }
         }
 
-
         Debug.println("Itemsets", itemsets, Debug.DEBUG);
         Debug.println("n° of itemsets", itemsets.size(), Debug.INFO);
-
-        HashMap<Detector, ArrayList<Pattern>> patterns = new HashMap<>(singleDetectors.size() + multiDetectors.size());
-        //patternGenerator.generate(dataBase, results);
-
-
-        for (SingleDetector singleDetector : singleDetectors) {
-            patterns.put(singleDetector, new ArrayList<>());
-            ArrayList<Pattern> detectorPatterns = patterns.get(singleDetector);
-            for (Itemset itemset : itemsets) {
-                detectorPatterns.addAll(singleDetector.detect(dataBase, itemset));
-            }
-
-            Debug.println(singleDetector.toString(), detectorPatterns, Debug.DEBUG);
-            Debug.println(singleDetector.toString(), detectorPatterns.size() + " patterns found", Debug.INFO);
-
-        }
-
-        for (MultiDetector multiDetector : multiDetectors) {
-            patterns.put(multiDetector, multiDetector.detect(dataBase, itemsets));
-
-            Debug.println(multiDetector.toString(), patterns.get(multiDetector), Debug.DEBUG);
-            Debug.println(multiDetector.toString(), patterns.get(multiDetector).size() + " patterns found", Debug.INFO);
-        }
-
-        return patterns;
+        return itemsets;
     }
 
     /**

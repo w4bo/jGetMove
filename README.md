@@ -14,7 +14,7 @@ $ javac -extdirs lib/ -sourcepath src/ src/fr/jgetmove/jgetmove/Main.java -d out
 $ jar cvfm jGetMove.jar Manifest.mf -C out/ . lib/
 ```
 
-or download it here: [Latest Release]
+or download it here: [Latest Release](https://github.com/jgetmove/jgetmove/releases/latest)
 
 ## Usage 
 

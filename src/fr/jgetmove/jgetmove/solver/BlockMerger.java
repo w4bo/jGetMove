@@ -27,7 +27,7 @@ import java.util.TreeSet;
  * Used to merge Blocks between each others. Has some custom logic compared to ItemsetsFinder but share most of the algorithm
  *
  * @author stardisblue
- * @version 1.0.0
+ * @version 1.1.0
  * @since 0.2.0
  */
 public class BlockMerger {
@@ -80,7 +80,7 @@ public class BlockMerger {
 
             HashSet<HashSet<Integer>> doneForNextIteration = new HashSet<>(clusterMatrix.getClusterIds().size());
             for (int clusterId : clusterMatrix.getClusterIds()) {
-                if (clusterId <= currentclusterId) continue; // if the clusterId is before the actual cluster
+                if (clusterId < currentclusterId) continue; // if the clusterId is before the actual cluster
 
                 HashSet<Integer> transactions = clusterMatrix.getTransactionIds(clusterId);
 
