@@ -28,7 +28,7 @@ import java.util.*;
  * It's recommended to use this algorithm as it is the fatest.
  *
  * @author stardisblue
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 public class OptimizedItemsetsFinder extends BasicItemsetsFinder {
