@@ -18,8 +18,8 @@ import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.TraceMethod;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.TreeSet;
 
 /**
  * Abstract Implementation of ItemsetsFinder.
@@ -36,13 +36,13 @@ public abstract class BasicItemsetsFinder implements ItemsetsFinder {
 
     protected int minSupport;
     protected int maxPattern;
-    protected TreeSet<Itemset> itemsets;
+    protected ArrayList<Itemset> itemsets;
     protected int minTime;
 
     public BasicItemsetsFinder(Config config) {
         minSupport = config.getMinSupport();
         maxPattern = config.getMaxPattern();
-        itemsets = new TreeSet<>();
+        itemsets = new ArrayList<>();
         minTime = config.getMinTime();
     }
 
@@ -59,12 +59,12 @@ public abstract class BasicItemsetsFinder implements ItemsetsFinder {
      * @param clusters (itemsets) une liste representant les clusterId
      */
     @TraceMethod(displayTitle = true)
-    static ArrayList<TreeSet<Integer>> generateItemsets(Base base, TreeSet<Integer> clusters) {
+    static ArrayList<HashSet<Integer>> generateItemsets(Base base, HashSet<Integer> clusters) {
         Debug.println("clusters", clusters, Debug.DEBUG);
 
         if (clusters.isEmpty()) {
-            ArrayList<TreeSet<Integer>> generatedItemsets = new ArrayList<>(1);
-            generatedItemsets.add(new TreeSet<>());
+            ArrayList<HashSet<Integer>> generatedItemsets = new ArrayList<>(1);
+            generatedItemsets.add(new HashSet<>());
             return generatedItemsets;
         }
 
@@ -86,8 +86,8 @@ public abstract class BasicItemsetsFinder implements ItemsetsFinder {
         }
 
         if (oneTimePerCluster) {
-            ArrayList<TreeSet<Integer>> generatedPaths = new ArrayList<>(1);
-            generatedPaths.add(new TreeSet<>(clusters));
+            ArrayList<HashSet<Integer>> generatedPaths = new ArrayList<>(1);
+            generatedPaths.add(new HashSet<>(clusters));
             return generatedPaths;
         }
 
@@ -109,13 +109,13 @@ public abstract class BasicItemsetsFinder implements ItemsetsFinder {
             timesClusterIds.add(tempPath);
         }
 
-        ArrayList<TreeSet<Integer>> tempItemsets = new ArrayList<>();
+        ArrayList<HashSet<Integer>> tempItemsets = new ArrayList<>();
 
         /*
          * For each clusterId in timeClusterIds[0], push path of size 1
          */
         for (Integer clusterId : timesClusterIds.get(0)) {
-            TreeSet<Integer> singleton = new TreeSet<>();
+            HashSet<Integer> singleton = new HashSet<>();
             singleton.add(clusterId);
             tempItemsets.add(singleton);
         }
@@ -125,11 +125,11 @@ public abstract class BasicItemsetsFinder implements ItemsetsFinder {
          */
         for (int clusterIdsIndex = 1, size = timesClusterIds.size(); clusterIdsIndex < size; ++clusterIdsIndex) {
             ArrayList<Integer> tempClusterIds = timesClusterIds.get(clusterIdsIndex);
-            ArrayList<TreeSet<Integer>> results = new ArrayList<>();
+            ArrayList<HashSet<Integer>> results = new ArrayList<>(tempClusterIds.size() * tempItemsets.size());
 
-            for (TreeSet<Integer> generatedPath : tempItemsets) {
+            for (HashSet<Integer> generatedPath : tempItemsets) {
                 for (int item : tempClusterIds) {
-                    TreeSet<Integer> result = new TreeSet<>(generatedPath);
+                    HashSet<Integer> result = new HashSet<>(generatedPath);
                     result.add(item);
                     results.add(result); // but why ???
                 }
@@ -138,11 +138,11 @@ public abstract class BasicItemsetsFinder implements ItemsetsFinder {
         }
 
         // Remove the itemsets already existing in the set of transactions
-        ArrayList<TreeSet<Integer>> checkedArrayOfClusterIds = new ArrayList<>();//checkedItemsets
+        ArrayList<HashSet<Integer>> checkedArrayOfClusterIds = new ArrayList<>();//checkedItemsets
 
         boolean insertok;
 
-        for (TreeSet<Integer> currentItemset : tempItemsets) {
+        for (HashSet<Integer> currentItemset : tempItemsets) {
             insertok = true;
 
             for (Transaction transaction : base.getTransactions().values()) {

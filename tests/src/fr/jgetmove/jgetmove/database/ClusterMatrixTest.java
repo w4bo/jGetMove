@@ -10,6 +10,7 @@
 
 package fr.jgetmove.jgetmove.database;
 
+import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.exception.MalformedTimeIndexException;
 import fr.jgetmove.jgetmove.io.Input;
@@ -28,9 +29,10 @@ class ClusterMatrixTest {
 
     @BeforeAll
     static void init() {
+        Debug.disable();
         try {
-            Input data = new Input("tests/assets/itemset_check.dat");
-            Input dataTime = new Input("tests/assets/itemset_check_time_index.dat");
+            Input data = new Input("tests/assets/simple.dat");
+            Input dataTime = new Input("tests/assets/simple_time_index.dat");
             dataBase = new DataBase(data, dataTime);
 
             clusterMatrix = new ClusterMatrix(dataBase);

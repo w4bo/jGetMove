@@ -34,6 +34,7 @@ import java.util.Objects;
  * @author stardisblue
  * @version 1.3.0
  * @see #enable()
+ * @see #disable()
  * @see #print(Object, int)
  * @see #print(PrettyPrint, int)
  * @see #print(String, Object, int)
@@ -222,6 +223,13 @@ public final class Debug {
      */
     public static void enable() {
         displayDebug = 15;
+    }
+
+    /**
+     * Disables any display done with this class.
+     */
+    public static void disable() {
+        displayDebug = 0;
     }
 
     /**

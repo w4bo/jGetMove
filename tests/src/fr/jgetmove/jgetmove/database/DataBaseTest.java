@@ -10,9 +10,11 @@
 
 package fr.jgetmove.jgetmove.database;
 
+import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.exception.ClusterNotExistException;
 import fr.jgetmove.jgetmove.exception.MalformedTimeIndexException;
 import fr.jgetmove.jgetmove.io.Input;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -24,12 +26,17 @@ class DataBaseTest {
 
     private DataBase dataBase;
 
+    @BeforeAll
+    void init() {
+        Debug.disable();
+    }
+
     @BeforeEach
     void setUp() {
 
         // TODO : check exception d'initialisation
         try {
-            dataBase = new DataBase(new Input("tests/assets/itemset_check.dat"), new Input("tests/assets/itemset_check_time_index.dat"));
+            dataBase = new DataBase(new Input("tests/assets/simple.dat"), new Input("tests/assets/simple_time_index.dat"));
         } catch (IOException | MalformedTimeIndexException | ClusterNotExistException e) {
             e.printStackTrace();
         }

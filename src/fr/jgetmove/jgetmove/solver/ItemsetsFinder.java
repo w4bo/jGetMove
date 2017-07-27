@@ -13,7 +13,7 @@ package fr.jgetmove.jgetmove.solver;
 import fr.jgetmove.jgetmove.database.Base;
 import fr.jgetmove.jgetmove.database.Itemset;
 
-import java.util.TreeSet;
+import java.util.ArrayList;
 
 /**
  * Interface used for all the algorithm in charge of finding itemsets.
@@ -32,5 +32,5 @@ public interface ItemsetsFinder {
      * @param minTime minimal number of time
      * @return detected itemsets
      */
-    TreeSet<Itemset> generate(Base base, final int minTime);
+    ArrayList<Itemset> generate(Base base, final int minTime);
 }

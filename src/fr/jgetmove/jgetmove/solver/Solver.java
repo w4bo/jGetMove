@@ -96,10 +96,10 @@ public class Solver implements PrettyPrint {
      *
      * @return ArrayList of blocks containing it's id and all the itemsets detected in the block
      */
-    public ArrayList<TreeSet<Itemset>> findItemsets(DataBase dataBase) {
+    public ArrayList<ArrayList<Itemset>> findItemsets(DataBase dataBase) {
         Debug.printTitle("Itemsets Finder", Debug.INFO);
 
-        ArrayList<TreeSet<Itemset>> blockItemsets = new ArrayList<>();
+        ArrayList<ArrayList<Itemset>> blockItemsets = new ArrayList<>();
 
         if (config.getBlockSize() > 0) { // if blockSize is set
             Base base;
@@ -108,19 +108,20 @@ public class Solver implements PrettyPrint {
             while ((base = createBlock(dataBase, lastTime)) != null) {
                 // if there is more than one block, min time is ignored for the glory of mankind (or because it could break the block fusion later on).
                 // generating the itemsets
-                TreeSet<Itemset> itemsets = itemsetsFinder.generate(base, 0);
+                ArrayList<Itemset> itemsets = itemsetsFinder.generate(base, 0);
                 // putting the itemsets in the block
                 blockItemsets.add(itemsets);
             }
         } else { // if blockSize is not set
             // One block for all of this
-            TreeSet<Itemset> result = itemsetsFinder.generate(dataBase, config.getMinTime());
+            ArrayList<Itemset> result = itemsetsFinder.generate(dataBase, config.getMinTime());
             // aaand putting the itemsets in the first block
             blockItemsets.add(result);
         }
 
         Debug.println("Blocks", blockItemsets, Debug.DEBUG);
         Debug.println("n° of Blocks", blockItemsets.size(), Debug.INFO);
+        blockItemsets.trimToSize();
         return blockItemsets;
     }
 
@@ -173,64 +174,8 @@ public class Solver implements PrettyPrint {
      *
      * @return a HashMap SingleDetector -> ArrayList< Motif>
      */
-    public HashMap<Detector, ArrayList<Pattern>> blockMerge(DataBase dataBase, ArrayList<TreeSet<Itemset>> results) {
+    public HashMap<Detector, ArrayList<Pattern>> detectPatterns(DataBase dataBase, ArrayList<Itemset> itemsets) {
         Debug.printTitle("Detecting Patterns", Debug.INFO);
-        Debug.println("MultiClustering doesn't work properly, please be careful", Debug.ERROR);
-
-
-        // here we will be merging itemsets with each others across blocks so the basic principle is that we will be invoking itemsetsFinder on a different level
-        // the equivalence are done like this
-        // block -> time
-        // itemset -> cluster
-        // transaction -> transaction
-        HashMap<Integer, Integer> clustersTime = new HashMap<>();
-        HashMap<Integer, Set<Integer>> clustersTransactions = new HashMap<>();
-        HashMap<Integer, Itemset> equivalenceTable = new HashMap<>();
-
-        // custom clusterId(itemsetId) because the times(blocks) are independent with each other and itemsetId begins at 0 for each block
-        int clusterId = 0;
-        int blockIndex = 0;
-        int resultsSize = results.size();
-
-        while (blockIndex < resultsSize) {
-            int timeId = blockIndex + 1;
-            for (Itemset itemset : results.get(blockIndex)) {
-                clustersTime.put(clusterId, timeId);
-                clustersTransactions.put(clusterId, itemset.getTransactions());
-                equivalenceTable.put(clusterId, itemset);
-                ++clusterId;
-            }
-            blockIndex++;
-        }
-
-        Base itemsetBase = new Base(clustersTransactions, clustersTime);
-        TreeSet<Itemset> supersets = blockMerger.generate(itemsetBase);
-
-        // now we know which itemsets are together (each cluster of the superset is an itemset) we need to retrieve them with the equivalence table and flatten the results il a single list of itemsets
-
-        TreeSet<Itemset> itemsets = new TreeSet<>();
-        for (Itemset superset : supersets) {
-            Set<Integer> mergedClusters = new HashSet<>();
-            Set<Integer> mergedTimes = new HashSet<>();
-            Set<Integer> mergedTransactions = new HashSet<>();
-            for (int mappedItemsetIndex : superset.getClusters()) {
-                Itemset itemset = equivalenceTable.get(mappedItemsetIndex);
-
-                mergedClusters.addAll(itemset.getClusters());
-                mergedTimes.addAll(itemset.getTimes());
-                mergedTransactions.addAll(superset.getTransactions());
-
-            }
-            if (mergedClusters.size() > config.getMinTime()) {
-                Itemset itemset = new Itemset(mergedTransactions, mergedClusters, mergedTimes);
-                itemsets.add(itemset);
-            }
-        }
-
-
-        Debug.println("Itemsets", itemsets, Debug.DEBUG);
-        Debug.println("n° of itemsets", itemsets.size(), Debug.INFO);
-
         HashMap<Detector, ArrayList<Pattern>> patterns = new HashMap<>(singleDetectors.size() + multiDetectors.size());
         //patternGenerator.generate(dataBase, results);
 
@@ -255,6 +200,68 @@ public class Solver implements PrettyPrint {
         }
 
         return patterns;
+    }
+
+    /**
+     * Here we will be merging itemsets with each others across blocks so the basic principle is that we will be invoking itemsetsFinder on a different level.
+     * the equivalence are done like this
+     * block -> time
+     * itemset -> cluster
+     * transaction -> transaction
+     *
+     * @param results array of blocks and their itemsets
+     * @return the resulting list of itemsets
+     */
+    public ArrayList<Itemset> mergeBlocks(ArrayList<ArrayList<Itemset>> results) {
+        Debug.printTitle("Block Merging", Debug.INFO);
+
+        HashMap<Integer, Integer> clustersTime = new HashMap<>();
+        HashMap<Integer, Set<Integer>> clustersTransactions = new HashMap<>();
+        HashMap<Integer, Itemset> equivalenceTable = new HashMap<>();
+
+        // custom clusterId(itemsetId) because the times(blocks) are independent with each other and itemsetId begins at 0 for each block
+        int clusterId = 0;
+        int blockIndex = 0;
+        int resultsSize = results.size();
+
+        while (blockIndex < resultsSize) {
+            int timeId = blockIndex + 1;
+            for (Itemset itemset : results.get(blockIndex)) {
+                clustersTime.put(clusterId, timeId);
+                clustersTransactions.put(clusterId, itemset.getTransactions());
+                equivalenceTable.put(clusterId, itemset);
+                ++clusterId;
+            }
+            blockIndex++;
+        }
+
+        Base itemsetBase = new Base(clustersTransactions, clustersTime);
+        ArrayList<Itemset> supersets = blockMerger.generate(itemsetBase);
+
+        // now we know which itemsets are together (each cluster of the superset is an itemset) we need to retrieve them with the equivalence table and flatten the results il a single list of itemsets
+
+        ArrayList<Itemset> itemsets = new ArrayList<>();
+        for (Itemset superset : supersets) {
+            Set<Integer> mergedClusters = new HashSet<>();
+            Set<Integer> mergedTimes = new HashSet<>();
+            Set<Integer> mergedTransactions = new HashSet<>();
+            for (int mappedItemsetIndex : superset.getClusters()) {
+                Itemset itemset = equivalenceTable.get(mappedItemsetIndex);
+
+                mergedClusters.addAll(itemset.getClusters());
+                mergedTimes.addAll(itemset.getTimes());
+                mergedTransactions.addAll(superset.getTransactions());
+
+            }
+            if (mergedClusters.size() > config.getMinTime()) {
+                Itemset itemset = new Itemset(mergedTransactions, mergedClusters, mergedTimes);
+                itemsets.add(itemset);
+            }
+        }
+
+        Debug.println("Itemsets", itemsets, Debug.DEBUG);
+        Debug.println("n° of itemsets", itemsets.size(), Debug.INFO);
+        return itemsets;
     }
 
     /**

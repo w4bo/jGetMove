@@ -29,7 +29,10 @@ import fr.jgetmove.jgetmove.solver.Solver;
 
 import javax.json.JsonObjectBuilder;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Main Class
@@ -137,11 +140,17 @@ public class Main {
              */
             //generates the itemsets from the database (separated by blocs)
             long then = System.nanoTime();
-            ArrayList<TreeSet<Itemset>> results = solver.findItemsets(dataBase);
+            ArrayList<ArrayList<Itemset>> results = solver.findItemsets(dataBase);
             Debug.println("It took " + (System.nanoTime() - then) + "ns to find the itemsets", Debug.INFO);
-            // merges the blocs (and so itemsets) and detect patterns from the result
+
+            // merges the blocs (and so itemsets)
             then = System.nanoTime();
-            HashMap<Detector, ArrayList<Pattern>> patterns = solver.blockMerge(dataBase, results);
+            ArrayList<Itemset> itemsets = solver.mergeBlocks(results);
+            Debug.println("It took " + (System.nanoTime() - then) + "ns to merge blocks", Debug.INFO);
+
+            // detect patterns from the result
+            then = System.nanoTime();
+            HashMap<Detector, ArrayList<Pattern>> patterns = solver.detectPatterns(dataBase, itemsets);
             Debug.println("It took " + (System.nanoTime() - then) + "ns to find generate the patterns", Debug.INFO);
 
             /*
