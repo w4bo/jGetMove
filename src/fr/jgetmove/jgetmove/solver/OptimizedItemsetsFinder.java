@@ -28,7 +28,7 @@ import java.util.*;
  * It's recommended to use this algorithm as it is the fatest.
  *
  * @author stardisblue
- * @version 1.1.0
+ * @version 2.0.0
  * @since 1.0.0
  */
 public class OptimizedItemsetsFinder extends BasicItemsetsFinder {
@@ -171,7 +171,7 @@ public class OptimizedItemsetsFinder extends BasicItemsetsFinder {
      * @param itemsetClusters clusters of the itemset
      * @see Itemset#compareTo(Itemset) to understand how the verification is made.
      */
-    private void saveItemset(ClusterMatrix clusterMatrix, HashSet<Integer> itemsetClusters, HashSet<Integer> itemsetTransactions) {
+    private void saveItemset(ClusterMatrix clusterMatrix, Collection<Integer> itemsetClusters, Collection<Integer> itemsetTransactions) {
         // then the itemset is possible
         HashSet<Integer> itemsetTimes = new HashSet<>();
         for (Integer clusterId : itemsetClusters) {

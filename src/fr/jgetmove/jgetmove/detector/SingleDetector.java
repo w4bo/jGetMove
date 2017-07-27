@@ -19,7 +19,7 @@ import java.util.ArrayList;
 /**
  * Defines the structure of a Detector which need an itemset to work
  *
- *
+ * @author stardisblue
  * @version 1.0.0
  * @since 0.2.0
  */
