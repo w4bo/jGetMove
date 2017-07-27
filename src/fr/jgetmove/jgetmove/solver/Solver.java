@@ -34,7 +34,7 @@ import java.util.*;
  *
  * @author stardisblue
  * @author Carmona-Anthony
- * @version 1.1.0
+ * @version 1.2.0
  * @since 0.1.0
  */
 public class Solver implements PrettyPrint {
@@ -96,10 +96,10 @@ public class Solver implements PrettyPrint {
      *
      * @return ArrayList of blocks containing it's id and all the itemsets detected in the block
      */
-    public ArrayList<TreeSet<Itemset>> findItemsets(DataBase dataBase) {
+    public ArrayList<ArrayList<Itemset>> findItemsets(DataBase dataBase) {
         Debug.printTitle("Itemsets Finder", Debug.INFO);
 
-        ArrayList<TreeSet<Itemset>> blockItemsets = new ArrayList<>();
+        ArrayList<ArrayList<Itemset>> blockItemsets = new ArrayList<>();
 
         if (config.getBlockSize() > 0) { // if blockSize is set
             Base base;
@@ -108,19 +108,20 @@ public class Solver implements PrettyPrint {
             while ((base = createBlock(dataBase, lastTime)) != null) {
                 // if there is more than one block, min time is ignored for the glory of mankind (or because it could break the block fusion later on).
                 // generating the itemsets
-                TreeSet<Itemset> itemsets = itemsetsFinder.generate(base, 0);
+                ArrayList<Itemset> itemsets = itemsetsFinder.generate(base, 0);
                 // putting the itemsets in the block
                 blockItemsets.add(itemsets);
             }
         } else { // if blockSize is not set
             // One block for all of this
-            TreeSet<Itemset> result = itemsetsFinder.generate(dataBase, config.getMinTime());
+            ArrayList<Itemset> result = itemsetsFinder.generate(dataBase, config.getMinTime());
             // aaand putting the itemsets in the first block
             blockItemsets.add(result);
         }
 
         Debug.println("Blocks", blockItemsets, Debug.DEBUG);
         Debug.println("n° of Blocks", blockItemsets.size(), Debug.INFO);
+        blockItemsets.trimToSize();
         return blockItemsets;
     }
 
@@ -172,24 +173,12 @@ public class Solver implements PrettyPrint {
      * Call BlockMerger and launches the pattern detection system
      *
      * @return a HashMap SingleDetector -> ArrayList< Motif>
-     * @deprecated use {@link #detectPatterns(DataBase, TreeSet)} and {@link #mergeBlocks(ArrayList)}
      */
-    public HashMap<Detector, ArrayList<Pattern>> blockMerge(DataBase dataBase, ArrayList<TreeSet<Itemset>> results) {
-        TreeSet<Itemset> itemsets = mergeBlocks(results);
-
-        return detectPatterns(dataBase, itemsets);
-    }
-
-    /**
-     * Launches {@link SingleDetector#detect(DataBase, Itemset)} foreach itemset and {@link MultiDetector#detect(DataBase, Collection)} for all itemsets
-     *
-     * @param dataBase database
-     * @param itemsets list of itemsets
-     * @return all the patterns found
-     */
-    public HashMap<Detector, ArrayList<Pattern>> detectPatterns(DataBase dataBase, TreeSet<Itemset> itemsets) {
+    public HashMap<Detector, ArrayList<Pattern>> detectPatterns(DataBase dataBase, ArrayList<Itemset> itemsets) {
         Debug.printTitle("Detecting Patterns", Debug.INFO);
         HashMap<Detector, ArrayList<Pattern>> patterns = new HashMap<>(singleDetectors.size() + multiDetectors.size());
+        //patternGenerator.generate(dataBase, results);
+
 
         for (SingleDetector singleDetector : singleDetectors) {
             patterns.put(singleDetector, new ArrayList<>());
@@ -223,13 +212,9 @@ public class Solver implements PrettyPrint {
      * @param results array of blocks and their itemsets
      * @return the resulting list of itemsets
      */
-    public TreeSet<Itemset> mergeBlocks(ArrayList<TreeSet<Itemset>> results) {
-        // checking if it's only one time :
-        if (results.size() == 1) {
-            return results.get(0);
-        }
-
+    public ArrayList<Itemset> mergeBlocks(ArrayList<ArrayList<Itemset>> results) {
         Debug.printTitle("Block Merging", Debug.INFO);
+
         HashMap<Integer, Integer> clustersTime = new HashMap<>();
         HashMap<Integer, Set<Integer>> clustersTransactions = new HashMap<>();
         HashMap<Integer, Itemset> equivalenceTable = new HashMap<>();
@@ -251,11 +236,11 @@ public class Solver implements PrettyPrint {
         }
 
         Base itemsetBase = new Base(clustersTransactions, clustersTime);
-        TreeSet<Itemset> supersets = blockMerger.generate(itemsetBase);
+        ArrayList<Itemset> supersets = blockMerger.generate(itemsetBase);
 
         // now we know which itemsets are together (each cluster of the superset is an itemset) we need to retrieve them with the equivalence table and flatten the results il a single list of itemsets
 
-        TreeSet<Itemset> itemsets = new TreeSet<>();
+        ArrayList<Itemset> itemsets = new ArrayList<>();
         for (Itemset superset : supersets) {
             Set<Integer> mergedClusters = new HashSet<>();
             Set<Integer> mergedTimes = new HashSet<>();
@@ -284,7 +269,7 @@ public class Solver implements PrettyPrint {
      *
      * @param singleDetector adds this detector to the list of detectors to detect
      */
-    private void add(SingleDetector singleDetector) {
+    public void add(SingleDetector singleDetector) {
         singleDetectors.add(singleDetector);
     }
 
@@ -293,21 +278,21 @@ public class Solver implements PrettyPrint {
      *
      * @param multiDetector adds this detector to the list of detectors to detect
      */
-    private void add(MultiDetector multiDetector) {
+    public void add(MultiDetector multiDetector) {
         multiDetectors.add(multiDetector);
     }
 
     /**
      * @param singleDetector removes this detector from the list of detectors to detect
      */
-    private void remove(SingleDetector singleDetector) {
+    public void remove(SingleDetector singleDetector) {
         singleDetectors.remove(singleDetector);
     }
 
     /**
      * @param multiDetector removes this detector from the list of detectors to detect
      */
-    private void remove(MultiDetector multiDetector) {
+    public void remove(MultiDetector multiDetector) {
         multiDetectors.remove(multiDetector);
     }
 

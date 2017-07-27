@@ -18,10 +18,10 @@ import fr.jgetmove.jgetmove.database.Itemset;
 import fr.jgetmove.jgetmove.debug.Debug;
 import fr.jgetmove.jgetmove.debug.TraceMethod;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.TreeSet;
 
 /**
  * Used to merge Blocks between each others. Has some custom logic compared to ItemsetsFinder but share most of the algorithm
@@ -32,7 +32,7 @@ import java.util.TreeSet;
  */
 public class BlockMerger {
     private final int minSupport;
-    protected TreeSet<Itemset> itemsets;
+    protected ArrayList<Itemset> itemsets;
 
 
     /**
@@ -40,7 +40,7 @@ public class BlockMerger {
      */
     public BlockMerger(Config config) {
         minSupport = config.getMinSupport();
-        itemsets = new TreeSet<>();
+        itemsets = new ArrayList<>();
     }
 
     /**
@@ -50,7 +50,7 @@ public class BlockMerger {
      * @return detected possible mergings
      */
     @TraceMethod
-    TreeSet<Itemset> generate(Base base) {
+    ArrayList<Itemset> generate(Base base) {
         final int nbOfTimes = base.getTimeIds().size();
         Debug.println("Base", base, Debug.DEBUG);
         Debug.println("n° of Clusters", base.getClusterIds().size(), Debug.INFO);
@@ -92,7 +92,7 @@ public class BlockMerger {
                 final int timeId = clusterMatrix.getTimeId(clusterId);
 
                 Integer minClusterId = minimalClusterForTransaction.computeIfAbsent(timeId,
-                        t -> new HashMap<>(currentClusterSize * currentClusterSize)).get(transactions);
+                        t -> new HashMap<>(currentClusterSize)).get(transactions);
 
                 if (minClusterId == null ||
                         base.getClusterTransactions(clusterId).size() < base.getClusterTransactions(minClusterId).size()) {
@@ -106,12 +106,12 @@ public class BlockMerger {
             Debug.println("minimalClusterForTransaction", minimalClusterForTransaction, Debug.DEBUG);
 
             // setting up all the detected clusters to add to the itemset
-            HashMap<HashSet<Integer>, TreeSet<Integer>> detectedItemsets = detectAndMergeEnglobedItemsets(minimalClusterForTransaction, doneForNextIteration.size());
+            HashMap<HashSet<Integer>, HashSet<Integer>> detectedItemsets = detectAndMergeEnglobedItemsets(minimalClusterForTransaction, doneForNextIteration.size());
 
             Debug.println("detectedItemsets", detectedItemsets, Debug.DEBUG);
 
             // and we save everything
-            for (Map.Entry<HashSet<Integer>, TreeSet<Integer>> itemsetClusters : detectedItemsets.entrySet()) {
+            for (Map.Entry<HashSet<Integer>, HashSet<Integer>> itemsetClusters : detectedItemsets.entrySet()) {
                 saveItemset(clusterMatrix, itemsetClusters.getValue(), itemsetClusters.getKey());
             }
         }
@@ -130,13 +130,13 @@ public class BlockMerger {
      * @param numberOfDetectedItemsets     sets the maximum number of possible itemsets
      * @return itemset content to use to create an itemset
      */
-    private HashMap<HashSet<Integer>, TreeSet<Integer>> detectAndMergeEnglobedItemsets(HashMap<Integer, HashMap<HashSet<Integer>, Integer>> minimalClusterForTransaction, final int numberOfDetectedItemsets) {
-        HashMap<HashSet<Integer>, TreeSet<Integer>> detectedItemsets = new HashMap<>(numberOfDetectedItemsets);
+    private HashMap<HashSet<Integer>, HashSet<Integer>> detectAndMergeEnglobedItemsets(HashMap<Integer, HashMap<HashSet<Integer>, Integer>> minimalClusterForTransaction, final int numberOfDetectedItemsets) {
+        HashMap<HashSet<Integer>, HashSet<Integer>> detectedItemsets = new HashMap<>(numberOfDetectedItemsets);
 
         for (Map.Entry<Integer, HashMap<HashSet<Integer>, Integer>> entry : minimalClusterForTransaction.entrySet()) {
             for (Map.Entry<HashSet<Integer>, Integer> entryCopy : entry.getValue().entrySet()) {
                 // filling up with the basic equivalence (the  transaction of the cluster is the same)
-                detectedItemsets.computeIfAbsent(entryCopy.getKey(), key -> new TreeSet<>()).add(entryCopy.getValue());
+                detectedItemsets.computeIfAbsent(entryCopy.getKey(), key -> new HashSet<>()).add(entryCopy.getValue());
             }
 
             // filling detectedItemsets while searching for the smallest set englobing all the transaction for each time (they are already present in other itemset so we need to check that)
@@ -176,7 +176,7 @@ public class BlockMerger {
 
                     // if we found one in this time (block)
                     if (minimalCluster != -1) {
-                        detectedItemsets.computeIfAbsent(transactions, key -> new TreeSet<>()).add(minimalCluster);
+                        detectedItemsets.computeIfAbsent(transactions, key -> new HashSet<>()).add(minimalCluster);
                     }
                 }
             }
@@ -190,11 +190,10 @@ public class BlockMerger {
      *
      * @param clusterMatrix   will be used to retrieve the list of transactions and times
      * @param itemsetClusters clusters of the itemset
-     * @see Itemset#compareTo(Itemset) to understand how the verification is made.
      */
-    private void saveItemset(ClusterMatrix clusterMatrix, TreeSet<Integer> itemsetClusters, HashSet<Integer> itemsetTransactions) {
+    private void saveItemset(ClusterMatrix clusterMatrix, HashSet<Integer> itemsetClusters, HashSet<Integer> itemsetTransactions) {
         // then the itemset is possible
-        TreeSet<Integer> itemsetTimes = new TreeSet<>();
+        HashSet<Integer> itemsetTimes = new HashSet<>();
         for (Integer clusterId : itemsetClusters) {
             itemsetTimes.add(clusterMatrix.getTimeId(clusterId));
         }

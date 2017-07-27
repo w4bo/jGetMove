@@ -32,13 +32,18 @@ import java.util.*;
  * @since 1.0.0
  */
 public class OptimizedItemsetsFinder extends BasicItemsetsFinder {
+    /**
+     * Default constructor
+     *
+     * @param config options for the algorithms
+     */
     public OptimizedItemsetsFinder(Config config) {
         super(config);
     }
 
     @Override
     @TraceMethod
-    public TreeSet<Itemset> generate(Base base, int minTime) {
+    public ArrayList<Itemset> generate(Base base, int minTime) {
         Debug.println("Base", base, Debug.DEBUG);
         Debug.println("n° of Clusters", base.getClusterIds().size(), Debug.INFO);
         Debug.println("n° of Transactions", base.getTransactionIds().size(), Debug.INFO);
@@ -51,12 +56,13 @@ public class OptimizedItemsetsFinder extends BasicItemsetsFinder {
         // Overwriting minTime to avoid problems with blocks
         this.minTime = minTime;
         // important if has multiple blocks it needs to be cleaned.
-        this.itemsets = new TreeSet<>();
+        this.itemsets = new ArrayList<>(clusterMatrix.getClusterIds().size());
 
         run(base, clusterMatrix);
 
         Debug.println("Itemsets", itemsets, Debug.DEBUG);
         Debug.println("n° of Itemsets", itemsets.size(), Debug.INFO);
+        itemsets.trimToSize();
         return itemsets;
     }
 
@@ -84,7 +90,7 @@ public class OptimizedItemsetsFinder extends BasicItemsetsFinder {
             Debug.println("ClusterMatrix", clusterMatrix, Debug.DEBUG);
 
             // initialising the itemset container
-            HashMap<HashSet<Integer>, TreeSet<Integer>> transactionsClustersItemset = getTransactionsAndClustersOfItemsets(clusterMatrix, doneTransactionSets);
+            HashMap<HashSet<Integer>, HashSet<Integer>> transactionsClustersItemset = getTransactionsAndClustersOfItemsets(clusterMatrix, doneTransactionSets);
             // saving buffer
             doneTransactionSets.addAll(transactionsClustersItemset.keySet());
 
@@ -96,13 +102,13 @@ public class OptimizedItemsetsFinder extends BasicItemsetsFinder {
             Debug.println("transactionsClustersItemset Updated", transactionsClustersItemset, Debug.DEBUG);
 
             // once expanded, we proceed to linearise them across the times
-            for (Map.Entry<HashSet<Integer>, TreeSet<Integer>> itemsetData : transactionsClustersItemset.entrySet()) {
-                ArrayList<TreeSet<Integer>> itemsets = generateItemsets(base, itemsetData.getValue());
+            for (Map.Entry<HashSet<Integer>, HashSet<Integer>> itemsetData : transactionsClustersItemset.entrySet()) {
+                ArrayList<HashSet<Integer>> itemsets = generateItemsets(base, itemsetData.getValue());
 
                 Debug.println("itemsets", itemsets, Debug.DEBUG);
 
                 // foreach formed itemset we create the itemset
-                for (TreeSet<Integer> itemsetClusterIds : itemsets) {
+                for (HashSet<Integer> itemsetClusterIds : itemsets) {
                     if (itemsetClusterIds.size() > minTime) {
                         saveItemset(clusterMatrix, itemsetClusterIds, itemsetData.getKey());
                     }
@@ -118,10 +124,10 @@ public class OptimizedItemsetsFinder extends BasicItemsetsFinder {
      * @param transactionsClustersItemset the data of itemsets
      * @implSpec complexity :<code>i&times;c</code> worst case, otherwise <code>i&times;log(c)</code> (i itemsets, c clusters)
      */
-    private void addEnglobingClusters(ClusterMatrix clusterMatrix, HashMap<HashSet<Integer>, TreeSet<Integer>> transactionsClustersItemset) {
-        for (Map.Entry<HashSet<Integer>, TreeSet<Integer>> itemsetData : transactionsClustersItemset.entrySet()) {
+    private void addEnglobingClusters(ClusterMatrix clusterMatrix, HashMap<HashSet<Integer>, HashSet<Integer>> transactionsClustersItemset) {
+        for (Map.Entry<HashSet<Integer>, HashSet<Integer>> itemsetData : transactionsClustersItemset.entrySet()) {
             HashSet<Integer> transactions = itemsetData.getKey();
-            TreeSet<Integer> clusters = itemsetData.getValue();
+            HashSet<Integer> clusters = itemsetData.getValue();
 
             for (int clusterId : clusterMatrix.getClusterIds()) {
                 HashSet<Integer> transactionsIter = clusterMatrix.getTransactionIds(clusterId);
@@ -140,8 +146,8 @@ public class OptimizedItemsetsFinder extends BasicItemsetsFinder {
      * @return future data of an itemset.
      * @implSpec complexity : <code>c</code> (worst case), <code>log(c)</code> (c cluster)
      */
-    private HashMap<HashSet<Integer>, TreeSet<Integer>> getTransactionsAndClustersOfItemsets(ClusterMatrix clusterMatrix, HashSet<Set<Integer>> doneTransactionSets) {
-        HashMap<HashSet<Integer>, TreeSet<Integer>> transactionsClustersItemset = new HashMap<>(clusterMatrix.getClusterIds().size());
+    private HashMap<HashSet<Integer>, HashSet<Integer>> getTransactionsAndClustersOfItemsets(ClusterMatrix clusterMatrix, HashSet<Set<Integer>> doneTransactionSets) {
+        HashMap<HashSet<Integer>, HashSet<Integer>> transactionsClustersItemset = new HashMap<>(clusterMatrix.getClusterIds().size());
 
         for (int clusterId : clusterMatrix.getClusterIds()) {
             HashSet<Integer> transactions = clusterMatrix.getTransactionIds(clusterId);
@@ -153,7 +159,7 @@ public class OptimizedItemsetsFinder extends BasicItemsetsFinder {
             if (doneTransactionSets.contains(transactions)) continue;
 
             // adding the cluster to an itemset identified by transactions
-            transactionsClustersItemset.computeIfAbsent(transactions, key -> new TreeSet<>()).add(clusterId);
+            transactionsClustersItemset.computeIfAbsent(transactions, key -> new HashSet<>()).add(clusterId);
         }
         return transactionsClustersItemset;
     }
@@ -165,9 +171,9 @@ public class OptimizedItemsetsFinder extends BasicItemsetsFinder {
      * @param itemsetClusters clusters of the itemset
      * @see Itemset#compareTo(Itemset) to understand how the verification is made.
      */
-    private void saveItemset(ClusterMatrix clusterMatrix, TreeSet<Integer> itemsetClusters, HashSet<Integer> itemsetTransactions) {
+    private void saveItemset(ClusterMatrix clusterMatrix, HashSet<Integer> itemsetClusters, HashSet<Integer> itemsetTransactions) {
         // then the itemset is possible
-        TreeSet<Integer> itemsetTimes = new TreeSet<>();
+        HashSet<Integer> itemsetTimes = new HashSet<>();
         for (Integer clusterId : itemsetClusters) {
             itemsetTimes.add(clusterMatrix.getTimeId(clusterId));
         }

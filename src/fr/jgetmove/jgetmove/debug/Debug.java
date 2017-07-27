@@ -32,7 +32,7 @@ import java.util.Objects;
  * <b>note:</b> if {@link PrettyPrint} is implemented by the object, it will use {@link PrettyPrint#toPrettyString()} instead of {@link #toString()}
  *
  * @author stardisblue
- * @version 1.3.0
+ * @version 1.4.0
  * @see #enable()
  * @see #disable()
  * @see #print(Object, int)
@@ -231,6 +231,7 @@ public final class Debug {
     public static void disable() {
         displayDebug = 0;
     }
+
     /**
      * Adds a custom stack. Use {@link #unstack()} to unstack them.
      *

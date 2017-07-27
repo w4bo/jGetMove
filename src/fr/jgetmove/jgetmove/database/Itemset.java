@@ -12,8 +12,8 @@ package fr.jgetmove.jgetmove.database;
 
 import fr.jgetmove.jgetmove.debug.PrettyPrint;
 
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.TreeSet;
 
 /**
@@ -21,12 +21,11 @@ import java.util.TreeSet;
  * <p>
  * Contains a set of clusters, transactions and times.
  *
- * @implSpec All of the attributes are stored as {@link TreeSet}
- *
  * @author stardisblue
  * @author jframos0
  * @author Carmona-Anthony
  * @version 1.2.0
+ * @implSpec All of the attributes are stored as {@link TreeSet}
  * @since 0.1.0
  */
 public class Itemset implements Comparable<Itemset>, PrettyPrint {
@@ -52,7 +51,7 @@ public class Itemset implements Comparable<Itemset>, PrettyPrint {
      * @param times        set containing the times of the itemset
      * @implSpec all the sets are copied when added to the itemset
      */
-    public Itemset(final Set<Integer> transactions, final Set<Integer> clusters, final Set<Integer> times) {
+    public Itemset(Collection<Integer> transactions, Collection<Integer> clusters, Collection<Integer> times) {
         this.clusters = new TreeSet<>(clusters);
         this.transactions = new TreeSet<>(transactions);
         this.times = new TreeSet<>(times);
