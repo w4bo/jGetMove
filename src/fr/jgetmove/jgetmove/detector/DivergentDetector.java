@@ -49,7 +49,8 @@ public class DivergentDetector implements MultiDetector {
     public ArrayList<Pattern> detect(DataBase dataBase, Collection<Itemset> itemsets) {
 
         ArrayList<Pattern> divergeants = new ArrayList<>();
-        ArrayList<Integer> firstClusters = new ArrayList<>();
+        ArrayList<Integer> firstClusterIndexes = new ArrayList<>();
+        ArrayList<Integer> equivalence = new ArrayList<>(dataBase.getClusterIds());
         int nbClusters = dataBase.getClusters().size();
         int nbItemsets = itemsets.size();
         boolean[][] itemsetMatrice = new boolean[nbItemsets][nbClusters];
@@ -59,9 +60,9 @@ public class DivergentDetector implements MultiDetector {
         Construction de la Matrice [Itemset][Clusters]
          */
         for (Itemset itemset : itemsets) {
-            for (int idCluster : itemset.getClusters()) {
+            for (int clusterIndex = 0; clusterIndex < nbClusters; ++clusterIndex) {
                 if (itemset.getClusters().size() > 1) {
-                    itemsetMatrice[indexItemset][idCluster] = true;
+                    itemsetMatrice[indexItemset][clusterIndex] = true;
                     nbTrue++;
                 }
             }
@@ -72,32 +73,33 @@ public class DivergentDetector implements MultiDetector {
             }
         }
         /*
-        Ajout des clusters à la liste firstClusters
+        Ajout des clusters à la liste firstClusterIndexes
          */
-        for (int clusterId = nbClusters - 1; clusterId >= 0; clusterId--) {
-            if (dataBase.getCluster(clusterId).getTimeId() != dataBase.getCluster(dataBase.getClusters().size() - 1).getTimeId()) {
+        for (int clusterIndex = nbClusters - 1; clusterIndex >= 0; clusterIndex--) {
+            if (dataBase.getCluster(equivalence.get(clusterIndex)).getTimeId() !=
+                    dataBase.getCluster(dataBase.getClusterIds().last()).getTimeId()) {
                 ArrayList<Integer> itemsetIds = new ArrayList<>();
                 for (int j = 0; j < nbItemsets; j++) {
-                    if (itemsetMatrice[j][clusterId]) {
+                    if (itemsetMatrice[j][clusterIndex]) {
                         itemsetIds.add(j);
                     }
                 }
                 if (itemsetIds.size() > 1) {
-                    int idFirstCluster = subDetect(itemsetMatrice, clusterId, itemsetIds);
-                    if (!firstClusters.contains(idFirstCluster)) {
-                        firstClusters.add(idFirstCluster);
+                    int firstClusterIndex = subDetect(itemsetMatrice, clusterIndex, itemsetIds);
+                    if (!firstClusterIndexes.contains(firstClusterIndex)) {
+                        firstClusterIndexes.add(firstClusterIndex);
                     }
                 }
             }
 
         }
         /*
-        Creation d'un convergeant par cluster dans la liste firstClusters
+        Creation d'un convergeant par cluster dans la liste firstClusterIndexes
          */
-        for (int idCluster : firstClusters) {
+        for (int clusterIndex : firstClusterIndexes) {
             //Lorsqu'on a notre tableau, pour tt les lastclusters
             //New Convergent (dataBase, lastClusters[i]);
-            divergeants.add(new Divergent(dataBase, idCluster));
+            divergeants.add(new Divergent(dataBase, equivalence.get(clusterIndex)));
         }
 
         return divergeants;
@@ -107,31 +109,32 @@ public class DivergentDetector implements MultiDetector {
      * Detect the first cluster when all the itemsetIds are present
      *
      * @param itemsetMatrice the matrix
-     * @param clusterId      the last clusterId when the itemsets are all present
+     * @param clusterIndex   the last clusterIndex when the itemsets are all present
      * @param itemsetIds     a list of the itemsetIds
-     * @return the first clusterId where all the itemsetIds are present
+     * @return the first clusterIndex where all the itemsetIds are present
      */
-    public int subDetect(boolean[][] itemsetMatrice, int clusterId, ArrayList<Integer> itemsetIds) {
+    public int subDetect(boolean[][] itemsetMatrice, int clusterIndex, ArrayList<Integer> itemsetIds) {
         boolean finalResult = true; //Variable qui permet de verifier si les itemsets sont identiques (true) ou opposes (false) opposes = tt vrai et dans l'autre cluster tt faux
-        for (int i = clusterId - 1; i >= 0; i--) {
-            //Pour chaque cluster en partant du clusterId + 1 vu qu'on doit comparer clusterId aux clusters précèdents
+        int lastClusterIndex = clusterIndex;
+        for (int index = lastClusterIndex - 1; index >= 0; index--) {
+            //Pour chaque cluster en partant du lastClusterIndex + 1 vu qu'on doit comparer lastClusterIndex aux clusters précèdents
             for (int j = 0; j < itemsetIds.size() - 1; j++) {
-                //Pour chaque itemset du cluster avec pour id i;
-                if (itemsetMatrice[itemsetIds.get(j)][i] == itemsetMatrice[itemsetIds.get(j + 1)][i]) {
+                //Pour chaque itemset du cluster avec pour id index;
+                if (itemsetMatrice[itemsetIds.get(j)][index] == itemsetMatrice[itemsetIds.get(j + 1)][index]) {
                     //Si j et j + 1 sont egaux
                     //On va enregistrer si l'ensemble est identique ou oppose
-                    finalResult = itemsetMatrice[itemsetIds.get(j)][i];
+                    finalResult = itemsetMatrice[itemsetIds.get(j)][index];
                 } else {
-                    //si j et j+1 sont differents, on retourne le clusterId comme cluster divergeant
-                    return clusterId;
+                    //si j et j+1 sont differents, on retourne le lastClusterIndex comme cluster divergeant
+                    return lastClusterIndex;
                 }
             }
             if (finalResult) {
-                //si les itemsets etaient identiques, alors clusterId prend la valeur du cluster le plus avance dans le temps.
-                clusterId = i;
+                //si les itemsets etaient identiques, alors lastClusterIndex prend la valeur du cluster le plus avance dans le temps.
+                lastClusterIndex = index;
             }
         }
-        return clusterId;
+        return lastClusterIndex;
     }
 
     @Override
