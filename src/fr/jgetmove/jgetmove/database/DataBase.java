@@ -42,7 +42,8 @@ public class DataBase extends Base {
      * @throws IOException              if inputObj or inputTime is incorrect
      * @throws ClusterNotExistException if the cluster doesn't exist
      */
-    public DataBase(Input inputObj, Input inputTime) throws IOException, ClusterNotExistException, MalformedTimeIndexException {
+    public DataBase(Input inputObj,
+                    Input inputTime) throws IOException, ClusterNotExistException, MalformedTimeIndexException {
         super();
 
         this.inputObj = inputObj;
@@ -156,25 +157,25 @@ public class DataBase extends Base {
 
             for (int i = 0; i < clustersIds.size() - 1; i++) {
                 linksArray.add(Json.createObjectBuilder()
-                        .add("id", transaction.getId())
-                        .add("source", clustersIds.get(i))
-                        .add("target", clustersIds.get(i + 1))
-                        .add("value", 1)
-                        .add("label", transaction.getId()));
+                                   .add("id", transaction.getId())
+                                   .add("source", clustersIds.get(i))
+                                   .add("target", clustersIds.get(i + 1))
+                                   .add("value", 1)
+                                   .add("label", transaction.getId()));
             }
             //index += transaction.getClusters().size();
         }
 
         JsonArrayBuilder nodesArray = Json.createArrayBuilder();
-        for (int i = 0; i < this.getClusters().size(); i++) {
+        for (int i : this.getClusterIds()) {
             nodesArray.add(Json.createObjectBuilder()
-                    .add("id", i)
-                    .add("label", this.printGetClusterTransactions(i))
-                    .add("time", this.getClusterTimeId(i)));
+                               .add("id", i)
+                               .add("label", this.printGetClusterTransactions(i))
+                               .add("time", this.getClusterTimeId(i)));
         }
         JsonObjectBuilder links = Json.createObjectBuilder();
         links.add("links", linksArray)
-                .add("nodes", nodesArray);
+             .add("nodes", nodesArray);
         return links;
     }
 
