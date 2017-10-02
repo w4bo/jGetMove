@@ -1,5 +1,5 @@
 [latest release]:(https://github.com/jGetMove/jGetMove/releases/latest)
-# jGetMove v1.0.0
+# jGetMove v2.0.1 - Xénophon
 
 GetMove algorithm in java
 
