@@ -3,6 +3,8 @@
 jGetMove v2.0.2 - Xénophon
 ============================
 
+[![Build](https://github.com/w4bo/jGetMove/actions/workflows/build.yml/badge.svg)](https://github.com/w4bo/jGetMove/actions/workflows/build.yml)
+
 GetMove algorithm in java
 
 Requirements
