@@ -1,0 +1,44 @@
+plugins {
+    id 'java-library'
+    id 'idea'
+    id 'com.github.johnrengelman.shadow' version '6.0.0'
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+shadowJar { zip64 = true }
+
+javadoc { failOnError true }
+
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+    mavenCentral()
+}
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+dependencies {
+    implementation files('lib/apiguardian-api-1.0.0.jar')
+    implementation files('lib/javax.json-1.0.4-javadoc.jar')
+    implementation files('lib/javax.json-1.0.4.jar')
+    implementation files('lib/jcommander-1.72-javadoc.jar')
+    implementation files('lib/jcommander-1.72.jar')
+    implementation files('lib/junit-jupiter-api-5.5.0-M1.jar')
+    implementation files('lib/junit-platform-commons-1.5.0-M1.jar')
+    implementation files('lib/opentest4j-1.1.1.jar')
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
+}
+
+defaultTasks 'clean', 'build', 'test', 'shadowJar'

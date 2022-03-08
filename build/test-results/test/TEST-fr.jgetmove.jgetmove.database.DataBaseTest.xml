@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="fr.jgetmove.jgetmove.database.DataBaseTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2022-03-08T15:05:13" hostname="ISI-BIG36" time="0.017">
+  <properties/>
+  <testcase name="getClusterTransactions()" classname="fr.jgetmove.jgetmove.database.DataBaseTest" time="0.001"/>
+  <testcase name="toJson()" classname="fr.jgetmove.jgetmove.database.DataBaseTest" time="0.009"/>
+  <testcase name="getAndAddTimes()" classname="fr.jgetmove.jgetmove.database.DataBaseTest" time="0.001"/>
+  <testcase name="getAndAddTransactions()" classname="fr.jgetmove.jgetmove.database.DataBaseTest" time="0.001"/>
+  <testcase name="isClusterInTransactions()" classname="fr.jgetmove.jgetmove.database.DataBaseTest" time="0.001"/>
+  <testcase name="getFilteredTransactionIdsIfHaveCluster()" classname="fr.jgetmove.jgetmove.database.DataBaseTest" time="0.001"/>
+  <testcase name="getAndAddClusters()" classname="fr.jgetmove.jgetmove.database.DataBaseTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
